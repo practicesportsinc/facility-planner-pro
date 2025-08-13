@@ -2,7 +2,18 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Mail, Calendar, TrendingUp, DollarSign, Target, Clock } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Download, Mail, Calendar, TrendingUp, DollarSign, Target, Clock, Calculator } from "lucide-react";
+import { 
+  calculateSpacePlanning, 
+  calculateCapExBuild, 
+  calculateCapExBuy, 
+  calculateCapExLease,
+  calculateOpEx,
+  calculateRevenue,
+  calculateProfitability 
+} from "@/utils/calculations";
+import { DEFAULT_GLOBAL_ASSUMPTIONS } from "@/data/sportPresets";
 
 interface ResultsProps {
   data: any;
@@ -16,22 +27,107 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
   const [emailSent, setEmailSent] = useState(false);
 
   // Extract data from previous steps
-  const projectData = allData[1] || {};
-  const facilityData = allData[2] || {};
-  const equipmentData = allData[3] || {};
+  const projectBasics = allData[1] || {};
+  const facilityPlan = allData[2] || {};
+  const equipment = allData[3] || {};
+  const siteCosts = allData[4] || {};
+  const operating = allData[5] || {};
+  const revenue = allData[6] || {};
+  const financing = allData[7] || {};
+  const sensitivity = allData[8] || {};
   const leadData = allData[9] || {};
 
-  // Calculate key metrics (simplified for demo)
-  const totalCapEx = 1750000; // From site + equipment costs
-  const monthlyOpEx = 35000; // From operating costs step
-  const monthlyRevenue = 48000; // From revenue step
-  const monthlyDebtService = 12500; // From financing step
+  // Get global assumptions (can be made editable later)
+  const globalAssumptions = DEFAULT_GLOBAL_ASSUMPTIONS;
 
-  const monthlyNetCashFlow = monthlyRevenue - monthlyOpEx - monthlyDebtService;
-  const annualNetCashFlow = monthlyNetCashFlow * 12;
-  const simpleROI = (annualNetCashFlow / totalCapEx) * 100;
-  const paybackPeriod = totalCapEx / annualNetCashFlow;
-  const breakEvenMonth = monthlyOpEx / (monthlyRevenue - monthlyOpEx);
+  // Calculate Space Planning
+  const spacePlanning = calculateSpacePlanning(
+    facilityPlan.selectedSports || {},
+    globalAssumptions,
+    facilityPlan.totalSqft
+  );
+
+  // Calculate CapEx based on facility type
+  let capExCalculation;
+  const facilityType = facilityPlan.facilityType || 'build';
+  
+  if (facilityType === 'build') {
+    capExCalculation = calculateCapExBuild(spacePlanning.grossSF, {
+      buildingCostPerSf: siteCosts.buildingCostPerSf || 85,
+      siteworkPct: siteCosts.siteworkPct || 15,
+      tiCostPerSf: siteCosts.tiCostPerSf || 25,
+      softCostsPct: siteCosts.softCostsPct || 20,
+      fixturesAllowance: siteCosts.fixturesAllowance || 18000,
+      itSecurityAllowance: siteCosts.itSecurityAllowance || 8500,
+      contingencyPct: siteCosts.contingencyPct || 10,
+      landCost: siteCosts.landCost || 0
+    });
+  } else if (facilityType === 'buy') {
+    capExCalculation = calculateCapExBuy(spacePlanning.grossSF, {
+      purchasePrice: siteCosts.purchasePrice || 1000000,
+      closingCostsPct: siteCosts.closingCostsPct || 3,
+      dueDiligenceCosts: siteCosts.dueDiligenceCosts || 15000,
+      renovationCostPerSf: siteCosts.renovationCostPerSf || 45,
+      softCostsPct: siteCosts.softCostsPct || 15,
+      contingencyPct: siteCosts.contingencyPct || 8,
+      fixturesAllowance: siteCosts.fixturesAllowance || 18000,
+      itSecurityAllowance: siteCosts.itSecurityAllowance || 8500
+    });
+  } else {
+    capExCalculation = calculateCapExLease(spacePlanning.grossSF, {
+      tiCostPerSf: siteCosts.tiCostPerSf || 35,
+      tiAllowancePerSf: siteCosts.tiAllowancePerSf || 10,
+      baseRentPerSfYear: siteCosts.baseRentPerSfYear || 12,
+      nnnPerSfYear: siteCosts.nnnPerSfYear || 4,
+      camPerSfYear: siteCosts.camPerSfYear || 2,
+      freeRentMonths: siteCosts.freeRentMonths || 3,
+      securityDepositMonths: siteCosts.securityDepositMonths || 2,
+      softCostsPct: siteCosts.softCostsPct || 15,
+      contingencyPct: siteCosts.contingencyPct || 8,
+      fixturesAllowance: siteCosts.fixturesAllowance || 18000,
+      itSecurityAllowance: siteCosts.itSecurityAllowance || 8500
+    });
+  }
+
+  // Calculate OpEx
+  const opExCalculation = calculateOpEx(spacePlanning.grossSF, {
+    staffing: operating.staffing || [{ ftes: 3, loadedWagePerHr: 25 }],
+    utilities: operating.utilities || 3500,
+    insurance: operating.insurance || 1200,
+    propertyTax: operating.propertyTax || 2800,
+    maintenance: operating.maintenance || 2000,
+    marketing: operating.marketing || 1500,
+    software: operating.software || 800,
+    janitorial: operating.janitorial || 1000,
+    other: operating.other || 500,
+    baseRentPerSfYear: facilityType === 'lease' ? siteCosts.baseRentPerSfYear : undefined,
+    nnnPerSfYear: facilityType === 'lease' ? siteCosts.nnnPerSfYear : undefined,
+    camPerSfYear: facilityType === 'lease' ? siteCosts.camPerSfYear : undefined,
+    loanAmount: financing.loanAmount,
+    interestRate: financing.interestRate,
+    termYears: financing.termYears
+  });
+
+  // Calculate Revenue
+  const revenueCalculation = calculateRevenue({
+    memberships: revenue.memberships || [{ priceMonth: 89, members: 150 }],
+    rentals: revenue.rentals || [{ ratePerHr: 85, utilHoursPerWeek: 40 }],
+    lessons: revenue.lessons || [{ coachCount: 2, hoursPerCoachWeek: 25, avgRatePerHr: 65, utilizationPct: 75 }],
+    campsClinicsl: revenue.campsClinicsl || [{ sessionsPerYear: 12, avgPrice: 150, capacity: 20, fillRatePct: 80 }],
+    leaguesTournaments: revenue.leaguesTournaments || [{ eventsPerYear: 6, teamsPerEvent: 8, avgTeamFee: 400, netMarginPct: 60 }],
+    partiesEvents: revenue.partiesEvents || { annualRevenue: 24000 },
+    merchandise: revenue.merchandise || { annualRevenue: 8000 },
+    concessions: revenue.concessions || { annualRevenue: 12000 },
+    sponsorships: revenue.sponsorships || { annualRevenue: 6000 }
+  });
+
+  // Calculate Profitability
+  const profitabilityCalculation = calculateProfitability(
+    capExCalculation.total,
+    revenueCalculation.total,
+    opExCalculation.total,
+    opExCalculation.debtServiceMonthly
+  );
 
   const handleEmailReport = () => {
     // Here we would send the report via email
@@ -45,14 +141,14 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
   };
 
   const summaryData = {
-    totalInvestment: totalCapEx,
-    monthlyRevenue: monthlyRevenue,
-    monthlyExpenses: monthlyOpEx + monthlyDebtService,
-    monthlyCashFlow: monthlyNetCashFlow,
-    annualCashFlow: annualNetCashFlow,
-    roi: simpleROI,
-    paybackYears: paybackPeriod,
-    breakEvenMonths: breakEvenMonth,
+    totalInvestment: capExCalculation.total,
+    monthlyRevenue: revenueCalculation.total,
+    monthlyExpenses: opExCalculation.total,
+    monthlyCashFlow: profitabilityCalculation.netIncomeMonthly,
+    annualCashFlow: profitabilityCalculation.netIncomeMonthly * 12,
+    roi: profitabilityCalculation.roiYearOne,
+    paybackYears: profitabilityCalculation.paybackMonths / 12,
+    breakEvenMonths: profitabilityCalculation.breakEvenMonths,
   };
 
   return (
@@ -60,7 +156,7 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-2">Your Facility Analysis Results</h2>
         <p className="text-muted-foreground">
-          Comprehensive financial projections for {projectData.projectName || 'your sports facility'}
+          Comprehensive financial projections for {projectBasics.projectName || 'your sports facility'}
         </p>
       </div>
 
@@ -137,25 +233,27 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Project Name:</span>
-                    <span className="text-sm font-medium">{projectData.projectName}</span>
+                    <span className="text-sm font-medium">{projectBasics.projectName}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Location:</span>
-                    <span className="text-sm font-medium">{projectData.location}</span>
+                    <span className="text-sm font-medium">{projectBasics.location}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Sports:</span>
-                    <span className="text-sm font-medium">{projectData.selectedSports?.join(', ')}</span>
+                    <span className="text-sm font-medium">{projectBasics.selectedSports?.join(', ')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Facility Type:</span>
-                    <span className="text-sm font-medium capitalize">{facilityData.facilityType}</span>
+                    <span className="text-sm font-medium capitalize">{facilityPlan.facilityType}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Square Footage:</span>
-                    <span className="text-sm font-medium">
-                      {(facilityData.totalSquareFootage || 25000).toLocaleString()} sq ft
-                    </span>
+                    <span className="text-sm text-muted-foreground">Total Program SF:</span>
+                    <span className="text-sm font-medium">{spacePlanning.totalProgramSF.toLocaleString()} sq ft</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Gross SF (w/ circulation):</span>
+                    <span className="text-sm font-medium">{spacePlanning.grossSF.toLocaleString()} sq ft</span>
                   </div>
                 </div>
               </CardContent>
@@ -187,7 +285,11 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Break-even:</span>
-                    <span className="text-sm font-medium">{summaryData.breakEvenMonths.toFixed(0)} months</span>
+                    <span className="text-sm font-medium">
+                      {typeof summaryData.breakEvenMonths === 'number' 
+                        ? `${summaryData.breakEvenMonths.toFixed(0)} months` 
+                        : summaryData.breakEvenMonths}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -231,30 +333,12 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span>Memberships</span>
-                    <span className="font-medium">$18,500</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Court/Field Rentals</span>
-                    <span className="font-medium">$12,800</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Lessons & Training</span>
-                    <span className="font-medium">$8,200</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Camps & Clinics</span>
-                    <span className="font-medium">$4,500</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Events & Parties</span>
-                    <span className="font-medium">$2,800</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Retail & Concessions</span>
-                    <span className="font-medium">$1,200</span>
-                  </div>
+                  {revenueCalculation.breakdown.map((item, index) => (
+                    <div key={index} className="flex justify-between">
+                      <span>{item.category}</span>
+                      <span className="font-medium">${item.amount.toLocaleString()}</span>
+                    </div>
+                  ))}
                   <div className="flex justify-between border-t pt-2 font-bold">
                     <span>Total Monthly Revenue</span>
                     <span>${summaryData.monthlyRevenue.toLocaleString()}</span>
@@ -269,34 +353,12 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span>Staffing</span>
-                    <span className="font-medium">$18,500</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Utilities</span>
-                    <span className="font-medium">$4,200</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Insurance</span>
-                    <span className="font-medium">$2,900</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Marketing</span>
-                    <span className="font-medium">$3,000</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Maintenance & Supplies</span>
-                    <span className="font-medium">$2,400</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Other Operating</span>
-                    <span className="font-medium">$4,000</span>
-                  </div>
-                  <div className="flex justify-between border-t pt-2">
-                    <span>Debt Service</span>
-                    <span className="font-medium">$12,500</span>
-                  </div>
+                  {opExCalculation.breakdown.map((item, index) => (
+                    <div key={index} className="flex justify-between">
+                      <span>{item.category}</span>
+                      <span className="font-medium">${item.amount.toLocaleString()}</span>
+                    </div>
+                  ))}
                   <div className="flex justify-between border-t pt-2 font-bold">
                     <span>Total Monthly Expenses</span>
                     <span>${summaryData.monthlyExpenses.toLocaleString()}</span>
@@ -305,6 +367,147 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
               </CardContent>
             </Card>
           </div>
+
+          {/* How This Was Calculated Accordion */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                How This Was Calculated
+              </CardTitle>
+              <CardDescription>
+                Detailed calculation steps and formulas used for all financial projections
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="space-planning">
+                  <AccordionTrigger>Space Planning Calculations</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-2">Total Program SF:</h4>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          {spacePlanning.breakdown.map((item, index) => (
+                            <div key={index}>
+                              {item.sport}: {item.units} units × {item.spacePer} sf/unit = {item.total.toLocaleString()} sf
+                            </div>
+                          ))}
+                          <div className="font-medium pt-2 border-t">
+                            Total Program SF = {spacePlanning.totalProgramSF.toLocaleString()} sf
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-2">Gross SF Calculation:</h4>
+                        <div className="text-sm text-muted-foreground">
+                          Gross SF = Program SF × (1 + Circulation% + Admin%)<br/>
+                          Gross SF = {spacePlanning.totalProgramSF.toLocaleString()} × (1 + {globalAssumptions.circulationPctAddon}% + {globalAssumptions.adminPctAddon}%)<br/>
+                          Gross SF = {spacePlanning.grossSF.toLocaleString()} sf
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="capex">
+                  <AccordionTrigger>CapEx Calculations ({facilityType.toUpperCase()})</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {capExCalculation.breakdown.map((item, index) => (
+                        <div key={index} className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="font-medium">{item.category}</div>
+                            {item.calculation && (
+                              <div className="text-sm text-muted-foreground">{item.calculation}</div>
+                            )}
+                          </div>
+                          <div className="text-right font-medium">
+                            ${item.amount.toLocaleString()}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex justify-between border-t pt-2 font-bold">
+                        <span>Total CapEx</span>
+                        <span>${capExCalculation.total.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="opex">
+                  <AccordionTrigger>OpEx Calculations (Monthly)</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {opExCalculation.breakdown.map((item, index) => (
+                        <div key={index} className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="font-medium">{item.category}</div>
+                            {item.calculation && (
+                              <div className="text-sm text-muted-foreground">{item.calculation}</div>
+                            )}
+                          </div>
+                          <div className="text-right font-medium">
+                            ${item.amount.toLocaleString()}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex justify-between border-t pt-2 font-bold">
+                        <span>Total Monthly OpEx</span>
+                        <span>${opExCalculation.total.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="revenue">
+                  <AccordionTrigger>Revenue Calculations (Monthly)</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {revenueCalculation.breakdown.map((item, index) => (
+                        <div key={index} className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="font-medium">{item.category}</div>
+                            {item.calculation && (
+                              <div className="text-sm text-muted-foreground">{item.calculation}</div>
+                            )}
+                          </div>
+                          <div className="text-right font-medium">
+                            ${item.amount.toLocaleString()}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex justify-between border-t pt-2 font-bold">
+                        <span>Total Monthly Revenue</span>
+                        <span>${revenueCalculation.total.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="profitability">
+                  <AccordionTrigger>Profitability Calculations</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {profitabilityCalculation.calculations.map((item, index) => (
+                        <div key={index} className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="font-medium">{item.metric}</div>
+                            <div className="text-sm text-muted-foreground">{item.formula}</div>
+                          </div>
+                          <div className="text-right font-medium">
+                            {typeof item.result === 'number' 
+                              ? item.result.toLocaleString() 
+                              : item.result}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="timeline" className="space-y-6">
