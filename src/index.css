@@ -6,36 +6,36 @@
 
 @layer base {
   :root {
-    --background: 255 255 255;
-    --foreground: 222 84% 5%;
+    --background: 215 25% 97%;         /* #F7F9FC - App background */
+    --foreground: 0 0% 7%;             /* #111111 - Near-black for text */
 
-    --card: 255 255 255;
-    --card-foreground: 222 84% 5%;
+    --card: 0 0% 100%;                 /* #FFFFFF - Cards/panels */
+    --card-foreground: 0 0% 7%;        /* #111111 - Near-black for text */
 
     --popover: 255 255 255;
     --popover-foreground: 222 84% 5%;
 
-    /* Sports-inspired professional palette */
-    --primary: 217 91% 32%;
+    /* PracticeSports brand colors */
+    --primary: 211 100% 45%;    /* #0B63E5 - Blue */
     --primary-foreground: 255 255 255;
-    --primary-glow: 217 91% 60%;
+    --primary-glow: 211 100% 60%;
 
-    --secondary: 142 76% 36%;
+    --secondary: 142 76% 36%;   /* #00A66A - Green */
     --secondary-foreground: 255 255 255;
     --secondary-glow: 142 76% 55%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 215 25% 97%;              /* #F7F9FC - App background */
+    --muted-foreground: 220 9% 46%;    /* #6B7280 - Secondary text */
 
     --accent: 38 92% 50%;
-    --accent-foreground: 222 84% 5%;
+    --accent-foreground: 0 0% 7%;      /* #111111 - Near-black for text */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 217 91% 32%;
+    --ring: 211 100% 45%;
 
     --success: 142 76% 36%;
     --success-foreground: 255 255 255;
@@ -47,18 +47,18 @@
     --info-foreground: 255 255 255;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 32%), hsl(217 91% 60%));
+    --gradient-primary: linear-gradient(135deg, hsl(211 100% 45%), hsl(211 100% 60%));
     --gradient-secondary: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 32%) 0%, hsl(199 89% 48%) 50%, hsl(142 76% 36%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(255 255 255) 0%, hsl(210 40% 96%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(211 100% 45%) 0%, hsl(199 89% 48%) 50%, hsl(142 76% 36%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(215 25% 97%) 100%);
 
     /* Shadows & Effects */
-    --shadow-sm: 0 1px 2px 0 hsl(222 84% 5% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(222 84% 5% / 0.1), 0 2px 4px -1px hsl(222 84% 5% / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(222 84% 5% / 0.1), 0 4px 6px -2px hsl(222 84% 5% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(222 84% 5% / 0.1), 0 10px 10px -5px hsl(222 84% 5% / 0.04);
-    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.3);
-    --shadow-primary: 0 10px 30px -10px hsl(217 91% 32% / 0.3);
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 7% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 7% / 0.1), 0 2px 4px -1px hsl(0 0% 7% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 7% / 0.1), 0 4px 6px -2px hsl(0 0% 7% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 7% / 0.1), 0 10px 10px -5px hsl(0 0% 7% / 0.04);
+    --shadow-glow: 0 0 40px hsl(211 100% 60% / 0.3);
+    --shadow-primary: 0 10px 30px -10px hsl(211 100% 45% / 0.3);
 
     /* Animation & Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

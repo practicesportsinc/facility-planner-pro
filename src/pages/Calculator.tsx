@@ -7,27 +7,27 @@ import { ChevronLeft, ChevronRight, Save } from "lucide-react";
 
 // Wizard steps
 import ProjectBasics from "@/components/calculator/steps/ProjectBasics";
+import BuildMode from "@/components/calculator/steps/BuildMode";
 import FacilityPlan from "@/components/calculator/steps/FacilityPlan";
 import Equipment from "@/components/calculator/steps/Equipment";
-import SiteCosts from "@/components/calculator/steps/SiteCosts";
-import Operating from "@/components/calculator/steps/Operating";
-import Revenue from "@/components/calculator/steps/Revenue";
+import StaffingAndOpEx from "@/components/calculator/steps/StaffingAndOpEx";
+import RevenuePrograms from "@/components/calculator/steps/RevenuePrograms";
 import Financing from "@/components/calculator/steps/Financing";
-import Sensitivity from "@/components/calculator/steps/Sensitivity";
+import KpiResults from "@/components/calculator/steps/KpiResults";
 import LeadCapture from "@/components/calculator/steps/LeadCapture";
 import Results from "@/components/calculator/steps/Results";
 
 const STEPS = [
   { id: 1, title: "Project Basics", component: ProjectBasics },
-  { id: 2, title: "Facility Plan", component: FacilityPlan },
-  { id: 3, title: "Equipment", component: Equipment },
-  { id: 4, title: "Site & Building", component: SiteCosts },
-  { id: 5, title: "Operating Costs", component: Operating },
-  { id: 6, title: "Revenue Programs", component: Revenue },
+  { id: 2, title: "Build/Buy/Lease", component: BuildMode },
+  { id: 3, title: "Facility Plan", component: FacilityPlan },
+  { id: 4, title: "Equipment", component: Equipment },
+  { id: 5, title: "Staffing & OpEx", component: StaffingAndOpEx },
+  { id: 6, title: "Revenue Programs", component: RevenuePrograms },
   { id: 7, title: "Financing", component: Financing },
-  { id: 8, title: "Sensitivity Analysis", component: Sensitivity },
+  { id: 8, title: "Financial Overview", component: KpiResults },
   { id: 9, title: "Contact Information", component: LeadCapture },
-  { id: 10, title: "Results & Reports", component: Results },
+  { id: 10, title: "Complete Analysis", component: Results },
 ];
 
 const Calculator = () => {

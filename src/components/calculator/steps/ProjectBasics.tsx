@@ -36,7 +36,7 @@ const BUSINESS_MODELS = [
 const ProjectBasics = ({ data, onUpdate, onNext }: ProjectBasicsProps) => {
   const [formData, setFormData] = useState({
     projectName: data.projectName || '',
-    location: data.location || '',
+    location: data.location || 'Omaha, NE, United States',
     currency: data.currency || 'USD',
     targetOpeningDate: data.targetOpeningDate || '',
     selectedSports: data.selectedSports || [],
@@ -94,13 +94,13 @@ const ProjectBasics = ({ data, onUpdate, onNext }: ProjectBasicsProps) => {
               <Label htmlFor="location">Location</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="location"
-                  className="pl-10"
-                  placeholder="City, State"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                />
+                  <Input
+                    id="location"
+                    className="pl-10"
+                    placeholder="Omaha, NE, United States"
+                    value={formData.location}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                  />
               </div>
             </div>
 
