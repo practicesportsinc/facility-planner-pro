@@ -37,7 +37,16 @@ const KpiResults = ({ data, onNext, onPrevious, allData }: KpiResultsProps) => {
     roi: 12.5,
     paybackMonths: 24,
     totalSqft: 25000,
-    debtService: 8500
+    debtService: 8500,
+    // Breakdown details for accordion
+    buildingCosts: 900000,
+    equipmentCosts: 400000,
+    softCosts: 200000,
+    salaryCosts: 25000,
+    fixedCosts: 12000,
+    membershipRevenue: 35000,
+    programRevenue: 20000,
+    otherRevenue: 10000
   };
 
   const kpiCards = [
