@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Building, ShoppingCart, FileText, AlertTriangle } from "lucide-react";
+import { HelpTooltip } from "@/components/ui/help-tooltip";
 
 interface BuildModeProps {
   data: any;
@@ -143,7 +144,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="regionMultiplier">Region Multiplier</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="regionMultiplier">Region Multiplier</Label>
+              <HelpTooltip fieldId="region_multiplier" label="Region Multiplier" />
+            </div>
             <Input
               id="regionMultiplier"
               type="number"
@@ -170,7 +174,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="landCost">Land Cost ($)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="landCost">Land Cost ($)</Label>
+                    <HelpTooltip fieldId="land_cost" label="Land Cost" />
+                  </div>
                   <Input
                     id="landCost"
                     type="number"
@@ -180,7 +187,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="buildingCostPerSf">Building Cost ($/sf)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="buildingCostPerSf">Building Cost ($/sf)</Label>
+                    <HelpTooltip fieldId="building_cost_per_sf" label="Building Cost" />
+                  </div>
                   <Input
                     id="buildingCostPerSf"
                     type="number"
@@ -193,7 +203,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="siteworkPct">Sitework (%)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="siteworkPct">Sitework (%)</Label>
+                    <HelpTooltip fieldId="sitework_pct" label="Sitework" />
+                  </div>
                   <Input
                     id="siteworkPct"
                     type="number"
@@ -203,7 +216,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="tiCostPerSf">TI Cost ($/sf)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="tiCostPerSf">TI Cost ($/sf)</Label>
+                    <HelpTooltip fieldId="ti_cost_per_sf" label="TI Cost" />
+                  </div>
                   <Input
                     id="tiCostPerSf"
                     type="number"
@@ -216,7 +232,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
 
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="softCostsPct">Soft Costs (%)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="softCostsPct">Soft Costs (%)</Label>
+                    <HelpTooltip fieldId="soft_costs_pct" label="Soft Costs" />
+                  </div>
                   <Input
                     id="softCostsPct"
                     type="number"
@@ -226,7 +245,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contingencyPct">Contingency (%)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="contingencyPct">Contingency (%)</Label>
+                    <HelpTooltip fieldId="contingency_pct" label="Contingency" />
+                  </div>
                   <Input
                     id="contingencyPct"
                     type="number"
@@ -236,7 +258,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="fixturesAllowance">Fixtures Allowance ($)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="fixturesAllowance">Fixtures Allowance ($)</Label>
+                    <HelpTooltip fieldId="fixtures_allowance" label="Fixtures Allowance" />
+                  </div>
                   <Input
                     id="fixturesAllowance"
                     type="number"
@@ -248,7 +273,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="itSecurityAllowance">IT/Security Allowance ($)</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="itSecurityAllowance">IT/Security Allowance ($)</Label>
+                  <HelpTooltip fieldId="it_security_allowance" label="IT/Security Allowance" />
+                </div>
                 <Input
                   id="itSecurityAllowance"
                   type="number"
@@ -293,7 +321,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="purchasePrice">Purchase Price ($)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="purchasePrice">Purchase Price ($)</Label>
+                    <HelpTooltip fieldId="purchase_price" label="Purchase Price" />
+                  </div>
                   <Input
                     id="purchasePrice"
                     type="number"
@@ -303,7 +334,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="closingCostsPct">Closing Costs (%)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="closingCostsPct">Closing Costs (%)</Label>
+                    <HelpTooltip fieldId="closing_costs_pct" label="Closing Costs" />
+                  </div>
                   <Input
                     id="closingCostsPct"
                     type="number"
@@ -316,7 +350,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="dueDiligenceCosts">Due Diligence Costs ($)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="dueDiligenceCosts">Due Diligence Costs ($)</Label>
+                    <HelpTooltip fieldId="due_diligence_costs" label="Due Diligence Costs" />
+                  </div>
                   <Input
                     id="dueDiligenceCosts"
                     type="number"
@@ -326,7 +363,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="renovationCostPerSf">Renovation Cost ($/sf)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="renovationCostPerSf">Renovation Cost ($/sf)</Label>
+                    <HelpTooltip fieldId="renovation_cost_per_sf" label="Renovation Cost" />
+                  </div>
                   <Input
                     id="renovationCostPerSf"
                     type="number"
@@ -339,7 +379,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="softCostsPct">Soft Costs (%)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="softCostsPct">Soft Costs (%)</Label>
+                    <HelpTooltip fieldId="soft_costs_pct" label="Soft Costs" />
+                  </div>
                   <Input
                     id="softCostsPct"
                     type="number"
@@ -349,7 +392,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contingencyPct">Contingency (%)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="contingencyPct">Contingency (%)</Label>
+                    <HelpTooltip fieldId="contingency_pct" label="Contingency" />
+                  </div>
                   <Input
                     id="contingencyPct"
                     type="number"
@@ -395,7 +441,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="baseRentPerSfYear">Base Rent ($/sf/year)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="baseRentPerSfYear">Base Rent ($/sf/year)</Label>
+                    <HelpTooltip fieldId="base_rent_per_sf_year" label="Base Rent" />
+                  </div>
                   <Input
                     id="baseRentPerSfYear"
                     type="number"
@@ -405,7 +454,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="nnnPerSfYear">NNN ($/sf/year)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="nnnPerSfYear">NNN ($/sf/year)</Label>
+                    <HelpTooltip fieldId="nnn_per_sf_year" label="NNN" />
+                  </div>
                   <Input
                     id="nnnPerSfYear"
                     type="number"
@@ -415,7 +467,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="camPerSfYear">CAM ($/sf/year)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="camPerSfYear">CAM ($/sf/year)</Label>
+                    <HelpTooltip fieldId="cam_per_sf_year" label="CAM" />
+                  </div>
                   <Input
                     id="camPerSfYear"
                     type="number"
@@ -428,7 +483,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
 
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="freeRentMonths">Free Rent (months)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="freeRentMonths">Free Rent (months)</Label>
+                    <HelpTooltip fieldId="free_rent_months" label="Free Rent" />
+                  </div>
                   <Input
                     id="freeRentMonths"
                     type="number"
@@ -438,7 +496,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="tiAllowancePerSf">TI Allowance ($/sf)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="tiAllowancePerSf">TI Allowance ($/sf)</Label>
+                    <HelpTooltip fieldId="ti_allowance_per_sf" label="TI Allowance" />
+                  </div>
                   <Input
                     id="tiAllowancePerSf"
                     type="number"
@@ -448,7 +509,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="leaseYears">Lease Term (years)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="leaseYears">Lease Term (years)</Label>
+                    <HelpTooltip fieldId="lease_years" label="Lease Term" />
+                  </div>
                   <Select value={formData.leaseYears} onValueChange={(value) => handleInputChange('leaseYears', value)}>
                     <SelectTrigger>
                       <SelectValue />
@@ -466,7 +530,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="annualEscalationPct">Annual Escalation (%)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="annualEscalationPct">Annual Escalation (%)</Label>
+                    <HelpTooltip fieldId="annual_escalation_pct" label="Annual Escalation" />
+                  </div>
                   <Input
                     id="annualEscalationPct"
                     type="number"
@@ -477,7 +544,10 @@ const BuildMode = ({ data, onUpdate, onNext, onPrevious }: BuildModeProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="securityDepositMonths">Security Deposit (months)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="securityDepositMonths">Security Deposit (months)</Label>
+                    <HelpTooltip fieldId="security_deposit_months" label="Security Deposit" />
+                  </div>
                   <Input
                     id="securityDepositMonths"
                     type="number"
