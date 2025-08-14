@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap } from "lucide-react";
+import { LayoutGallery } from "@/components/layout/LayoutGallery";
 
 /** ---------- Types (aligned to your schema prompts) ---------- */
 type BuildMode = "build" | "buy" | "lease";
@@ -595,6 +596,25 @@ export default function QuickEstimatesButton() {
               <div className="qs-card">
                 <h3>Layout & Space</h3>
                 <LayoutSummary preset={preset} />
+              </div>
+
+              <div className="qs-card">
+                <h3>Layout Options</h3>
+                <LayoutGallery
+                  grossSf={computeSpace(preset.facility, preset.per_unit_space_sf).grossSF}
+                  counts={{
+                    volleyball_courts: preset.facility.court_or_cage_counts.volleyball_courts || 0,
+                    pickleball_courts: preset.facility.court_or_cage_counts.pickleball_courts || 0,
+                    basketball_courts_full: preset.facility.court_or_cage_counts.basketball_courts_full || 0,
+                    basketball_courts_half: 0,
+                    baseball_tunnels: preset.facility.court_or_cage_counts.baseball_tunnels || 0,
+                    training_turf_zone: preset.facility.court_or_cage_counts.training_turf_zone || 0,
+                    soccer_field_small: preset.facility.court_or_cage_counts.soccer_field_small || 0
+                  }}
+                  onChoose={(choice) => {
+                    console.log('Layout choice selected:', choice);
+                  }}
+                />
               </div>
 
               <div className="qs-card">
