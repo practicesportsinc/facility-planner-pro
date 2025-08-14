@@ -14,6 +14,7 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
       { id: "pickleball", label: "Pickleball", icon: "🏓", description: "Fastest growing sport" },
       { id: "soccer", label: "Soccer", icon: "⚽", description: "Indoor turf fields" },
       { id: "football", label: "Football", icon: "🏈", description: "Indoor training and 7v7 fields" },
+      { id: "lacrosse", label: "Lacrosse", icon: "🥍", description: "Indoor training and box lacrosse" },
       { id: "tennis", label: "Tennis", icon: "🎾", description: "Hard courts with viewing" },
       { id: "multi_sport", label: "Multi-Sport", icon: "🏟️", description: "Flexible programming space" },
       { id: "fitness", label: "Fitness/Training", icon: "💪", description: "Strength and conditioning" }
@@ -184,6 +185,7 @@ export const generateRecommendations = (responses: any) => {
     pickleball: { small: 10000, medium: 16000, large: 24000, xl: 35000 },
     soccer: { small: 20000, medium: 36000, large: 54000, xl: 75000 },
     football: { small: 18000, medium: 32000, large: 48000, xl: 65000 },
+    lacrosse: { small: 16000, medium: 28000, large: 42000, xl: 58000 },
     multi_sport: { small: 15000, medium: 25000, large: 40000, xl: 60000 }
   };
 
@@ -197,6 +199,7 @@ export const generateRecommendations = (responses: any) => {
     pickleball: "Multiple court pod design with social areas",
     soccer: "Turf fields with training zones and seating",
     football: "Training fields with agility zones and strength areas",
+    lacrosse: "Box lacrosse courts with training areas and boards",
     multi_sport: "Flexible space with moveable equipment"
   };
 
@@ -239,6 +242,7 @@ export const generateRecommendations = (responses: any) => {
     pickleball: Math.floor(suggestedSize / 1200), // ~1200 sf per court
     soccer: Math.floor(suggestedSize / 18000), // ~18000 sf per small field
     football: Math.floor(suggestedSize / 16000), // ~16000 sf per training field
+    lacrosse: Math.floor(suggestedSize / 14000), // ~14000 sf per box lacrosse court
     multi_sport: Math.floor(suggestedSize / 4000) // Variable usage
   };
 
