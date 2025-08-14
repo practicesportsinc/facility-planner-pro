@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +38,7 @@ const Calculator = () => {
   const projectId = searchParams.get('projectId');
   const mode = searchParams.get('mode');
   const isQuickMode = mode === 'quick';
+  const contentRef = useRef<HTMLDivElement>(null);
   
   // If it's quick mode, start at the KPI Results step (step 8)
   const [currentStep, setCurrentStep] = useState(isQuickMode ? 8 : 1);
@@ -79,6 +80,19 @@ const Calculator = () => {
       }
     }
   }, [isQuickMode, projectId]);
+
+  // Auto-scroll to content when in quick mode
+  useEffect(() => {
+    if (isQuickMode && contentRef.current) {
+      // Small delay to ensure content is rendered
+      setTimeout(() => {
+        contentRef.current?.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 500);
+    }
+  }, [isQuickMode, currentStep]);
 
   const currentStepData = STEPS.find(step => step.id === currentStep);
   const StepComponent = currentStepData?.component;
@@ -177,7 +191,7 @@ const Calculator = () => {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3" ref={contentRef}>
             <Card className="shadow-custom-lg">
               <CardContent className="p-8">
                 {StepComponent && (
