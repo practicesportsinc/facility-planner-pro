@@ -13,6 +13,7 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
       { id: "volleyball", label: "Volleyball", icon: "🏐", description: "Indoor courts with proper clearance" },
       { id: "pickleball", label: "Pickleball", icon: "🏓", description: "Fastest growing sport" },
       { id: "soccer", label: "Soccer", icon: "⚽", description: "Indoor turf fields" },
+      { id: "football", label: "Football", icon: "🏈", description: "Indoor training and 7v7 fields" },
       { id: "tennis", label: "Tennis", icon: "🎾", description: "Hard courts with viewing" },
       { id: "multi_sport", label: "Multi-Sport", icon: "🏟️", description: "Flexible programming space" },
       { id: "fitness", label: "Fitness/Training", icon: "💪", description: "Strength and conditioning" }
@@ -182,6 +183,7 @@ export const generateRecommendations = (responses: any) => {
     volleyball: { small: 12000, medium: 20000, large: 30000, xl: 45000 },
     pickleball: { small: 10000, medium: 16000, large: 24000, xl: 35000 },
     soccer: { small: 20000, medium: 36000, large: 54000, xl: 75000 },
+    football: { small: 18000, medium: 32000, large: 48000, xl: 65000 },
     multi_sport: { small: 15000, medium: 25000, large: 40000, xl: 60000 }
   };
 
@@ -194,6 +196,7 @@ export const generateRecommendations = (responses: any) => {
     volleyball: "Tournament-style courts with bleacher seating",
     pickleball: "Multiple court pod design with social areas",
     soccer: "Turf fields with training zones and seating",
+    football: "Training fields with agility zones and strength areas",
     multi_sport: "Flexible space with moveable equipment"
   };
 
@@ -235,6 +238,7 @@ export const generateRecommendations = (responses: any) => {
     volleyball: Math.floor(suggestedSize / 3000), // ~3000 sf per court
     pickleball: Math.floor(suggestedSize / 1200), // ~1200 sf per court
     soccer: Math.floor(suggestedSize / 18000), // ~18000 sf per small field
+    football: Math.floor(suggestedSize / 16000), // ~16000 sf per training field
     multi_sport: Math.floor(suggestedSize / 4000) // Variable usage
   };
 
