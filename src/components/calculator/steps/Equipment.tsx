@@ -15,7 +15,9 @@ interface EquipmentProps {
 
 const EQUIPMENT_BY_SPORT = {
   baseball: [
-    { id: 'batting-cages', name: 'Batting Cages (per cage)', cost: 15000, quantity: 6 },
+    { id: 'curtain-cage', name: 'CurtainCage (Collapsible)', cost: 12000, quantity: 6 },
+    { id: 'shell-cage', name: 'ShellCage (Multi-Lane)', cost: 22000, quantity: 0 },
+    { id: 'air-cage', name: 'AirCage (Retractable)', cost: 35000, quantity: 0 },
     { id: 'pitching-machines', name: 'Pitching Machines', cost: 3500, quantity: 4 },
     { id: 'protective-screens', name: 'Protective Screens', cost: 500, quantity: 8 },
     { id: 'batting-helmets', name: 'Batting Helmets', cost: 45, quantity: 20 },
@@ -73,9 +75,9 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
         const facilityPlanData = allData[3] || {};
         const numberOfCages = Number(facilityPlanData.numberOfCages);
         if (numberOfCages && numberOfCages > 0) {
-          const battingCageItem = clonedEquipment.find(item => item.id === 'batting-cages');
-          if (battingCageItem) {
-            battingCageItem.quantity = numberOfCages;
+          const curtainCageItem = clonedEquipment.find(item => item.id === 'curtain-cage');
+          if (curtainCageItem) {
+            curtainCageItem.quantity = numberOfCages;
           }
         }
       }

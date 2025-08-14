@@ -77,6 +77,43 @@ export const COST_LIBRARY: Record<string, CostItem> = {
     marketNote: "User-adjustable; varies by market"
   },
 
+  // Batting Cage Types
+  curtain_cage: {
+    id: "curtain_cage",
+    name: "CurtainCage (Collapsible)",
+    category: "baseball",
+    unit: "each",
+    costTiers: { low: 8000, mid: 12000, high: 18000 },
+    installFactorPct: 15,
+    description: "Collapsible curtain-style batting cage system, most affordable option",
+    userAdjustable: true,
+    marketNote: "Base model, easy setup and storage"
+  },
+
+  shell_cage: {
+    id: "shell_cage", 
+    name: "ShellCage (Multi-Lane)",
+    category: "baseball",
+    unit: "each",
+    costTiers: { low: 15000, mid: 22000, high: 35000 },
+    installFactorPct: 20,
+    description: "Multi-lane shell cage system, mid-tier option with enhanced durability",
+    userAdjustable: true,
+    marketNote: "Professional-grade, multiple lane configuration"
+  },
+
+  air_cage: {
+    id: "air_cage",
+    name: "AirCage (Retractable)",
+    category: "baseball", 
+    unit: "each",
+    costTiers: { low: 25000, mid: 35000, high: 50000 },
+    installFactorPct: 25,
+    description: "Premium electric retractable batting cage, highest-end option",
+    userAdjustable: true,
+    marketNote: "Top-tier retractable system, space-saving design"
+  },
+
   // Basketball Equipment
   competition_hoops: {
     id: "competition_hoops",
