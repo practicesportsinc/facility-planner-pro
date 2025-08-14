@@ -4,9 +4,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import Calculator from "./pages/Calculator";
+import Wizard from "./pages/Wizard";
 import Admin from "./pages/Admin";
 import Legal from "./pages/Legal";
+import Calculator from "./pages/Calculator";
 import Glossary from "./pages/Glossary";
 import NotFound from "./pages/NotFound";
 
@@ -20,9 +21,10 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/calculator" element={<Calculator />} />
+          <Route path="/wizard" element={<Wizard />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/legal" element={<Legal />} />
+          <Route path="/calculator" element={<Calculator />} />
           <Route path="/glossary" element={<Glossary />} />
           <Route path="/glossary/:slug" element={<Glossary />} />
           <Route path="*" element={<NotFound />} />

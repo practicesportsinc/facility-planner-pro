@@ -1,12 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/layout/Layout";
-import { Calculator, TrendingUp, FileText, Users, Target, Clock } from "lucide-react";
+import { Calculator, TrendingUp, FileText, Users, Target, Clock, Sparkles, BookOpen } from "lucide-react";
 import QuickEstimatesButton from "@/components/QuickEstimatesButton";
 import VisualDesignerHome from "@/components/home/VisualDesignerHome";
 
 const Home = () => {
+  const navigate = useNavigate();
+  
   return (
     <Layout>
       {/* Hero Section */}
@@ -21,20 +23,17 @@ const Home = () => {
               Make informed decisions with our comprehensive financial calculator.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="hero" size="lg" asChild>
+              <Button variant="hero" size="lg" onClick={() => navigate('/wizard')}>
+                <Sparkles className="mr-2 h-5 w-5" />
+                Facility Wizard
+              </Button>
+              <Button variant="outline" size="lg" asChild>
                 <Link to="/calculator">
                   <Calculator className="mr-2 h-5 w-5" />
                   Custom Calculations
                 </Link>
               </Button>
               <QuickEstimatesButton />
-              <Button 
-                variant="outline" 
-                size="lg" 
-                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                Learn More
-              </Button>
             </div>
           </div>
         </div>
