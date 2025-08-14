@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ArrowRight, Sparkles, Target, MapPin, Users, DollarSign, Calendar } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Target, MapPin, Users, DollarSign, Calendar, Zap } from "lucide-react";
 import { WIZARD_QUESTIONS, generateRecommendations } from "@/data/wizardQuestions";
 import { WizardQuestion, WizardResponse, WizardResult } from "@/types/wizard";
 import { toast } from "sonner";
@@ -284,9 +284,12 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
 
             <div className="flex gap-4 pt-6">
               <Button onClick={() => window.location.href = '/wizard-results'} className="flex-1">
-                <span className="text-center">
-                  Generate My Financials<br />& Business Plan
-                </span>
+                <div className="flex items-center justify-center gap-2">
+                  <Zap className="w-5 h-5" />
+                  <span className="text-center">
+                    Generate My Financials<br />& Business Plan
+                  </span>
+                </div>
               </Button>
               <Button variant="outline" onClick={() => window.location.href = '/calculator'}>
                 Customize My Plan
