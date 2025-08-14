@@ -70,13 +70,17 @@ export default function VisualDesignerHome() {
     return SHELL_SF.multi_sport[sel.size];
   }, [sel]);
 
-  // Aggregate counts for multi-select
+  // Aggregate counts for multi-select (map to LayoutGallery expected keys)
   const counts = useMemo(() => {
     if (!sel.size || sel.sports.length === 0) return {};
     const bundle: Record<string, number> = {};
     for (const s of sel.sports) {
       const add = UNIT_COUNTS[s][sel.size] || {};
-      for (const [k, v] of Object.entries(add)) bundle[k] = (bundle[k] ?? 0) + (v ?? 0);
+      for (const [k, v] of Object.entries(add)) {
+        // Map to keys expected by LayoutGallery
+        const mappedKey = k === "baseball_tunnels" ? "baseball_tunnels" : k;
+        bundle[mappedKey] = (bundle[mappedKey] ?? 0) + (v ?? 0);
+      }
     }
     return bundle;
   }, [sel]);
