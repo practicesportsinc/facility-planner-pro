@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calculator, Settings, FileText } from "lucide-react";
+import { Calculator, Settings, FileText, Sparkles, Zap } from "lucide-react";
+import QuickEstimatesButton from "@/components/QuickEstimatesButton";
 
 const Header = () => {
   const location = useLocation();
@@ -37,6 +38,16 @@ const Header = () => {
           >
             Calculator
           </Link>
+          <Link 
+            to="/wizard" 
+            className={`text-sm font-medium transition-smooth ${
+              isActive('/wizard') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Sparkles className="h-4 w-4 inline mr-1" />
+            Facility Wizard
+          </Link>
+          <QuickEstimatesButton />
           <Link 
             to="/admin" 
             className={`text-sm font-medium transition-smooth ${

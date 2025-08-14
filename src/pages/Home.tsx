@@ -11,21 +11,6 @@ const Home = () => {
   
   return (
     <Layout>
-      {/* Top Navigation Buttons */}
-      <section className="py-6 px-4 border-b">
-        <div className="container mx-auto">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="default" size="lg" onClick={() => navigate('/wizard')} className="bg-green-600 hover:bg-white hover:text-green-600 border-green-600 hover:border-green-600 text-white transition-all duration-200">
-              <Sparkles className="mr-2 h-5 w-5" />
-              Facility Wizard
-            </Button>
-            <div className="bg-green-600 hover:bg-white hover:text-green-600 border-green-600 hover:border-green-600 text-white transition-all duration-200 rounded-lg">
-              <QuickEstimatesButton />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center">
