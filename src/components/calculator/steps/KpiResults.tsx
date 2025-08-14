@@ -28,26 +28,102 @@ interface KpiResultsProps {
 const KpiResults = ({ data, onNext, onPrevious, allData }: KpiResultsProps) => {
   const [gatingMode] = useState('soft'); // soft gate by default
 
-  // Simple demo metrics calculation
-  const metrics = {
-    totalCapex: 1500000,
-    monthlyOpex: 45000,
-    monthlyRevenue: 65000,
-    breakEvenMonths: 18,
-    roi: 12.5,
-    paybackMonths: 24,
-    totalSqft: 25000,
-    debtService: 8500,
-    // Breakdown details for accordion
-    buildingCosts: 900000,
-    equipmentCosts: 400000,
-    softCosts: 200000,
-    salaryCosts: 25000,
-    fixedCosts: 12000,
-    membershipRevenue: 35000,
-    programRevenue: 20000,
-    otherRevenue: 10000
+  // Calculate metrics from actual data
+  const calculateMetrics = () => {
+    // Get data from different steps
+    const facilityData = allData[3] || {};
+    const opexData = allData[5] || {};
+    const revenueData = allData[6] || {};
+    const financingData = allData[7] || {};
+
+    // Calculate space
+    const courtCounts = facilityData.court_or_cage_counts || {};
+    const perUnitSF = {
+      baseball_tunnels: 1050,
+      basketball_courts_full: 6240,
+      volleyball_courts: 2592,
+      pickleball_courts: 1800,
+      soccer_field_small: 14400,
+      training_turf_zone: 7200
+    };
+    
+    const totalProgramSF = Object.entries(courtCounts).reduce((acc, [unit, count]) => {
+      const sf = perUnitSF[unit as keyof typeof perUnitSF] || 0;
+      return acc + ((count as number) * sf);
+    }, 0);
+    
+    const adminPct = facilityData.admin_pct_addon || 12;
+    const circulationPct = facilityData.circulation_pct_addon || 20;
+    const totalSqft = Math.round(totalProgramSF * (1 + (adminPct + circulationPct) / 100));
+
+    // Calculate CapEx (simplified estimate)
+    const tiCostPerSF = 18;
+    const equipmentEstimate = 50000; // base estimate
+    const totalCapex = Math.round((totalSqft * tiCostPerSF) + equipmentEstimate + (totalSqft * 5)); // simplified
+
+    // Calculate OpEx from staffing and fixed costs
+    const staffing = opexData.staffing || [];
+    const HOURS_PER_FTE_MONTH = 173;
+    const salaryCosts = staffing.reduce((acc: number, role: any) => {
+      return acc + (role.ftes * role.loaded_wage_per_hr * HOURS_PER_FTE_MONTH);
+    }, 0);
+    
+    const fixedCosts = (opexData.utilities_monthly || 0) + 
+                      (opexData.insurance_monthly || 0) + 
+                      (opexData.property_tax_monthly || 0) + 
+                      (opexData.maintenance_monthly || 0) + 
+                      (opexData.marketing_monthly || 0) + 
+                      (opexData.software_monthly || 0) + 
+                      (opexData.janitorial_monthly || 0) + 
+                      (opexData.other_monthly || 0);
+
+    const monthlyOpex = Math.round(salaryCosts + fixedCosts);
+
+    // Calculate Revenue
+    const memberships = revenueData.memberships || [];
+    const rentals = revenueData.rentals || [];
+    const lessons = revenueData.lessons || [];
+    
+    const WEEKS_PER_MONTH = 4.345;
+    
+    const membershipRevenue = memberships.reduce((acc: number, m: any) => 
+      acc + (m.price_month * m.members), 0);
+    
+    const rentalRevenue = rentals.reduce((acc: number, r: any) => 
+      acc + (r.rate_per_hr * r.util_hours_per_week * WEEKS_PER_MONTH), 0);
+    
+    const lessonRevenue = lessons.reduce((acc: number, l: any) => 
+      acc + (l.coach_count * l.hours_per_coach_week * WEEKS_PER_MONTH * l.avg_rate_per_hr * (l.utilization_pct / 100)), 0);
+
+    const monthlyRevenue = Math.round(membershipRevenue + rentalRevenue + lessonRevenue);
+
+    // Calculate derived metrics
+    const monthlyProfit = monthlyRevenue - monthlyOpex;
+    const breakEvenMonths = monthlyProfit > 0 ? Math.ceil(totalCapex / monthlyProfit) : null;
+    const roi = monthlyProfit > 0 ? ((monthlyProfit * 12) / totalCapex) * 100 : 0;
+
+    return {
+      totalCapex,
+      monthlyOpex,
+      monthlyRevenue,
+      breakEvenMonths,
+      roi,
+      paybackMonths: breakEvenMonths,
+      totalSqft,
+      debtService: 0, // simplified
+      buildingCosts: Math.round(totalCapex * 0.6),
+      equipmentCosts: equipmentEstimate,
+      softCosts: Math.round(totalCapex * 0.2),
+      salaryCosts: Math.round(salaryCosts),
+      fixedCosts: Math.round(fixedCosts),
+      membershipRevenue: Math.round(membershipRevenue),
+      programRevenue: Math.round(rentalRevenue + lessonRevenue),
+      otherRevenue: 0,
+      facilityLayout: courtCounts
+    };
   };
+
+  const metrics = calculateMetrics();
 
   const kpiCards = [
     {
@@ -73,7 +149,7 @@ const KpiResults = ({ data, onNext, onPrevious, allData }: KpiResultsProps) => {
     },
     {
       title: "Break-even",
-      value: `${metrics.breakEvenMonths} months`,
+      value: metrics.breakEvenMonths ? `${metrics.breakEvenMonths} months` : "N/A",
       description: "Time to break-even",
       icon: Calendar,
       variant: "warning" as const
@@ -87,7 +163,7 @@ const KpiResults = ({ data, onNext, onPrevious, allData }: KpiResultsProps) => {
     },
     {
       title: "Payback Period",
-      value: `${metrics.paybackMonths} months`,
+      value: metrics.paybackMonths ? `${metrics.paybackMonths} months` : "N/A",
       description: "Investment payback time",
       icon: Trophy,
       variant: "accent" as const
@@ -96,10 +172,10 @@ const KpiResults = ({ data, onNext, onPrevious, allData }: KpiResultsProps) => {
 
   const advisorNotes = [
     `Your facility shows ${metrics.roi > 15 ? 'strong' : metrics.roi > 10 ? 'moderate' : 'challenging'} ROI potential at ${metrics.roi.toFixed(1)}%.`,
-    `Break-even at ${metrics.breakEvenMonths} months is ${metrics.breakEvenMonths <= 18 ? 'competitive' : 'longer than typical'} for this market.`,
+    `Break-even at ${metrics.breakEvenMonths || 'TBD'} months is ${metrics.breakEvenMonths && metrics.breakEvenMonths <= 18 ? 'competitive' : 'longer than typical'} for this market.`,
     `Monthly cash flow after break-even: $${(metrics.monthlyRevenue - metrics.monthlyOpex).toLocaleString()}.`,
     metrics.totalCapex > 2000000 ? 'Consider phased build-out to reduce initial capital requirements.' : 'Capital requirements appear manageable for this facility size.',
-    `Recommended next steps: ${metrics.breakEvenMonths > 24 ? 'Review revenue assumptions and market analysis' : 'Proceed with site selection and financing discussions'}.`
+    `Recommended next steps: ${metrics.breakEvenMonths && metrics.breakEvenMonths > 24 ? 'Review revenue assumptions and market analysis' : 'Proceed with site selection and financing discussions'}.`
   ];
 
   return (
@@ -107,9 +183,37 @@ const KpiResults = ({ data, onNext, onPrevious, allData }: KpiResultsProps) => {
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-2">Your Facility Analysis</h2>
         <p className="text-muted-foreground">
-          High-level financial overview for your sports facility project
+          Financial overview for your sports facility project
         </p>
       </div>
+
+      {/* Facility Layout Summary */}
+      {metrics.facilityLayout && Object.keys(metrics.facilityLayout).length > 0 && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Building className="h-5 w-5 mr-2 text-primary" />
+              Your Facility Layout
+            </CardTitle>
+            <CardDescription>Sports and courts included in this analysis</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {Object.entries(metrics.facilityLayout).map(([unit, count]) => (
+                <div key={unit} className="flex justify-between items-center bg-white rounded-lg p-3 shadow-sm">
+                  <span className="text-sm font-medium capitalize">
+                    {unit.replace(/_/g, ' ')}
+                  </span>
+                  <Badge variant="secondary">{count as number}</Badge>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 text-sm text-muted-foreground">
+              Total facility size: <span className="font-medium">{metrics.totalSqft?.toLocaleString()} sq ft</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* KPI Cards Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
