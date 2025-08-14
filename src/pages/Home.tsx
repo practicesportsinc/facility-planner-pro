@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Layout from "@/components/layout/Layout";
 import { Calculator, TrendingUp, FileText, Users, Target, Clock } from "lucide-react";
 import QuickEstimatesButton from "@/components/QuickEstimatesButton";
+import VisualDesignerHome from "@/components/home/VisualDesignerHome";
 
 const Home = () => {
   return (
@@ -36,6 +37,13 @@ const Home = () => {
               </Button>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Visual Designer Section */}
+      <section className="py-8 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <VisualDesignerHome />
         </div>
       </section>
 
