@@ -25,10 +25,12 @@ const Home = () => {
                   Start Your Calculation
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link to="#features">
-                  Learn More
-                </Link>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                Learn More
               </Button>
             </div>
           </div>
