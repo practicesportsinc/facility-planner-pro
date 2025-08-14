@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, Calendar, DollarSign, Target } from "lucide-react";
-import { StageSelector } from "@/components/ui/stage-selector";
+import { AdvancedStageSelector } from "@/components/ui/advanced-stage-selector";
+import { StageData } from "@/types/stage";
 
 interface ProjectBasicsProps {
   data: any;
@@ -42,7 +43,7 @@ const ProjectBasics = ({ data, onUpdate, onNext }: ProjectBasicsProps) => {
     targetOpeningDate: data.targetOpeningDate || '',
     selectedSports: data.selectedSports || [],
     businessModel: data.businessModel || '',
-    stage: data.stage || 'R&D',
+    stageData: data.stageData || null,
     ...data
   });
 
@@ -62,7 +63,13 @@ const ProjectBasics = ({ data, onUpdate, onNext }: ProjectBasicsProps) => {
     onUpdate(newData);
   };
 
-  const isValid = formData.projectName && formData.location && formData.selectedSports.length > 0 && formData.businessModel && formData.stage;
+  const handleStageChange = (stageData: StageData) => {
+    const newData = { ...formData, stageData };
+    setFormData(newData);
+    onUpdate(newData);
+  };
+
+  const isValid = formData.projectName && formData.location && formData.selectedSports.length > 0 && formData.businessModel && formData.stageData;
 
   return (
     <div className="space-y-6">
@@ -138,9 +145,9 @@ const ProjectBasics = ({ data, onUpdate, onNext }: ProjectBasicsProps) => {
             </div>
 
             <div className="col-span-2">
-              <StageSelector 
-                value={formData.stage}
-                onChange={(value) => handleInputChange('stage', value)}
+              <AdvancedStageSelector 
+                value={formData.stageData}
+                onChange={handleStageChange}
               />
             </div>
           </CardContent>
