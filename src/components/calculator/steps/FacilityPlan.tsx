@@ -55,7 +55,7 @@ const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityP
     ...data
   });
 
-  const selectedSports = allData[1]?.selectedSports || [];
+  const selectedSports = allData[1]?.selectedSports || allData[3]?.selectedSports || [];
 
   const handleInputChange = (field: string, value: any) => {
     const newData = { ...formData, [field]: value };
@@ -224,7 +224,8 @@ const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityP
             <CardDescription>How many playing areas do you need?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {selectedSports.includes('basketball') || selectedSports.includes('volleyball') || selectedSports.includes('pickleball') ? (
+            {/* Always show at least one input field for playing areas */}
+            {selectedSports.includes('basketball') || selectedSports.includes('volleyball') || selectedSports.includes('pickleball') || formData.numberOfCourts ? (
               <div className="space-y-2">
                 <Label htmlFor="courts">Number of Courts</Label>
                 <Input
@@ -237,7 +238,7 @@ const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityP
               </div>
             ) : null}
 
-            {selectedSports.includes('soccer') || selectedSports.includes('football') || selectedSports.includes('lacrosse') ? (
+            {selectedSports.includes('soccer') || selectedSports.includes('football') || selectedSports.includes('lacrosse') || formData.numberOfFields ? (
               <div className="space-y-2">
                 <Label htmlFor="fields">Number of Fields</Label>
                 <Input
@@ -250,9 +251,9 @@ const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityP
               </div>
             ) : null}
 
-            {selectedSports.includes('baseball') ? (
+            {selectedSports.includes('baseball') || formData.numberOfCages ? (
               <div className="space-y-2">
-                <Label htmlFor="cages">Number of Batting Cages</Label>
+                <Label htmlFor="cages">Number of Batting Cages/Tunnels</Label>
                 <Input
                   id="cages"
                   type="number"
@@ -262,6 +263,20 @@ const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityP
                 />
               </div>
             ) : null}
+
+            {/* Show a generic playing areas input if no specific sport fields are shown */}
+            {!formData.numberOfCourts && !formData.numberOfFields && !formData.numberOfCages && selectedSports.length === 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="playingAreas">Number of Playing Areas</Label>
+                <Input
+                  id="playingAreas"
+                  type="number"
+                  placeholder="e.g., 4"
+                  value={formData.numberOfCourts || formData.numberOfFields || formData.numberOfCages}
+                  onChange={(e) => handleInputChange('numberOfCourts', e.target.value)}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
