@@ -1,9 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calculator, Settings, FileText } from "lucide-react";
+import { useState } from "react";
+import QuickEstimatesButton from "@/components/QuickEstimatesButton";
 
 const Header = () => {
   const location = useLocation();
+  const [showQuickEstimates, setShowQuickEstimates] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -45,12 +48,7 @@ const Header = () => {
           >
             Wizard
           </Link>
-          <button 
-            onClick={() => {}} 
-            className={`text-sm font-medium transition-smooth text-muted-foreground hover:text-foreground`}
-          >
-            Quick Estimates
-          </button>
+          <QuickEstimatesButton />
           <Link 
             to="/admin" 
             className={`text-sm font-medium transition-smooth ${
