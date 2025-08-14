@@ -67,7 +67,17 @@ const Calculator = () => {
               amenities: projectData.facility_plan.amenities ? 
                 Object.entries(projectData.facility_plan.amenities)
                   .filter(([key, value]) => value === true)
-                  .map(([key]) => key) : []
+                  .map(([key]) => key) : [],
+              // Convert court_or_cage_counts to individual fields expected by FacilityPlan
+              facilityType: projectData.facility_plan.build_mode || '',
+              clearHeight: projectData.facility_plan.clear_height_ft?.toString() || '20',
+              totalSquareFootage: projectData.facility_plan.total_sqft?.toString() || '',
+              // Map court/cage counts from quick estimate format
+              numberOfCourts: projectData.facility_plan.court_or_cage_counts?.basketball_courts_full || 
+                             projectData.facility_plan.court_or_cage_counts?.volleyball_courts || 
+                             projectData.facility_plan.court_or_cage_counts?.pickleball_courts || '',
+              numberOfFields: projectData.facility_plan.court_or_cage_counts?.soccer_field_small || '',
+              numberOfCages: projectData.facility_plan.court_or_cage_counts?.baseball_tunnels || ''
             },
             5: { // Staffing & OpEx
               ...projectData.opex_inputs
