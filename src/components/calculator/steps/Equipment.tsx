@@ -65,7 +65,22 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
     
     selectedSports.forEach((sport: string) => {
       const sportEquipment = EQUIPMENT_BY_SPORT[sport as keyof typeof EQUIPMENT_BY_SPORT] || [];
-      equipment = [...equipment, ...sportEquipment];
+      // Clone the equipment to avoid modifying the original
+      const clonedEquipment = sportEquipment.map(item => ({ ...item }));
+      
+      // Sync batting cage count with facility plan
+      if (sport === 'baseball') {
+        const facilityPlanData = allData[3] || {};
+        const numberOfCages = Number(facilityPlanData.numberOfCages);
+        if (numberOfCages && numberOfCages > 0) {
+          const battingCageItem = clonedEquipment.find(item => item.id === 'batting-cages');
+          if (battingCageItem) {
+            battingCageItem.quantity = numberOfCages;
+          }
+        }
+      }
+      
+      equipment = [...equipment, ...clonedEquipment];
     });
     
     equipment = [...equipment, ...GENERAL_EQUIPMENT];
