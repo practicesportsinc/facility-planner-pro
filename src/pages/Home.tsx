@@ -23,7 +23,7 @@ const Home = () => {
               <Button variant="hero" size="lg" asChild>
                 <Link to="/calculator">
                   <Calculator className="mr-2 h-5 w-5" />
-                  Start Your Calculation
+                  Custom Calculations
                 </Link>
               </Button>
               <QuickEstimatesButton />
