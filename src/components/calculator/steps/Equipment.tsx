@@ -96,13 +96,14 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
     onUpdate(newData);
   };
 
-  const addCustomEquipment = () => {
+  const addCustomEquipment = (sport?: string) => {
     const newItem = {
       id: `custom-${Date.now()}`,
       name: 'Custom Equipment',
       cost: 0,
       quantity: 1,
       isCustom: true,
+      sport: sport || 'general',
     };
     
     const newData = {
@@ -135,7 +136,7 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
   );
 
   const groupedEquipment = formData.equipment.reduce((groups: any, item: any) => {
-    const sportKey = selectedSports.find((sport: string) => 
+    let sportKey = item.sport || selectedSports.find((sport: string) => 
       EQUIPMENT_BY_SPORT[sport as keyof typeof EQUIPMENT_BY_SPORT]?.some(eq => eq.id === item.id)
     ) || 'general';
     
@@ -225,18 +226,21 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                     </div>
                   ))}
                 </div>
+                
+                <div className="pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => addCustomEquipment(sport)} 
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add {sport === 'general' ? 'General' : sport.charAt(0).toUpperCase() + sport.slice(1)} Item
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
-
-          <Card>
-            <CardContent className="pt-6">
-              <Button variant="outline" onClick={addCustomEquipment} className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Custom Equipment
-              </Button>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="lg:col-span-1">
