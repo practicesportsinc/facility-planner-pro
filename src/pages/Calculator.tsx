@@ -16,6 +16,7 @@ import RevenuePrograms from "@/components/calculator/steps/RevenuePrograms";
 import Financing from "@/components/calculator/steps/Financing";
 import KpiResults from "@/components/calculator/steps/KpiResults";
 import LeadCapture from "@/components/calculator/steps/LeadCapture";
+import SourcingPlan from "@/components/calculator/steps/SourcingPlan";
 import Results from "@/components/calculator/steps/Results";
 
 const STEPS = [
@@ -27,8 +28,9 @@ const STEPS = [
   { id: 6, title: "Revenue Programs", component: RevenuePrograms },
   { id: 7, title: "Financing", component: Financing },
   { id: 8, title: "Financial Overview", component: KpiResults },
-  { id: 9, title: "Contact Information", component: LeadCapture },
-  { id: 10, title: "Complete Analysis", component: Results },
+  { id: 9, title: "Sourcing Plan", component: SourcingPlan },
+  { id: 10, title: "Contact Information", component: LeadCapture },
+  { id: 11, title: "Complete Analysis", component: Results },
 ];
 
 const Calculator = () => {

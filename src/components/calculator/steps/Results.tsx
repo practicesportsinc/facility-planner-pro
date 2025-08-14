@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Download, Mail, Calendar, TrendingUp, DollarSign, Target, Clock, Calculator } from "lucide-react";
+import { NextStepsBanner } from "@/components/ui/next-steps-banner";
 import { 
   calculateSpacePlanning, 
   calculateCapExBuild, 
@@ -26,7 +27,7 @@ interface ResultsProps {
 const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) => {
   const [emailSent, setEmailSent] = useState(false);
 
-  // Extract data from previous steps
+  // Extract data from previous steps (updated for new step order)
   const projectBasics = allData[1] || {};
   const facilityPlan = allData[2] || {};
   const equipment = allData[3] || {};
@@ -35,7 +36,8 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
   const revenue = allData[6] || {};
   const financing = allData[7] || {};
   const sensitivity = allData[8] || {};
-  const leadData = allData[9] || {};
+  const sourcingData = allData[9] || {};
+  const leadData = allData[10] || {};
 
   // Get global assumptions (can be made editable later)
   const globalAssumptions = DEFAULT_GLOBAL_ASSUMPTIONS;
@@ -159,6 +161,12 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
           Comprehensive financial projections for {projectBasics.projectName || 'your sports facility'}
         </p>
       </div>
+
+      {/* Next Steps Banner */}
+      <NextStepsBanner 
+        sourcingData={sourcingData}
+        onSourcingUpdate={(newData) => onUpdate({ ...sourcingData, ...newData })}
+      />
 
       {/* Key Metrics Dashboard */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

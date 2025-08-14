@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, Calendar, DollarSign, Target } from "lucide-react";
+import { StageSelector } from "@/components/ui/stage-selector";
 
 interface ProjectBasicsProps {
   data: any;
@@ -41,6 +42,7 @@ const ProjectBasics = ({ data, onUpdate, onNext }: ProjectBasicsProps) => {
     targetOpeningDate: data.targetOpeningDate || '',
     selectedSports: data.selectedSports || [],
     businessModel: data.businessModel || '',
+    stage: data.stage || 'R&D',
     ...data
   });
 
@@ -60,7 +62,7 @@ const ProjectBasics = ({ data, onUpdate, onNext }: ProjectBasicsProps) => {
     onUpdate(newData);
   };
 
-  const isValid = formData.projectName && formData.location && formData.selectedSports.length > 0 && formData.businessModel;
+  const isValid = formData.projectName && formData.location && formData.selectedSports.length > 0 && formData.businessModel && formData.stage;
 
   return (
     <div className="space-y-6">
@@ -133,6 +135,13 @@ const ProjectBasics = ({ data, onUpdate, onNext }: ProjectBasicsProps) => {
                   />
                 </div>
               </div>
+            </div>
+
+            <div className="col-span-2">
+              <StageSelector 
+                value={formData.stage}
+                onChange={(value) => handleInputChange('stage', value)}
+              />
             </div>
           </CardContent>
         </Card>
