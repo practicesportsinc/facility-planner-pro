@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import GenerateBusinessPlanButton from "@/components/GenerateBusinessPlanButton";
 import { 
   Calculator, 
   DollarSign, 
@@ -866,24 +867,22 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
 
         {/* Generate Business Plan and Download Report Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 mt-8 justify-center">
-          <Button 
+          <GenerateBusinessPlanButton
+            getProject={() => ({
+              responses: wizardResult.responses,
+              financialMetrics,
+              recommendations: wizardResult.recommendations
+            })}
+            includeImages={true}
             variant="outline"
             size="lg"
-            onClick={() => {
-              const responses = wizardResult.responses.reduce((acc, response) => {
-                acc[response.questionId] = response.value;
-                return acc;
-              }, {} as Record<string, any>);
-              
-              const projectName = responses.project_name || "New Sports Facility";
-              console.log("Generating business plan for:", projectName);
-              toast.info(`Generating business plan for ${projectName} - feature coming soon!`);
+            onStart={() => toast.info("Preparing business plan...")}
+            onDone={(success) => {
+              if (!success) {
+                toast.error("Failed to generate business plan");
+              }
             }}
-            className="flex items-center gap-2"
-          >
-            <Building className="w-5 h-5" />
-            Generate Business Plan
-          </Button>
+          />
           <Button 
             variant="outline"
             size="lg"
