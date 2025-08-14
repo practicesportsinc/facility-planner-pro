@@ -16,12 +16,14 @@ export function LayoutGallery({
   grossSf,
   counts,
   onChoose,
-  selectedLayoutId
+  selectedId,           // NEW (optional)
+  onSelect              // NEW (optional)
 }: {
   grossSf: number;
   counts: Partial<Record<"volleyball_courts"|"pickleball_courts"|"basketball_courts_full"|"basketball_courts_half"|"baseball_tunnels"|"training_turf_zone"|"soccer_field_small", number>>;
-  onChoose: (choice: GalleryChoice) => void;
-  selectedLayoutId?: string;
+  onChoose?: (choice: GalleryChoice) => void;
+  selectedId?: string;
+  onSelect?: (choice: GalleryChoice) => void;
 }) {
 
   // Derive unit list from counts
@@ -94,34 +96,38 @@ export function LayoutGallery({
       </div>
       <div className="grid">
         {choices.map(c => {
-          const isSelected = selectedLayoutId === c.id;
+          const isSelected = selectedId === c.id;
+          const isSelectionMode = !!onSelect; // when parent controls
           return (
-            <div className={`card ${isSelected ? 'selected' : ''}`} key={c.id} role="group" aria-label={`Layout option: ${c.name}`}>
-            <TopViewLayout
-              title={c.name}
-              grossSf={grossSf}
-              aspectRatio={c.aspectRatio}
-              perimeterFt={c.perimeterFt}
-              gapFt={c.gapFt}
-              units={c.units}
-              adminBlocks={c.admin}
-              algo={c.algo}
-              viewWidthPx={320}
-              buildingLabel={`${Math.round(grossSf).toLocaleString()} sf`}
-              showLegend={false}
-            />
-            <div className="row">
-              <button 
-                className={`use ${isSelected ? 'selected' : ''}`} 
-                onClick={() => onChoose(c)}
-                disabled={isSelected}
-              >
-                {isSelected ? 'Selected ✓' : 'Use this layout'}
-              </button>
-              <div className="name">{c.name}</div>
+            <div className="card" key={c.id} role="group" aria-label={`Layout option: ${c.name}`}>
+              <TopViewLayout
+                title={c.name}
+                grossSf={grossSf}
+                aspectRatio={c.aspectRatio}
+                perimeterFt={c.perimeterFt}
+                gapFt={c.gapFt}
+                units={c.units}
+                adminBlocks={c.admin}
+                algo={c.algo}
+                viewWidthPx={320}
+                buildingLabel={`${Math.round(grossSf).toLocaleString()} sf`}
+                showLegend={false}
+              />
+              <div className="row">
+                <button
+                  className={`use ${isSelected ? "selected" : ""}`}
+                  aria-pressed={isSelected}
+                  onClick={() => {
+                    if (isSelectionMode) onSelect!(c);
+                    else onChoose?.(c);
+                  }}
+                >
+                  {isSelected ? "Selected ✓" : "Use this layout"}
+                </button>
+                <div className="name">{c.name}</div>
+              </div>
             </div>
-          </div>
-        );
+          );
         })}
       </div>
 
@@ -129,13 +135,11 @@ export function LayoutGallery({
         .hdr h3 { margin: 0 0 4px; }
         .hdr p  { margin: 0 0 8px; color: #6B7280; }
         .grid   { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
-        .card   { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 8px; transition: all 0.2s ease; }
-        .card.selected { border-color: #0B63E5; box-shadow: 0 0 0 2px rgba(11, 99, 229, 0.1); }
+        .card   { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 8px; }
         .row    { display: flex; justify-content: space-between; align-items: center; padding: 6px 4px 2px; }
-        .use    { background: #00A66A; color: #fff; border: none; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.2s ease; }
-        .use:disabled { background: #0B63E5; cursor: default; }
-        .use.selected { background: #0B63E5; }
-        .use:hover:not(:disabled) { background: #059669; }
+        .use    { background: #0B63E5; color: #fff; border: none; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+        .use:hover { background: #0951c4; }
+        .use.selected { background: #00A66A; } /* brand green when selected */
         .name   { font-size: 12px; color: #6B7280; }
       `}</style>
     </div>

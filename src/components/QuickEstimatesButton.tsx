@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap } from "lucide-react";
-import { LayoutGallery } from "@/components/layout/LayoutGallery";
+import { LayoutGallery, GalleryChoice } from "@/components/layout/LayoutGallery";
 
 /** ---------- Types (aligned to your schema prompts) ---------- */
 type BuildMode = "build" | "buy" | "lease";
@@ -25,6 +25,13 @@ interface FacilityPlan {
   circulation_pct_addon: number; // default 20
   court_or_cage_counts: CourtOrCageCounts;
   amenities?: Record<string, boolean | number | string>;
+  // Layout persistence fields
+  layout_choice?: string;
+  aspect_ratio?: number;
+  perimeter_ft?: number;
+  gap_ft?: number;
+  admin_blocks?: any[];
+  orientation_hint?: Record<string, boolean>;
 }
 
 interface CapExInputs {
@@ -488,7 +495,7 @@ function getSportsForPreset(sportKey: SportKey): string[] {
   return sportMapping[sportKey] || [];
 }
 
-function saveDraftProject(p: QuickPreset, sportKey: SportKey): ProjectDraft {
+function saveDraftProject(p: QuickPreset, sportKey: SportKey, choice?: GalleryChoice | null): ProjectDraft {
   const id = `quick-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const draft: ProjectDraft = {
     id,
@@ -499,7 +506,11 @@ function saveDraftProject(p: QuickPreset, sportKey: SportKey): ProjectDraft {
     region_multiplier: p.region_multiplier,
     scenario_name: `${p.label} — ${p.size[0].toUpperCase() + p.size.slice(1)} (Quick)`,
     status: "draft",
-    facility_plan: p.facility,
+    facility_plan: {
+      ...p.facility,
+      // ensure total_sqft reflects current computation
+      total_sqft: computeSpace(p.facility, p.per_unit_space_sf).grossSF
+    },
     capex_inputs: p.capex,
     lease_terms: p.facility.build_mode === "lease" ? p.lease : undefined,
     opex_inputs: p.opex,
@@ -509,23 +520,46 @@ function saveDraftProject(p: QuickPreset, sportKey: SportKey): ProjectDraft {
     selectedSports: getSportsForPreset(sportKey)
   };
 
+  // persist the selected layout (if any)
+  if (choice) {
+    draft.facility_plan = {
+      ...draft.facility_plan,
+      layout_choice: choice.id,
+      aspect_ratio: choice.aspectRatio,
+      perimeter_ft: choice.perimeterFt,
+      gap_ft: choice.gapFt,
+      admin_blocks: choice.admin,
+      orientation_hint: choice.units.reduce((acc: Record<string, boolean>, u) => {
+        acc[u.kind] = !!u.rotate; return acc;
+      }, {})
+    };
+  }
+
   // Persist — switch to your backend create endpoint if you prefer
-  localStorage.setItem(`ps:project:${id}`, JSON.stringify(draft));
+  localStorage.setItem(`ps:project:${id}`, JSON.stringify(draft)); // ✅ use id, not label
   return draft;
 }
 
 /** ---------- UI COMPONENT ---------- */
 export default function QuickEstimatesButton() {
   const [open, setOpen] = useState(false);
+  const [layoutChoice, setLayoutChoice] = useState<GalleryChoice | null>(null);
   const [sport, setSport] = useState<SportKey>("baseball_softball");
   const [size, setSize] = useState<SizeKey>("medium");
   const navigate = useNavigate();
+
+  // reset selection when sport/size preset changes
+  useEffect(() => { setLayoutChoice(null); }, [sport, size]);
 
   const preset = useMemo(() => QUICK_PRESETS[sport](size), [sport, size]);
   const preview = useMemo(() => estimateQuickNumbers(preset), [preset]);
 
   function createQuickEstimate() {
-    const saved = saveDraftProject(preset, sport);
+    const saved = saveDraftProject(preset, sport, layoutChoice); // <— pass layout
+    // notify others (e.g., Analysis route) the project changed
+    try {
+      window.dispatchEvent(new CustomEvent("ps:project:changed", { detail: { projectId: saved.id } }));
+    } catch {}
     setOpen(false); // Close the modal
     // Navigate: you can route to /calculator if your app shows results immediately (soft gate will still apply)
     navigate(`/calculator?projectId=${saved.id}&mode=quick`);
@@ -611,9 +645,8 @@ export default function QuickEstimatesButton() {
                     training_turf_zone: preset.facility.court_or_cage_counts.training_turf_zone || 0,
                     soccer_field_small: preset.facility.court_or_cage_counts.soccer_field_small || 0
                   }}
-                  onChoose={(choice) => {
-                    console.log('Layout choice selected:', choice);
-                  }}
+                  selectedId={layoutChoice?.id || undefined}
+                  onSelect={(choice) => setLayoutChoice(choice)}
                 />
               </div>
 
@@ -633,7 +666,14 @@ export default function QuickEstimatesButton() {
 
             <footer className="qs-foot">
               <button className="qs-secondary" onClick={() => setOpen(false)}>Cancel</button>
-              <button className="qs-primary" onClick={createQuickEstimate}>Create Quick Estimate →</button>
+              <button
+                className="qs-primary"
+                disabled={!layoutChoice}
+                title={!layoutChoice ? "Pick a layout to continue" : "Create Quick Estimate"}
+                onClick={createQuickEstimate}
+              >
+                {layoutChoice ? "Create Quick Estimate →" : "Choose a layout ↑"}
+              </button>
             </footer>
           </div>
         </div>

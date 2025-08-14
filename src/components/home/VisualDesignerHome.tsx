@@ -175,7 +175,7 @@ export default function VisualDesignerHome({
           <LayoutGallery
             grossSf={shellSf || 16000}
             counts={counts}
-            selectedLayoutId={selectedLayoutId}
+            selectedId={selectedLayoutId}
             onChoose={(choice) => {
               console.log("Layout choice clicked:", choice);
               console.log("Current selection:", sel);
