@@ -70,12 +70,32 @@ const WizardResults = () => {
     const buildMode = responses.build_mode || 'build';
     const budget = responses.budget || 1000000;
 
-    // Simplified calculations for wizard results
-    const totalSqft = selectedSports.reduce((total: number, sport: string) => {
-      return total + getSportSquareFootage(sport);
-    }, 0) * 1.25; // Add 25% for circulation
+    // Calculate detailed sport-by-sport breakdown
+    const sportsBreakdown = selectedSports.filter(Boolean).map((sportId: string) => {
+      const sportSqft = getSportSquareFootage(sportId);
+      const constructionCost = sportSqft * 200; // $200 per sq ft
+      const equipmentCost = sportSqft * 50; // $50 per sq ft for equipment
+      const monthlyRevenue = sportSqft * 2; // $2 per sq ft monthly revenue
+      const monthlyOpex = sportSqft * 0.8; // $0.80 per sq ft monthly operating costs
+      
+      return {
+        sportId,
+        squareFootage: sportSqft,
+        constructionCost,
+        equipmentCost,
+        totalCost: constructionCost + equipmentCost,
+        monthlyRevenue,
+        monthlyOpex,
+        monthlyProfit: monthlyRevenue - monthlyOpex
+      };
+    });
 
-    const capexTotal = buildMode === 'build' ? totalSqft * 200 : budget * 0.8;
+    // Calculate totals
+    const totalSqft = sportsBreakdown.reduce((sum, sport) => sum + sport.squareFootage, 0) * 1.25; // Add 25% for circulation
+    const totalConstructionCost = sportsBreakdown.reduce((sum, sport) => sum + sport.constructionCost, 0) * 1.25;
+    const totalEquipmentCost = sportsBreakdown.reduce((sum, sport) => sum + sport.equipmentCost, 0) * 1.25;
+    const capexTotal = totalConstructionCost + totalEquipmentCost;
+    
     const monthlyRevenue = calculateMembershipRevenue(targetMarket, totalSqft) + 
                           (totalSqft * 0.5) + // Rental revenue
                           (selectedSports.length * 2000); // Lesson revenue
@@ -85,24 +105,46 @@ const WizardResults = () => {
     const monthlyProfit = monthlyRevenue - monthlyOpex;
     const breakEvenMonths = monthlyProfit > 0 ? Math.ceil(capexTotal / monthlyProfit) : 999;
 
+    // Enhanced financial metrics with sport breakdown
     setFinancialMetrics({
-      space: { grossSF: totalSqft, totalProgramSF: totalSqft * 0.8 },
-      capex: { total: capexTotal },
+      sportsBreakdown,
+      space: { 
+        grossSF: totalSqft, 
+        totalProgramSF: totalSqft * 0.8,
+        circulationSF: totalSqft * 0.2
+      },
+      capex: { 
+        total: capexTotal,
+        construction: totalConstructionCost,
+        equipment: totalEquipmentCost,
+        workingCapital: capexTotal * 0.1
+      },
       opex: { 
         total: monthlyOpex,
         staffing: Math.floor(totalSqft / 5000) * 3000,
-        fixedOperating: totalSqft * 8
+        fixedOperating: totalSqft * 8,
+        utilities: totalSqft * 2,
+        insurance: capexTotal * 0.002 / 12,
+        maintenance: totalSqft * 1
       },
       revenue: { 
         total: monthlyRevenue,
         memberships: calculateMembershipRevenue(targetMarket, totalSqft),
         rentals: totalSqft * 0.5,
-        lessons: selectedSports.length * 2000
+        lessons: selectedSports.length * 2000,
+        events: totalSqft * 0.2,
+        retail: totalSqft * 0.1
       },
       profitability: { 
         breakEvenMonths,
         ebitda: monthlyProfit,
-        roi: (monthlyProfit * 12 / capexTotal) * 100
+        roi: (monthlyProfit * 12 / capexTotal) * 100,
+        paybackPeriod: capexTotal / (monthlyProfit * 12)
+      },
+      marketAnalysis: {
+        targetMarkets: targetMarket,
+        competitiveAdvantage: selectedSports.length > 2 ? 'Multi-sport facility' : 'Specialized facility',
+        marketPenetration: targetMarket.includes('youth_competitive') ? 'High' : 'Medium'
       }
     });
   };
@@ -466,35 +508,65 @@ const WizardResults = () => {
           <CardContent>
             {/* Individual Sport Analysis */}
             <div className="mb-6">
-              <h4 className="font-semibold mb-3">Sport-by-Sport Analysis</h4>
-              <div className="grid gap-3">
-                {(() => {
-                  const sportsResponse = wizardResult.responses.find(r => r.questionId === 'primary_sport');
-                  const selectedSports = Array.isArray(sportsResponse?.value) ? sportsResponse.value : [sportsResponse?.value];
+              <h4 className="font-semibold mb-4 text-lg">Sport-by-Sport Financial Analysis</h4>
+              <div className="grid gap-4">
+                {financialMetrics.sportsBreakdown?.map((sportData: any) => {
                   const sportsQuestion = WIZARD_QUESTIONS.find(q => q.id === 'primary_sport');
+                  const sport = sportsQuestion?.options?.find(opt => opt.id === sportData.sportId);
                   
-                  return selectedSports.filter(Boolean).map((sportId: string) => {
-                    const sport = sportsQuestion?.options?.find(opt => opt.id === sportId);
-                    const sportSqft = getSportSquareFootage(sportId);
-                    const sportCost = sportSqft * 200; // Estimated cost per sq ft
-                    
-                    return sport ? (
-                      <div key={sportId} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  return sport ? (
+                    <Card key={sportData.sportId} className="p-4">
+                      <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">{sport.icon}</span>
+                          <span className="text-3xl">{sport.icon}</span>
                           <div>
-                            <div className="font-medium text-lg">{sport.label}</div>
-                            <div className="text-sm text-muted-foreground">{sport.description}</div>
+                            <h5 className="font-bold text-xl">{sport.label}</h5>
+                            <p className="text-sm text-muted-foreground">{sport.description}</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-lg">{(sportSqft / 1000).toFixed(1)}K sq ft</div>
-                          <div className="text-sm text-muted-foreground">${(sportCost / 1000).toFixed(0)}K estimated cost</div>
+                        <Badge variant="outline" className="text-xs">
+                          {(sportData.squareFootage / 1000).toFixed(1)}K sq ft
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <div className="text-lg font-bold text-blue-600">
+                            ${(sportData.constructionCost / 1000).toFixed(0)}K
+                          </div>
+                          <div className="text-xs text-muted-foreground">Construction</div>
+                        </div>
+                        <div className="bg-green-50 p-3 rounded-lg">
+                          <div className="text-lg font-bold text-green-600">
+                            ${(sportData.equipmentCost / 1000).toFixed(0)}K
+                          </div>
+                          <div className="text-xs text-muted-foreground">Equipment</div>
+                        </div>
+                        <div className="bg-purple-50 p-3 rounded-lg">
+                          <div className="text-lg font-bold text-purple-600">
+                            ${(sportData.monthlyRevenue / 1000).toFixed(1)}K
+                          </div>
+                          <div className="text-xs text-muted-foreground">Monthly Revenue</div>
+                        </div>
+                        <div className="bg-orange-50 p-3 rounded-lg">
+                          <div className="text-lg font-bold text-orange-600">
+                            ${(sportData.monthlyProfit / 1000).toFixed(1)}K
+                          </div>
+                          <div className="text-xs text-muted-foreground">Monthly Profit</div>
                         </div>
                       </div>
-                    ) : null;
-                  });
-                })()}
+                      
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">Total Investment for {sport.label}:</span>
+                          <span className="font-bold text-lg text-primary">
+                            ${(sportData.totalCost / 1000).toFixed(0)}K
+                          </span>
+                        </div>
+                      </div>
+                    </Card>
+                  ) : null;
+                })}
               </div>
             </div>
 
