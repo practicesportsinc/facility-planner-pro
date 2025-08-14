@@ -871,7 +871,8 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
             getProject={() => ({
               responses: wizardResult.responses,
               financialMetrics,
-              recommendations: wizardResult.recommendations
+              recommendations: wizardResult.recommendations,
+              leadData // Include the lead data from the unlock step
             })}
             includeImages={true}
             variant="outline"

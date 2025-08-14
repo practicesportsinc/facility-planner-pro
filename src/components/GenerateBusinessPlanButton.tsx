@@ -38,8 +38,8 @@ export default function GenerateBusinessPlanButton({
     // Basic sanity checks
     const missing = [];
     if (!project?.financialMetrics?.space?.grossSF) missing.push("facility size");
-    if (!project?.responses?.find((r: any) => r.questionId === 'project_name')?.value) missing.push("project name");
-    if (!project?.responses?.find((r: any) => r.questionId === 'location')?.value) missing.push("location");
+    if (!project?.leadData?.business) missing.push("business name");
+    if (!project?.leadData?.name) missing.push("project name");
     
     if (missing.length) {
       toast.error(`Please complete ${missing.join(", ")} before generating the business plan.`);
@@ -77,8 +77,8 @@ export default function GenerateBusinessPlanButton({
       const a = document.createElement("a");
       a.href = url;
       
-      const projectName = project?.responses?.find((r: any) => r.questionId === 'project_name')?.value || 'SportsFacility';
-      const sanitizedName = projectName.replace(/[^a-zA-Z0-9]/g, '_');
+      const businessName = project?.leadData?.business || 'SportsFacility';
+      const sanitizedName = businessName.replace(/[^a-zA-Z0-9]/g, '_');
       a.download = `${sanitizedName}_BusinessPlan_${Date.now()}.pdf`;
       
       document.body.appendChild(a);

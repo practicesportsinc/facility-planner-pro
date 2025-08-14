@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     const { project, includeImages = true } = await req.json();
     
-    console.log('Generating business plan for project:', project?.responses?.find((r: any) => r.questionId === 'project_name')?.value);
+    console.log('Generating business plan for project:', project?.leadData?.business);
 
     // Extract project data
     const responses = project.responses?.reduce((acc: any, response: any) => {
@@ -23,7 +23,9 @@ serve(async (req) => {
       return acc;
     }, {}) || {};
 
-    const projectName = responses.project_name || 'Sports Facility Project';
+    // Use lead data for business information
+    const projectName = project?.leadData?.business || 'Sports Facility Project';
+    const ownerName = project?.leadData?.name || 'Business Owner';
     const location = responses.location || 'Not specified';
     const currency = responses.currency || 'USD';
     const targetOpeningDate = responses.target_opening_date || 'TBD';
