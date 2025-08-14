@@ -875,8 +875,9 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
               leadData // Include the lead data from the unlock step
             })}
             includeImages={true}
-            variant="outline"
+            variant="default"
             size="lg"
+            className="bg-green-600 hover:bg-white hover:text-green-600 border-green-600 hover:border-green-600 text-white transition-all duration-200"
             onStart={() => toast.info("Preparing business plan...")}
             onDone={(success) => {
               if (!success) {
@@ -885,10 +886,10 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
             }}
           />
           <Button 
-            variant="outline"
+            variant="default"
             size="lg"
             onClick={() => window.print()}
-            className="flex items-center gap-2"
+            className="bg-green-600 hover:bg-white hover:text-green-600 border-green-600 hover:border-green-600 text-white transition-all duration-200 flex items-center gap-2"
           >
             <DollarSign className="w-5 h-5" />
             Save / Download Report
