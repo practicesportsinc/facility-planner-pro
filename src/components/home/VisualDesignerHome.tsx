@@ -54,9 +54,24 @@ const UNIT_COUNTS: Record<SportKey, Record<SizeKey, Partial<Record<string, numbe
 
 type Selection = { sports: SportKey[]; size?: SizeKey; };
 
-export default function VisualDesignerHome() {
-  const [sel, setSel] = useState<Selection>({ sports: [] });
-  const [step, setStep] = useState<0|1|2>(0);
+interface VisualDesignerHomeProps {
+  onLayoutSelected?: (layoutData: any) => void;
+  onShowLayoutSelector?: () => void;
+  selectedLayoutId?: string;
+  initialData?: any;
+}
+
+export default function VisualDesignerHome({ 
+  onLayoutSelected, 
+  onShowLayoutSelector, 
+  selectedLayoutId,
+  initialData 
+}: VisualDesignerHomeProps = {}) {
+  const [sel, setSel] = useState<Selection>({ 
+    sports: initialData?.selectedSports || [], 
+    size: initialData?.size || undefined 
+  });
+  const [step, setStep] = useState<0|1|2>(initialData?.selectedSports?.length > 0 ? 1 : 0);
   const navigate = useNavigate();
 
   const canContinue = sel.sports.length > 0;
@@ -160,12 +175,33 @@ export default function VisualDesignerHome() {
           <LayoutGallery
             grossSf={shellSf || 16000}
             counts={counts}
+            selectedLayoutId={selectedLayoutId}
             onChoose={(choice) => {
               console.log("Layout choice clicked:", choice);
               console.log("Current selection:", sel);
               console.log("Counts:", counts);
-              // Create a quick draft using the user's selection path
-              if (sel.size) {
+              
+              if (sel.size && onLayoutSelected) {
+                // Create layout data for the calculator
+                const layoutData = {
+                  selectedSports: sel.sports,
+                  size: sel.size,
+                  layoutChoice: choice,
+                  grossSf: shellSf || 16000,
+                  counts,
+                  // Map to calculator format
+                  facilityType: "lease",
+                  clearHeight: "24",
+                  totalSquareFootage: (shellSf || 16000).toString(),
+                  numberOfCourts: counts.basketball_courts_full || counts.volleyball_courts || counts.pickleball_courts || '',
+                  numberOfFields: counts.soccer_field_small || '',
+                  numberOfCages: counts.baseball_tunnels || '',
+                  amenities: ["lobby", "storage"]
+                };
+                
+                onLayoutSelected(layoutData);
+              } else if (sel.size) {
+                // Fallback to navigation for standalone use
                 try {
                   const id = createQuickDraftFromVisual({ ...sel, size: sel.size }, shellSf || 16000, counts, choice.id);
                   console.log("Created draft with ID:", id);
@@ -178,6 +214,15 @@ export default function VisualDesignerHome() {
               }
             }}
           />
+        </div>
+      )}
+
+      {/* Back to Layout Button */}
+      {onShowLayoutSelector && (
+        <div className="actions">
+          <button className="back-to-layout" onClick={onShowLayoutSelector}>
+            ← Back to Layout Selection
+          </button>
         </div>
       )}
 
@@ -203,6 +248,11 @@ export default function VisualDesignerHome() {
         .chip.on { background: #00A66A; color: #fff; border-color: #00A66A; }
         .shell-preview { margin: 8px 0 12px; }
         .layouts { margin-top: 12px; }
+        .back-to-layout { 
+          background: #E5E7EB; color: #374151; border: none; padding: 10px 14px; 
+          border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 16px; 
+        }
+        .back-to-layout:hover { background: #D1D5DB; }
       `}</style>
     </section>
   );
