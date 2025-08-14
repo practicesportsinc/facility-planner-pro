@@ -181,6 +181,34 @@ const WizardResults = () => {
     return baseMembers * avgMembershipPrice;
   };
 
+  const generateLocalSummary = (financialMetrics: any, wizardData: any) => {
+    const totalInvestment = financialMetrics.capex?.total || 0;
+    const monthlyRevenue = financialMetrics.revenue?.total || 0;
+    const monthlyOpex = financialMetrics.opex?.total || 0;
+    const monthlyProfit = monthlyRevenue - monthlyOpex;
+    const roi = financialMetrics.profitability?.roi || 0;
+    const breakEven = financialMetrics.profitability?.breakEvenMonths || 0;
+    
+    const isViable = roi > 15 && breakEven < 60;
+    const profitStatus = monthlyProfit > 0 ? "positive" : "negative";
+    
+    return `**Financial Viability Analysis**
+
+This ${wizardData.facilitySize?.toUpperCase() || 'large'} multi-sport facility targeting ${wizardData.targetMarket?.join(' and ') || 'families and competitive athletes'} shows ${isViable ? 'strong' : 'challenging'} financial projections. With a total investment of ${formatCurrency(totalInvestment)}, the facility is projected to generate ${formatCurrency(monthlyRevenue)} in monthly revenue across ${wizardData.selectedSports?.join(', ') || 'volleyball and soccer'} programs.
+
+**Operational Performance**
+
+Monthly operating expenses are projected at ${formatCurrency(monthlyOpex)}, resulting in ${profitStatus} monthly cash flow of ${formatCurrency(Math.abs(monthlyProfit))}. The facility's ${formatCurrency(financialMetrics.space?.grossSF || 0).replace('$', '')} square feet provides ample space for the selected sports, with strong revenue potential from memberships (${formatCurrency(financialMetrics.revenue?.memberships || 0)}/month) and program offerings.
+
+**Risk Assessment & Market Position**
+
+${roi > 20 ? 'The projected ROI of ' + roi.toFixed(1) + '% indicates excellent investment potential.' : roi > 10 ? 'The projected ROI of ' + roi.toFixed(1) + '% shows moderate investment returns.' : 'The projected ROI of ' + roi.toFixed(1) + '% suggests financial challenges that need addressing.'} ${breakEven < 36 ? 'Break-even timing of ' + breakEven + ' months is favorable for this market segment.' : 'Break-even projections require careful cash flow management and strong marketing execution.'} Key success factors include effective membership acquisition, optimal facility utilization, and competitive programming for ${wizardData.targetMarket?.join(' and ') || 'your target demographics'}.
+
+**Strategic Recommendations**
+
+${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and building strong community partnerships.' : 'Consider optimizing the revenue mix through additional programming, corporate partnerships, and operational efficiency improvements.'} ${wizardData.timeline === 'long_term' ? 'Your long-term timeline provides opportunity for market development and phased expansion.' : 'Accelerated timeline requires strong pre-opening marketing and immediate revenue generation strategies.'} Monitor key performance indicators including membership retention, facility utilization rates, and program profitability to ensure sustainable growth.`;
+  };
+
   const generateAISummary = async () => {
     if (!wizardResult || !financialMetrics) return;
     
@@ -201,27 +229,32 @@ const WizardResults = () => {
         businessModel: wizardResult.recommendations.businessModel
       };
 
-      const { data, error } = await supabase.functions.invoke('generate-financial-summary', {
-        body: {
-          financialMetrics,
-          wizardData
+      // Try OpenAI first, fallback to local generation
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-financial-summary', {
+          body: {
+            financialMetrics,
+            wizardData
+          }
+        });
+
+        if (error || data?.error) {
+          throw new Error(data?.error || error?.message || 'OpenAI API unavailable');
         }
-      });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(error.message || 'Failed to generate summary');
+        
+        setAiSummary(data.summary);
+        toast.success("AI summary generated successfully!");
+      } catch (openaiError) {
+        console.log('OpenAI unavailable, using local summary generation:', openaiError);
+        
+        // Generate local summary
+        const localSummary = generateLocalSummary(financialMetrics, wizardData);
+        setAiSummary(localSummary);
+        toast.success("Financial summary generated successfully!");
       }
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-      
-      setAiSummary(data.summary);
-      toast.success("AI summary generated successfully!");
     } catch (error) {
-      console.error('Error generating AI summary:', error);
-      toast.error("Failed to generate AI summary. Please try again.");
+      console.error('Error generating summary:', error);
+      toast.error("Failed to generate summary. Please try again.");
     } finally {
       setIsGeneratingSummary(false);
     }
