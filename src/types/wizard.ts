@@ -44,5 +44,7 @@ export interface WizardResult {
     keyFeatures: string[];
     businessModel: string;
     estimatedCapacity: number;
+    productsOfInterest?: string[];
+    customProducts?: string;
   };
 }

@@ -32,6 +32,8 @@ serve(async (req) => {
     const businessModel = responses.business_model || project.recommendations?.businessModel || 'Membership-based';
     const selectedSports = Array.isArray(responses.primary_sport) ? responses.primary_sport : [responses.primary_sport];
     const targetMarkets = Array.isArray(responses.target_market) ? responses.target_market : [responses.target_market];
+    const productsOfInterest = project.recommendations?.productsOfInterest || [];
+    const customProducts = project.recommendations?.customProducts || "";
 
     const financialMetrics = project.financialMetrics || {};
     const grossSqft = Math.round(financialMetrics.space?.grossSF || 0);
@@ -69,7 +71,9 @@ serve(async (req) => {
       roi,
       formatCurrency,
       financialMetrics,
-      includeImages
+      includeImages,
+      productsOfInterest,
+      customProducts
     });
     
     return new Response(JSON.stringify({ 
@@ -108,7 +112,9 @@ function generateBusinessPlanHTML({
   roi,
   formatCurrency,
   financialMetrics,
-  includeImages
+  includeImages,
+  productsOfInterest,
+  customProducts
 }: any) {
   const currentDate = new Date().toLocaleDateString();
   const sportsNames = selectedSports.map((sport: string) => {
@@ -245,6 +251,31 @@ function generateBusinessPlanHTML({
         
         <h3>Staffing Plan</h3>
         <p>Estimated staffing costs of ${formatCurrency(financialMetrics.opex?.staffing || monthlyOpex * 0.4)} per month will support facility operations, coaching, and customer service.</p>
+        
+        ${productsOfInterest && productsOfInterest.length > 0 ? `
+        <h3>Products of Interest</h3>
+        <p>The following products have been identified for procurement and installation:</p>
+        <ul>
+            ${productsOfInterest.map((product: string) => {
+              const productMap: Record<string, string> = {
+                'turf': 'Artificial Turf Systems',
+                'nets_cages': 'Protective Netting and Batting Cages',
+                'hoops': 'Basketball Goals and Systems',
+                'volleyball': 'Volleyball Net Systems and Equipment',
+                'lighting': 'LED Sports Lighting Systems',
+                'hvac': 'Climate Control Systems',
+                'court_flooring': 'Sport Court and Hardwood Flooring',
+                'rubber_flooring': 'Rubber Fitness and Safety Flooring',
+                'machines': 'Fitness and Training Equipment',
+                'pickleball': 'Pickleball Courts and Equipment',
+                'divider_curtains': 'Court Separation Systems',
+                'other': 'Custom or Specialty Products'
+              };
+              return `<li>${productMap[product] || product.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</li>`;
+            }).join('')}
+        </ul>
+        ${customProducts ? `<p><strong>Additional Requirements:</strong> ${customProducts}</p>` : ''}
+        ` : ''}
     </div>
 
     <div class="section">

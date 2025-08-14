@@ -208,6 +208,8 @@ export const generateRecommendations = (responses: any) => {
   const locationType = responses.location_type;
   const revenueModel = responses.revenue_model || [];
   const budget = responses.budget_range;
+  const productsOfInterest = responses.products_interest || [];
+  const customProducts = responses.other_products_description || "";
 
   // Size recommendations based on sport and market
   const sizeMap: Record<string, Record<string, number>> = {
@@ -284,6 +286,8 @@ export const generateRecommendations = (responses: any) => {
     layout: primarySports.length > 1 ? "Multi-sport layout with flexible zones" : layoutRecommendations[primarySports[0]] || "Custom layout design",
     keyFeatures: features,
     businessModel,
-    estimatedCapacity: primarySports.reduce((total, sport) => total + (capacityMap[sport] || 0), 0) || Math.floor(suggestedSize / 4000)
+    estimatedCapacity: primarySports.reduce((total, sport) => total + (capacityMap[sport] || 0), 0) || Math.floor(suggestedSize / 4000),
+    productsOfInterest: productsOfInterest.length > 0 ? productsOfInterest : undefined,
+    customProducts: customProducts || undefined
   };
 };
