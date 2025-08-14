@@ -509,6 +509,7 @@ export default function QuickEstimatesButton() {
 
   function createQuickEstimate() {
     const saved = saveDraftProject(preset);
+    setOpen(false); // Close the modal
     // Navigate: you can route to /calculator if your app shows results immediately (soft gate will still apply)
     navigate(`/calculator?projectId=${saved.id}&mode=quick`);
   }
