@@ -899,23 +899,41 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
                 <p className="text-muted-foreground mb-4">
                   Get an AI-powered professional analysis of your financial projections
                 </p>
-                <Button 
-                  onClick={generateAISummary} 
-                  disabled={isGeneratingSummary}
-                  className="flex items-center gap-2"
-                >
-                  {isGeneratingSummary ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Generating Summary...
-                    </>
-                  ) : (
-                    <>
-                      <Star className="w-4 h-4" />
-                      Generate AI Summary
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button 
+                    onClick={generateAISummary} 
+                    disabled={isGeneratingSummary}
+                    className="flex items-center gap-2"
+                  >
+                    {isGeneratingSummary ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Generating Summary...
+                      </>
+                    ) : (
+                      <>
+                        <Star className="w-4 h-4" />
+                        Generate AI Summary
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => toast.info("Business plan generation coming soon!")}
+                    className="flex items-center gap-2"
+                  >
+                    <Building className="w-4 h-4" />
+                    Generate Business Plan
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => window.print()}
+                    className="flex items-center gap-2"
+                  >
+                    <DollarSign className="w-4 h-4" />
+                    Save / Download Report
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="prose prose-sm max-w-none">
@@ -923,25 +941,45 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
                   {aiSummary}
                 </div>
                 <div className="mt-4 pt-4 border-t">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={generateAISummary}
-                    disabled={isGeneratingSummary}
-                    className="flex items-center gap-2"
-                  >
-                    {isGeneratingSummary ? (
-                      <>
-                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
-                        Regenerating...
-                      </>
-                    ) : (
-                      <>
-                        <Star className="w-3 h-3" />
-                        Regenerate Summary
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={generateAISummary}
+                      disabled={isGeneratingSummary}
+                      className="flex items-center gap-2"
+                    >
+                      {isGeneratingSummary ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+                          Regenerating...
+                        </>
+                      ) : (
+                        <>
+                          <Star className="w-3 h-3" />
+                          Regenerate Summary
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => toast.info("Business plan generation coming soon!")}
+                      className="flex items-center gap-2"
+                    >
+                      <Building className="w-3 h-3" />
+                      Generate Business Plan
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.print()}
+                      className="flex items-center gap-2"
+                    >
+                      <DollarSign className="w-3 h-3" />
+                      Save / Download Report
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
