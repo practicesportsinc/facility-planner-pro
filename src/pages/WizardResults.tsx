@@ -137,7 +137,7 @@ const WizardResults = () => {
   const handleUnlock = async () => {
     if (leadData.name && leadData.email && leadData.business && leadData.phone && wizardResult && financialMetrics) {
       try {
-        await saveWizardSubmission({
+        const { error } = await supabase.from('wizard_submissions').insert({
           lead_name: leadData.name,
           lead_email: leadData.email,
           lead_business: leadData.business,
@@ -146,6 +146,8 @@ const WizardResults = () => {
           recommendations: wizardResult.recommendations,
           financial_metrics: financialMetrics
         });
+        
+        if (error) throw error;
         
         setIsUnlocked(true);
         toast.success("Thank you! Your financial projections have been unlocked.");
