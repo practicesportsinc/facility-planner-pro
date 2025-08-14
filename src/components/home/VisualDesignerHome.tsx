@@ -80,9 +80,12 @@ export default function VisualDesignerHome({
   const shellSf = useMemo(() => {
     if (!sel.size || sel.sports.length === 0) return 0;
     const hasSoccer = sel.sports.includes("soccer_indoor_small_sided");
-    if (sel.sports.length === 1) return SHELL_SF[sel.sports[0]][sel.size];
-    if (hasSoccer) return SHELL_SF.soccer_indoor_small_sided[sel.size];
-    return SHELL_SF.multi_sport[sel.size];
+    if (sel.sports.length === 1) {
+      const sport = sel.sports[0];
+      return SHELL_SF[sport]?.[sel.size] || 16000; // fallback
+    }
+    if (hasSoccer) return SHELL_SF.soccer_indoor_small_sided?.[sel.size] || 36000;
+    return SHELL_SF.multi_sport?.[sel.size] || 26000;
   }, [sel]);
 
   // Aggregate counts for multi-select (map to LayoutGallery expected keys)
@@ -90,7 +93,9 @@ export default function VisualDesignerHome({
     if (!sel.size || sel.sports.length === 0) return {};
     const bundle: Record<string, number> = {};
     for (const s of sel.sports) {
-      const add = UNIT_COUNTS[s][sel.size] || {};
+      const sportCounts = UNIT_COUNTS[s];
+      if (!sportCounts) continue; // skip if sport not found
+      const add = sportCounts[sel.size] || {};
       for (const [k, v] of Object.entries(add)) {
         // Map to keys expected by LayoutGallery
         const mappedKey = k === "baseball_tunnels" ? "baseball_tunnels" : k;
