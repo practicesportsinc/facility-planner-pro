@@ -137,7 +137,7 @@ const WizardResults = () => {
   const handleUnlock = async () => {
     if (leadData.name && leadData.email && leadData.business && leadData.phone && wizardResult && financialMetrics) {
       try {
-        const { error } = await supabase.from('wizard_submissions').insert({
+        const { error } = await (supabase as any).from('wizard_submissions').insert({
           lead_name: leadData.name,
           lead_email: leadData.email,
           lead_business: leadData.business,
