@@ -146,11 +146,30 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     description: "Include construction, equipment, and initial operating capital",
     required: true,
     options: [
-      { id: "under_250k", label: "Under $250K", description: "Basic renovation, minimal equipment" },
+      { id: "under_100k", label: "Under $100K", description: "Basic renovation, used equipment" },
+      { id: "100k_250k", label: "$100K - $250K", description: "Moderate renovation, mixed equipment" },
       { id: "250k_500k", label: "$250K - $500K", description: "Moderate renovation, standard equipment" },
       { id: "500k_1m", label: "$500K - $1M", description: "Significant renovation or small new build" },
       { id: "1m_2m", label: "$1M - $2M", description: "Large renovation or medium new build" },
       { id: "over_2m", label: "Over $2M", description: "Premium new construction" }
+    ]
+  },
+  {
+    id: "products_interest",
+    type: "multiple",
+    title: "What products are you interested in?",
+    description: "Select all that you need quotes for",
+    dependsOn: {
+      questionId: "experience_level",
+      values: ["expanding"]
+    },
+    options: [
+      { id: "turf", label: "Turf", description: "Artificial turf systems" },
+      { id: "nets_cages", label: "Nets/Cages", description: "Protective netting and batting cages" },
+      { id: "hoops", label: "Hoops", description: "Basketball goals and systems" },
+      { id: "volleyball", label: "Volleyball", description: "Net systems and equipment" },
+      { id: "lighting", label: "Lighting", description: "LED sports lighting systems" },
+      { id: "hvac", label: "HVAC", description: "Climate control systems" }
     ]
   },
   {
