@@ -3,9 +3,9 @@ import { WizardQuestion } from "@/types/wizard";
 export const WIZARD_QUESTIONS: WizardQuestion[] = [
   {
     id: "primary_sport",
-    type: "single",
-    title: "What's your primary sport or activity focus?",
-    description: "Choose the main activity that will drive your facility design",
+    type: "multiple",
+    title: "What sports or activities will you offer?",
+    description: "Select all sports and activities you plan to include in your facility",
     required: true,
     options: [
       { id: "baseball_softball", label: "Baseball/Softball", icon: "⚾", description: "Batting cages, pitching areas" },
@@ -168,7 +168,7 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
 ];
 
 export const generateRecommendations = (responses: any) => {
-  const primarySport = responses.primary_sport;
+  const primarySports = Array.isArray(responses.primary_sport) ? responses.primary_sport : [responses.primary_sport];
   const targetMarket = responses.target_market || [];
   const facilitySize = responses.facility_size;
   const locationType = responses.location_type;
@@ -185,7 +185,7 @@ export const generateRecommendations = (responses: any) => {
     multi_sport: { small: 15000, medium: 25000, large: 40000, xl: 60000 }
   };
 
-  const suggestedSize = sizeMap[primarySport]?.[facilitySize] || 20000;
+  const suggestedSize = primarySports.reduce((total, sport) => total + (sizeMap[sport]?.[facilitySize] || 0), 0) || 20000;
 
   // Layout recommendations
   const layoutRecommendations: Record<string, string> = {
@@ -239,11 +239,11 @@ export const generateRecommendations = (responses: any) => {
   };
 
   return {
-    facilityType: primarySport.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    facilityType: primarySports.length > 1 ? "Multi-Sport Facility" : primarySports[0]?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || "Multi-Sport",
     suggestedSize,
-    layout: layoutRecommendations[primarySport] || "Custom layout design",
+    layout: primarySports.length > 1 ? "Multi-sport layout with flexible zones" : layoutRecommendations[primarySports[0]] || "Custom layout design",
     keyFeatures: features,
     businessModel,
-    estimatedCapacity: capacityMap[primarySport] || Math.floor(suggestedSize / 4000)
+    estimatedCapacity: primarySports.reduce((total, sport) => total + (capacityMap[sport] || 0), 0) || Math.floor(suggestedSize / 4000)
   };
 };
