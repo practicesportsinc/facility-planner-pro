@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Zap } from "lucide-react";
 
 /** ---------- Types (aligned to your schema prompts) ---------- */
 type BuildMode = "build" | "buy" | "lease";
@@ -522,14 +524,16 @@ export default function QuickEstimatesButton() {
 
   return (
     <>
-      <button
+      <Button 
+        variant="outline" 
+        size="lg" 
         onClick={() => setOpen(true)}
-        className="qs-cta"
         aria-haspopup="dialog"
         aria-controls="quick-estimates-panel"
       >
-        ⚡ Quick Estimates
-      </button>
+        <Zap className="mr-2 h-5 w-5" />
+        Quick Estimates
+      </Button>
 
       {open && (
         <div className="qs-panel-overlay" role="dialog" aria-modal="true" id="quick-estimates-panel">
@@ -599,15 +603,6 @@ export default function QuickEstimatesButton() {
       )}
 
       <style>{`
-        .qs-cta {
-          padding: 12px 16px;
-          border: none;
-          border-radius: 8px;
-          background: #0B63E5;
-          color: #fff;
-          font-weight: 600;
-          cursor: pointer;
-        }
         .qs-panel-overlay {
           position: fixed; inset: 0; background: rgba(0,0,0,0.35);
           display: flex; align-items: center; justify-content: center; z-index: 60;
