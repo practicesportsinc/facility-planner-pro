@@ -19,6 +19,7 @@ const EQUIPMENT_BY_SPORT = {
     { id: 'pitching-machines', name: 'Pitching Machines', cost: 3500, quantity: 4 },
     { id: 'protective-screens', name: 'Protective Screens', cost: 500, quantity: 8 },
     { id: 'batting-helmets', name: 'Batting Helmets', cost: 45, quantity: 20 },
+    { id: 'batters-box-turf-mat', name: "Batter's Box Turf Mat", cost: 300, quantity: 6 },
   ],
   basketball: [
     { id: 'basketball-hoops', name: 'Basketball Hoops (adjustable)', cost: 2500, quantity: 8 },
