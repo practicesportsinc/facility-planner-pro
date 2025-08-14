@@ -111,10 +111,10 @@ const Calculator = () => {
           // Map wizard responses to calculator format
           setCalculatorData({
             1: { // Project Basics
-              projectName: responses.facilityName || '',
-              location: responses.location || '',
-              selectedSports: Array.isArray(responses.sports) ? responses.sports : [responses.sports].filter(Boolean),
-              stage_code: responses.stage || 'concept',
+              projectName: responses.facility_name || '',
+              location: responses.location_type || '',
+              selectedSports: Array.isArray(responses.primary_sport) ? responses.primary_sport : [responses.primary_sport].filter(Boolean),
+              stage_code: responses.project_stage || 'concept',
               budget: responses.budget || ''
             },
             2: { // Build Mode
