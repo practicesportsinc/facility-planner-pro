@@ -56,6 +56,7 @@ const GENERAL_EQUIPMENT = [
 
 const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentProps) => {
   const selectedSports = allData[1]?.selectedSports || [];
+  const squareFootage = allData[2]?.totalSquareFootage || 0;
   
   // Initialize equipment list based on selected sports
   const getInitialEquipment = () => {
@@ -67,6 +68,22 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
     });
     
     equipment = [...equipment, ...GENERAL_EQUIPMENT];
+    
+    // Add artificial turf for baseball/softball
+    if (selectedSports.includes('baseball') || selectedSports.includes('softball')) {
+      const turfExists = equipment.some(item => item.id === 'artificial-turf');
+      if (!turfExists) {
+        equipment.push({
+          id: 'artificial-turf',
+          name: 'Artificial Turf',
+          cost: 5,
+          quantity: squareFootage || 25000,
+          isFixed: true,
+          sport: 'baseball'
+        });
+      }
+    }
+    
     return equipment;
   };
 
@@ -176,7 +193,14 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                             placeholder="Equipment name"
                           />
                         ) : (
-                          <span className="font-medium">{item.name}</span>
+                          <div>
+                            <span className="font-medium">{item.name}</span>
+                            {item.isFixed && (
+                              <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                Auto-calculated
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
 
@@ -187,7 +211,9 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                           value={item.cost}
                           onChange={(e) => handleCostChange(item.id, Number(e.target.value))}
                           className="w-24"
+                          disabled={item.isFixed}
                         />
+                        {item.id === 'artificial-turf' && <span className="text-xs text-muted-foreground">per sq ft</span>}
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -195,6 +221,7 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                           variant="outline"
                           size="sm"
                           onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                          disabled={item.isFixed}
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
@@ -203,9 +230,11 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                           variant="outline"
                           size="sm"
                           onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                          disabled={item.isFixed}
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
+                        {item.id === 'artificial-turf' && <span className="text-xs text-muted-foreground">sq ft</span>}
                       </div>
 
                       <div className="text-right min-w-24">
