@@ -13,6 +13,7 @@ type SportKey =
   | "volleyball"
   | "pickleball"
   | "soccer_indoor_small_sided"
+  | "football"
   | "multi_sport";
 
 type CourtOrCageCounts = Record<string, number>;
@@ -424,6 +425,38 @@ function presetsSoccer(size: SizeKey): QuickPreset {
   };
 }
 
+function presetsFootball(size: SizeKey): QuickPreset {
+  const fields = size === "small" ? 1 : size === "medium" ? 1 : 2;
+  const perUnitSF = { football_field: 19200 };
+  return {
+    label: "Football",
+    size,
+    region_multiplier: GLOBAL.region_multiplier,
+    facility: {
+      build_mode: "lease",
+      clear_height_ft: 32,
+      admin_pct_addon: GLOBAL.admin_pct_addon,
+      circulation_pct_addon: GLOBAL.circulation_pct_addon,
+      court_or_cage_counts: { football_field: fields },
+      amenities: { team_rooms: true, training_room: true, equipment_storage: true }
+    },
+    capex: GLOBAL.capexDefaults(size),
+    lease: { ...GLOBAL.leaseDefaults },
+    opex: GLOBAL.opexDefaults(size),
+    revenue: {
+      memberships: membershipsBySize(size),
+      rentals: [{ unit: "football_field", rate_per_hr: 180, util_hours_per_week: size === "small" ? 40 : size === "medium" ? 60 : 80 }],
+      lessons: [{ coach_count: size === "small" ? 3 : 4, avg_rate_per_hr: 90, hours_per_coach_week: 15, utilization_pct: 70 }],
+      camps_clinics: [{ sessions_per_year: 6, avg_price: 299, capacity: 40, fill_rate_pct: 75 }],
+      leagues_tournaments: [{ events_per_year: size === "small" ? 4 : 6, teams_per_event: 20, avg_team_fee: 800, net_margin_pct: 45 }],
+      parties_events: [{ events_per_month: size === "small" ? 2 : 4, avg_net: 400 }],
+      seasonality: GLOBAL.seasonality
+    },
+    per_unit_space_sf: perUnitSF,
+    equipment_lump_sum: size === "small" ? 50000 : size === "medium" ? 75000 : 120000
+  };
+}
+
 function presetsMultiSport(size: SizeKey): QuickPreset {
   // Mix of turf zone + courts
   const perUnitSF = {
@@ -478,6 +511,7 @@ const QUICK_PRESETS: Record<SportKey, (size: SizeKey) => QuickPreset> = {
   volleyball: presetsVolleyball,
   pickleball: presetsPickleball,
   soccer_indoor_small_sided: presetsSoccer,
+  football: presetsFootball,
   multi_sport: presetsMultiSport
 };
 
@@ -490,6 +524,7 @@ function getSportsForPreset(sportKey: SportKey): string[] {
     "volleyball": ["volleyball"],
     "pickleball": ["pickleball"],
     "soccer_indoor_small_sided": ["soccer"],
+    "football": ["football"],
     "multi_sport": ["basketball", "volleyball", "soccer"]
   };
   return sportMapping[sportKey] || [];
@@ -571,6 +606,7 @@ export default function QuickEstimatesButton() {
     { key: "volleyball", label: "Volleyball" },
     { key: "pickleball", label: "Pickleball" },
     { key: "soccer_indoor_small_sided", label: "Indoor Soccer (small-sided)" },
+    { key: "football", label: "Football" },
     { key: "multi_sport", label: "Multi‑sport" }
   ];
 
@@ -643,7 +679,8 @@ export default function QuickEstimatesButton() {
                     basketball_courts_half: 0,
                     baseball_tunnels: preset.facility.court_or_cage_counts.baseball_tunnels || 0,
                     training_turf_zone: preset.facility.court_or_cage_counts.training_turf_zone || 0,
-                    soccer_field_small: preset.facility.court_or_cage_counts.soccer_field_small || 0
+                    soccer_field_small: preset.facility.court_or_cage_counts.soccer_field_small || 0,
+                    football_field: preset.facility.court_or_cage_counts.football_field || 0
                   }}
                   selectedId={layoutChoice?.id || undefined}
                   onSelect={(choice) => setLayoutChoice(choice)}

@@ -137,6 +137,33 @@ export const SPORT_PRESETS: Record<string, SportPreset> = {
     ]
   },
 
+  football: {
+    id: "football",
+    name: "Football",
+    description: "Indoor football training field",
+    recommendedUnits: { football_field: 1 },
+    perUnitSpaceSf: { football_field: 19200 }, // 80' x 240' (reduced indoor size)
+    minClearHeight: { min: 30, max: 35 },
+    flooringType: "Turf (with shock pad)",
+    typicalAmenities: [
+      "Team rooms",
+      "Training room",
+      "Equipment storage",
+      "Viewing area",
+      "Referee room"
+    ],
+    defaultEquipment: [
+      { id: "football_goalposts", name: "Football goalposts", category: "football", qtyFormula: "football_field*2" },
+      { id: "yard_markers", name: "Yard markers", category: "football", qtyFormula: "fixed:20" },
+      { id: "blocking_sleds", name: "Blocking sleds", category: "training", qtyFormula: "fixed:4" },
+      { id: "tackling_dummies", name: "Tackling dummies", category: "training", qtyFormula: "fixed:6" },
+      { id: "kicking_nets", name: "Kicking nets", category: "football", qtyFormula: "fixed:2" },
+      { id: "team_benches_football", name: "Team benches", category: "furniture", qtyFormula: "fixed:4" },
+      { id: "scoreboard_football", name: "Scoreboard", category: "scoring", qtyFormula: "football_field" },
+      { id: "perimeter_netting_fb", name: "Perimeter netting", category: "netting", isPerimeter: true }
+    ]
+  },
+
   multi_sport_turf: {
     id: "multi_sport_turf",
     name: "Multi-sport Training Turf",

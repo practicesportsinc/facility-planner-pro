@@ -15,6 +15,7 @@ const SHELL_SF: Record<SportKey, Record<SizeKey, number>> = {
   volleyball:        { small: 12000, medium: 20000, large: 30000 },
   pickleball:        { small: 12000, medium: 20000, large: 28000 },
   soccer_indoor_small_sided: { small: 18000, medium: 36000, large: 54000 },
+  football:          { small: 28000, medium: 42000, large: 60000 },
   multi_sport:       { small: 18000, medium: 26000, large: 36000 }
 };
 
@@ -44,6 +45,11 @@ const UNIT_COUNTS: Record<SportKey, Record<SizeKey, Partial<Record<string, numbe
     small:  { soccer_field_small: 1 },
     medium: { soccer_field_small: 2 },
     large:  { soccer_field_small: 3 }
+  },
+  football: {
+    small:  { football_field: 1 },
+    medium: { football_field: 1 },
+    large:  { football_field: 2 }
   },
   multi_sport: {
     small:  { training_turf_zone: 1, pickleball_courts: 4 },

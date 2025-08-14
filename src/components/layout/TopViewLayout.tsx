@@ -17,7 +17,8 @@ export type UnitKind =
   | "basketball_court_half"
   | "baseball_tunnel"
   | "training_turf_zone"
-  | "soccer_field_small";
+  | "soccer_field_small"
+  | "football_field";
 
 const UNIT_DIMS_FT: Record<UnitKind, { w: number; h: number; label: string }> = {
   volleyball_court:       { w: 72,  h: 36, label: "Volleyball" },
@@ -26,7 +27,8 @@ const UNIT_DIMS_FT: Record<UnitKind, { w: number; h: number; label: string }> = 
   basketball_court_half:  { w: 56,  h: 56, label: "Basketball (Half)" },
   baseball_tunnel:        { w: 70,  h: 15, label: "Batting Tunnel" },
   training_turf_zone:     { w: 120, h: 60, label: "Training Turf" },
-  soccer_field_small:     { w: 180, h: 80, label: "Small Soccer" }
+  soccer_field_small:     { w: 180, h: 80, label: "Small Soccer" },
+  football_field:         { w: 240, h: 80, label: "Football Field" }
 };
 
 export type UnitRequest = {
@@ -203,6 +205,7 @@ export function TopViewLayout({
         (u.kind.includes("basketball") ? brandBlue :
          u.kind.includes("baseball")   ? brandGreen :
          u.kind.includes("soccer")     ? "#65A30D" :
+         u.kind.includes("football")   ? "#8B4513" :
          u.kind.includes("turf")       ? "#65A30D" : brandGray);
       const stroke = "#111111";
       for (let i = 0; i < u.count; i++) {

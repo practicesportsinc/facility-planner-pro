@@ -6,6 +6,7 @@ export type SportKey =
   | "volleyball"
   | "pickleball"
   | "soccer_indoor_small_sided"
+  | "football"
   | "multi_sport";
 
 export const SPORT_LABELS: Record<SportKey, string> = {
@@ -14,6 +15,7 @@ export const SPORT_LABELS: Record<SportKey, string> = {
   volleyball: "Volleyball",
   pickleball: "Pickleball",
   soccer_indoor_small_sided: "Indoor Soccer",
+  football: "Football",
   multi_sport: "Multi‑sport"
 };
 
@@ -59,6 +61,14 @@ export function SportIcon({ kind, size = 64 }: { kind: SportKey; size?: number }
           <rect x="8" y="12" width="48" height="40" rx="3" fill={accent} stroke={stroke} />
           <circle cx="32" cy="32" r="6" fill="none" stroke="#fff" />
           <line x1="32" y1="12" x2="32" y2="52" stroke="#fff" />
+        </svg>
+      );
+    case "football":
+      return (
+        <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden>
+          <ellipse cx="32" cy="32" rx="16" ry="12" fill="#8B4513" stroke={stroke} />
+          <path d="M20 32l24 0M22 28l20 0M22 36l20 0" stroke="#fff" strokeWidth="1" />
+          <circle cx="32" cy="32" r="2" fill="#fff" />
         </svg>
       );
     case "multi_sport":

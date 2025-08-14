@@ -20,7 +20,7 @@ export function LayoutGallery({
   onSelect              // NEW (optional)
 }: {
   grossSf: number;
-  counts: Partial<Record<"volleyball_courts"|"pickleball_courts"|"basketball_courts_full"|"basketball_courts_half"|"baseball_tunnels"|"training_turf_zone"|"soccer_field_small", number>>;
+  counts: Partial<Record<"volleyball_courts"|"pickleball_courts"|"basketball_courts_full"|"basketball_courts_half"|"baseball_tunnels"|"training_turf_zone"|"soccer_field_small"|"football_field", number>>;
   onChoose?: (choice: GalleryChoice) => void;
   selectedId?: string;
   onSelect?: (choice: GalleryChoice) => void;
@@ -40,6 +40,7 @@ export function LayoutGallery({
     push("baseball_tunnel", counts.baseball_tunnels, rotateMap?.baseball_tunnels ?? false); // default horizontal
     push("training_turf_zone", counts.training_turf_zone, rotateMap?.training_turf_zone);
     push("soccer_field_small", counts.soccer_field_small, rotateMap?.soccer_field_small);
+    push("football_field", counts.football_field, rotateMap?.football_field);
     return map;
   }
 
