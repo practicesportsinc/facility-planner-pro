@@ -33,6 +33,7 @@ import {
   calculateRevenue,
   calculateProfitability
 } from "@/utils/calculations";
+import { formatCurrency } from "@/lib/utils";
 
 const WizardResults = () => {
   const navigate = useNavigate();
@@ -565,25 +566,25 @@ const WizardResults = () => {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                         <div className="bg-blue-50 p-3 rounded-lg">
                           <div className="text-lg font-bold text-blue-600">
-                            ${(sportData.constructionCost / 1000).toFixed(0)}K
+                            {formatCurrency(sportData.constructionCost)}
                           </div>
                           <div className="text-xs text-muted-foreground">Construction</div>
                         </div>
                         <div className="bg-green-50 p-3 rounded-lg">
                           <div className="text-lg font-bold text-green-600">
-                            ${(sportData.equipmentCost / 1000).toFixed(0)}K
+                            {formatCurrency(sportData.equipmentCost)}
                           </div>
                           <div className="text-xs text-muted-foreground">Equipment</div>
                         </div>
                         <div className="bg-purple-50 p-3 rounded-lg">
                           <div className="text-lg font-bold text-purple-600">
-                            ${(sportData.monthlyRevenue / 1000).toFixed(1)}K
+                            {formatCurrency(sportData.monthlyRevenue)}
                           </div>
                           <div className="text-xs text-muted-foreground">Monthly Revenue</div>
                         </div>
                         <div className="bg-orange-50 p-3 rounded-lg">
                           <div className="text-lg font-bold text-orange-600">
-                            ${(sportData.monthlyProfit / 1000).toFixed(1)}K
+                            {formatCurrency(sportData.monthlyProfit)}
                           </div>
                           <div className="text-xs text-muted-foreground">Monthly Profit</div>
                         </div>
@@ -593,7 +594,7 @@ const WizardResults = () => {
                         <div className="flex justify-between items-center">
                           <span className="font-medium">Total Investment for {sport.label}:</span>
                           <span className="font-bold text-lg text-primary">
-                            ${(sportData.totalCost / 1000).toFixed(0)}K
+                            {formatCurrency(sportData.totalCost)}
                           </span>
                         </div>
                       </div>
@@ -653,20 +654,20 @@ const WizardResults = () => {
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <span>Construction/Build-out</span>
-                        <span className="font-semibold">${(financialMetrics.capex.total * 0.7 / 1000000).toFixed(1)}M</span>
+                        <span className="font-semibold">{formatCurrency(financialMetrics.capex.total * 0.7)}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span>Equipment & Fixtures</span>
-                        <span className="font-semibold">${(financialMetrics.capex.total * 0.2 / 1000000).toFixed(1)}M</span>
+                        <span className="font-semibold">{formatCurrency(financialMetrics.capex.total * 0.2)}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span>Working Capital</span>
-                        <span className="font-semibold">${(financialMetrics.capex.total * 0.1 / 1000000).toFixed(1)}M</span>
+                        <span className="font-semibold">{formatCurrency(financialMetrics.capex.total * 0.1)}</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between items-center font-bold text-lg">
                         <span>Total Investment</span>
-                        <span className="text-primary">${(financialMetrics.capex.total / 1000000).toFixed(1)}M</span>
+                        <span className="text-primary">{formatCurrency(financialMetrics.capex.total)}</span>
                       </div>
                     </div>
                   </div>
@@ -684,7 +685,7 @@ const WizardResults = () => {
                 <DollarSign className="w-4 h-4 text-green-600" />
                 <h3 className="font-semibold text-sm">Total Investment</h3>
               </div>
-              <p className="text-2xl font-bold">${(financialMetrics.capex.total / 1000000).toFixed(1)}M</p>
+              <p className="text-2xl font-bold">{formatCurrency(financialMetrics.capex.total)}</p>
               <p className="text-xs text-muted-foreground">Initial capital required</p>
             </CardContent>
           </Card>
@@ -695,7 +696,7 @@ const WizardResults = () => {
                 <TrendingUp className="w-4 h-4 text-blue-600" />
                 <h3 className="font-semibold text-sm">Monthly Revenue</h3>
               </div>
-              <p className="text-2xl font-bold">${(financialMetrics.revenue.total / 1000).toFixed(0)}K</p>
+              <p className="text-2xl font-bold">{formatCurrency(financialMetrics.revenue.total)}</p>
               <p className="text-xs text-muted-foreground">Projected monthly income</p>
             </CardContent>
           </Card>
@@ -706,7 +707,7 @@ const WizardResults = () => {
                 <Calculator className="w-4 h-4 text-orange-600" />
                 <h3 className="font-semibold text-sm">Monthly OpEx</h3>
               </div>
-              <p className="text-2xl font-bold">${(financialMetrics.opex.total / 1000).toFixed(0)}K</p>
+              <p className="text-2xl font-bold">{formatCurrency(financialMetrics.opex.total)}</p>
               <p className="text-xs text-muted-foreground">Operating expenses</p>
             </CardContent>
           </Card>
@@ -733,24 +734,24 @@ const WizardResults = () => {
             <CardContent className="space-y-3">
               <div className="flex justify-between">
                 <span>Membership Revenue</span>
-                <span className="font-semibold">${(financialMetrics.revenue.memberships / 1000).toFixed(1)}K</span>
+                <span className="font-semibold">{formatCurrency(financialMetrics.revenue.memberships)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Rental Revenue</span>
-                <span className="font-semibold">${(financialMetrics.revenue.rentals / 1000).toFixed(1)}K</span>
+                <span className="font-semibold">{formatCurrency(financialMetrics.revenue.rentals)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Lesson Revenue</span>
-                <span className="font-semibold">${(financialMetrics.revenue.lessons / 1000).toFixed(1)}K</span>
+                <span className="font-semibold">{formatCurrency(financialMetrics.revenue.lessons)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Other Revenue</span>
-                <span className="font-semibold">${((financialMetrics.revenue.total - financialMetrics.revenue.memberships - financialMetrics.revenue.rentals - financialMetrics.revenue.lessons) / 1000).toFixed(1)}K</span>
+                <span className="font-semibold">{formatCurrency(financialMetrics.revenue.total - financialMetrics.revenue.memberships - financialMetrics.revenue.rentals - financialMetrics.revenue.lessons)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold">
                 <span>Total Monthly Revenue</span>
-                <span>${(financialMetrics.revenue.total / 1000).toFixed(1)}K</span>
+                <span>{formatCurrency(financialMetrics.revenue.total)}</span>
               </div>
             </CardContent>
           </Card>
@@ -763,20 +764,20 @@ const WizardResults = () => {
             <CardContent className="space-y-3">
               <div className="flex justify-between">
                 <span>Staffing Costs</span>
-                <span className="font-semibold">${(financialMetrics.opex.staffing / 1000).toFixed(1)}K</span>
+                <span className="font-semibold">{formatCurrency(financialMetrics.opex.staffing)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Fixed Operating</span>
-                <span className="font-semibold">${(financialMetrics.opex.fixedOperating / 1000).toFixed(1)}K</span>
+                <span className="font-semibold">{formatCurrency(financialMetrics.opex.fixedOperating)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Lease/Debt Service</span>
-                <span className="font-semibold">$0K</span>
+                <span className="font-semibold">{formatCurrency(0)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold">
                 <span>Total Monthly OpEx</span>
-                <span>${(financialMetrics.opex.total / 1000).toFixed(1)}K</span>
+                <span>{formatCurrency(financialMetrics.opex.total)}</span>
               </div>
             </CardContent>
           </Card>
