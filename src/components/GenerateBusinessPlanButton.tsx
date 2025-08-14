@@ -65,15 +65,20 @@ export default function GenerateBusinessPlanButton({
         throw new Error('No business plan content received');
       }
 
-      // Open the business plan in a new window
-      const newWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-      if (newWindow) {
-        newWindow.document.write(data.htmlContent);
-        newWindow.document.close();
-        newWindow.focus();
-      } else {
-        throw new Error('Unable to open new window. Please check your popup blocker settings.');
-      }
+      // Create a blob URL and download the business plan as HTML
+      const blob = new Blob([data.htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create a temporary download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${project?.leadData?.business || 'business'}-plan.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the blob URL
+      URL.revokeObjectURL(url);
       
       toast.success("Business plan opened in new window!");
       onDone?.(true);
