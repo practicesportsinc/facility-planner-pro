@@ -62,7 +62,12 @@ const Calculator = () => {
               buildMode: projectData.facility_plan.build_mode
             },
             3: { // Facility Plan
-              ...projectData.facility_plan
+              ...projectData.facility_plan,
+              // Convert amenities object to array format expected by FacilityPlan
+              amenities: projectData.facility_plan.amenities ? 
+                Object.entries(projectData.facility_plan.amenities)
+                  .filter(([key, value]) => value === true)
+                  .map(([key]) => key) : []
             },
             5: { // Staffing & OpEx
               ...projectData.opex_inputs
