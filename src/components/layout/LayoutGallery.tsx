@@ -33,7 +33,7 @@ export function LayoutGallery({
     push("pickleball_court", counts.pickleball_courts, rotateMap?.pickleball_courts);
     push("basketball_court_full", counts.basketball_courts_full, rotateMap?.basketball_courts_full);
     push("basketball_court_half", counts.basketball_courts_half, rotateMap?.basketball_courts_half);
-    push("baseball_tunnel", counts.baseball_tunnels, rotateMap?.baseball_tunnels ?? true); // tunnels often E–W
+    push("baseball_tunnel", counts.baseball_tunnels, rotateMap?.baseball_tunnels ?? false); // default horizontal
     push("training_turf_zone", counts.training_turf_zone, rotateMap?.training_turf_zone);
     push("soccer_field_small", counts.soccer_field_small, rotateMap?.soccer_field_small);
     return map;

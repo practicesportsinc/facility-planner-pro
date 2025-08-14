@@ -93,16 +93,20 @@ function packGreedyRows(
 
   for (const it of items) {
     const w = it.w, h = it.h;
+
+    // If too tall for the space at all, skip (but keep going so other items can place)
+    if (h > innerH || w > innerW) { continue; }
+
+    // New row if needed
     if (cursorX > 0 && cursorX + w > innerW) {
-      // new row
       cursorX = 0;
       cursorY += rowH + gap;
       rowH = 0;
     }
-    if (cursorY + h > innerH) {
-      // stop if no space (for preview we just stop)
-      break;
-    }
+
+    // If this row would overflow the height, skip this item but don't stop the loop
+    if (cursorY + h > innerH) { continue; }
+
     placed.push({ x: cursorX, y: cursorY, w, h, label: it.label, fill: it.fill, stroke: it.stroke });
     cursorX += w + gap;
     rowH = Math.max(rowH, h);
@@ -122,13 +126,18 @@ function packGreedyCols(
 
   for (const it of items) {
     const w = it.w, h = it.h;
+
+    if (h > innerH || w > innerW) { continue; }
+
+    // New column if needed
     if (cursorY > 0 && cursorY + h > innerH) {
-      // new column
       cursorY = 0;
       cursorX += colW + gap;
       colW = 0;
     }
-    if (cursorX + w > innerW) break;
+
+    if (cursorX + w > innerW) { continue; }
+
     placed.push({ x: cursorX, y: cursorY, w, h, label: it.label, fill: it.fill, stroke: it.stroke });
     cursorY += h + gap;
     colW = Math.max(colW, w);
@@ -200,6 +209,8 @@ export function TopViewLayout({
         arr.push({ w, h, label: dims.label, fill, stroke });
       }
     }
+    // Sort larger footprints first to ensure big fields/courts get placed
+    arr.sort((a, b) => (b.w * b.h) - (a.w * a.h));
     return arr;
   }, [units]);
 
