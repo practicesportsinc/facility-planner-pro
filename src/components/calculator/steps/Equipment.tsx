@@ -78,7 +78,6 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
           name: 'Artificial Turf',
           cost: 5,
           quantity: squareFootage || 25000,
-          isFixed: true,
           sport: 'baseball'
         });
       }
@@ -193,14 +192,7 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                             placeholder="Equipment name"
                           />
                         ) : (
-                          <div>
-                            <span className="font-medium">{item.name}</span>
-                            {item.isFixed && (
-                              <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                Auto-calculated
-                              </span>
-                            )}
-                          </div>
+                          <span className="font-medium">{item.name}</span>
                         )}
                       </div>
 
@@ -211,7 +203,6 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                           value={item.cost}
                           onChange={(e) => handleCostChange(item.id, Number(e.target.value))}
                           className="w-24"
-                          disabled={item.isFixed}
                         />
                         {item.id === 'artificial-turf' && <span className="text-xs text-muted-foreground">per sq ft</span>}
                       </div>
@@ -221,7 +212,6 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                           variant="outline"
                           size="sm"
                           onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                          disabled={item.isFixed}
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
@@ -230,7 +220,6 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                           variant="outline"
                           size="sm"
                           onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                          disabled={item.isFixed}
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
