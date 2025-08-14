@@ -116,6 +116,7 @@ interface ProjectDraft {
   opex_inputs: OpEx;
   revenue_programs: RevenuePrograms;
   financing?: { equity_pct?: number; debt_pct?: number; loan_amount?: number; interest_rate_pct?: number; amortization_years?: number; balloon_month?: number; fees_pct?: number; };
+  selectedSports?: string[];
 }
 
 /** ---------- Constants (Omaha baseline) ---------- */
@@ -473,7 +474,20 @@ const QUICK_PRESETS: Record<SportKey, (size: SizeKey) => QuickPreset> = {
 };
 
 /** Save draft to localStorage (replace with your API if available) */
-function saveDraftProject(p: QuickPreset): ProjectDraft {
+/** Helper function to get sports array for each sport key */
+function getSportsForPreset(sportKey: SportKey): string[] {
+  const sportMapping: Record<SportKey, string[]> = {
+    "baseball_softball": ["baseball"],
+    "basketball": ["basketball"],
+    "volleyball": ["volleyball"],
+    "pickleball": ["pickleball"],
+    "soccer_indoor_small_sided": ["soccer"],
+    "multi_sport": ["basketball", "volleyball", "soccer"]
+  };
+  return sportMapping[sportKey] || [];
+}
+
+function saveDraftProject(p: QuickPreset, sportKey: SportKey): ProjectDraft {
   const id = `quick-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const draft: ProjectDraft = {
     id,
@@ -489,7 +503,9 @@ function saveDraftProject(p: QuickPreset): ProjectDraft {
     lease_terms: p.facility.build_mode === "lease" ? p.lease : undefined,
     opex_inputs: p.opex,
     revenue_programs: p.revenue,
-    financing: { equity_pct: 0, debt_pct: 0, loan_amount: 0, interest_rate_pct: 0, amortization_years: 0 }
+    financing: { equity_pct: 0, debt_pct: 0, loan_amount: 0, interest_rate_pct: 0, amortization_years: 0 },
+    // Add sports data based on the selected sport key
+    selectedSports: getSportsForPreset(sportKey)
   };
 
   // Persist — switch to your backend create endpoint if you prefer
@@ -508,7 +524,7 @@ export default function QuickEstimatesButton() {
   const preview = useMemo(() => estimateQuickNumbers(preset), [preset]);
 
   function createQuickEstimate() {
-    const saved = saveDraftProject(preset);
+    const saved = saveDraftProject(preset, sport);
     setOpen(false); // Close the modal
     // Navigate: you can route to /calculator if your app shows results immediately (soft gate will still apply)
     navigate(`/calculator?projectId=${saved.id}&mode=quick`);

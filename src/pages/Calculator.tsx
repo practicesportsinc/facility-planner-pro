@@ -56,7 +56,8 @@ const Calculator = () => {
             1: { // Project Basics
               projectName: projectData.scenario_name,
               location: `${projectData.location_city}, ${projectData.location_state_province}`,
-              currency: projectData.currency
+              currency: projectData.currency,
+              selectedSports: projectData.selectedSports || []
             },
             2: { // Build Mode
               buildMode: projectData.facility_plan.build_mode
@@ -77,7 +78,9 @@ const Calculator = () => {
                              projectData.facility_plan.court_or_cage_counts?.volleyball_courts || 
                              projectData.facility_plan.court_or_cage_counts?.pickleball_courts || '',
               numberOfFields: projectData.facility_plan.court_or_cage_counts?.soccer_field_small || '',
-              numberOfCages: projectData.facility_plan.court_or_cage_counts?.baseball_tunnels || ''
+              numberOfCages: projectData.facility_plan.court_or_cage_counts?.baseball_tunnels || '',
+              // Add sports data for square footage recommendations
+              selectedSports: projectData.selectedSports || []
             },
             5: { // Staffing & OpEx
               ...projectData.opex_inputs
