@@ -1,1 +1,13 @@
 project_id = "apdxtdarwacdcuhvtaag"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://lovable.dev"]
+jwt_expiry = 3600
+
+[db]
+shadow_database_url = "postgresql://postgres:postgres@localhost:54322/postgres"
+
+[functions.generate-financial-summary]
+verify_jwt = false

@@ -40,6 +40,8 @@ const WizardResults = () => {
   const [wizardResult, setWizardResult] = useState<WizardResult | null>(null);
   const [financialMetrics, setFinancialMetrics] = useState<any>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string>('');
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [leadData, setLeadData] = useState({
     name: '',
     email: '',
@@ -177,6 +179,45 @@ const WizardResults = () => {
     }
 
     return baseMembers * avgMembershipPrice;
+  };
+
+  const generateAISummary = async () => {
+    if (!wizardResult || !financialMetrics) return;
+    
+    setIsGeneratingSummary(true);
+    
+    try {
+      const responses = wizardResult.responses.reduce((acc, response) => {
+        acc[response.questionId] = response.value;
+        return acc;
+      }, {} as Record<string, any>);
+      
+      const wizardData = {
+        selectedSports: Array.isArray(responses.primary_sport) ? responses.primary_sport : [responses.primary_sport],
+        facilitySize: responses.facility_size,
+        targetMarket: Array.isArray(responses.target_market) ? responses.target_market : [responses.target_market],
+        budget: responses.budget_range,
+        timeline: responses.timeline,
+        businessModel: wizardResult.recommendations.businessModel
+      };
+
+      const { data, error } = await supabase.functions.invoke('generate-financial-summary', {
+        body: {
+          financialMetrics,
+          wizardData
+        }
+      });
+
+      if (error) throw error;
+      
+      setAiSummary(data.summary);
+      toast.success("AI summary generated successfully!");
+    } catch (error) {
+      console.error('Error generating AI summary:', error);
+      toast.error("Failed to generate AI summary. Please try again.");
+    } finally {
+      setIsGeneratingSummary(false);
+    }
   };
 
   const handleUnlock = async () => {
@@ -803,6 +844,69 @@ const WizardResults = () => {
             Customize My Plan
           </Button>
         </div>
+
+        {/* AI Generated Summary */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Star className="w-6 h-6 text-primary" />
+              AI Financial Analysis Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!aiSummary ? (
+              <div className="text-center py-6">
+                <p className="text-muted-foreground mb-4">
+                  Get an AI-powered professional analysis of your financial projections
+                </p>
+                <Button 
+                  onClick={generateAISummary} 
+                  disabled={isGeneratingSummary}
+                  className="flex items-center gap-2"
+                >
+                  {isGeneratingSummary ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Generating Summary...
+                    </>
+                  ) : (
+                    <>
+                      <Star className="w-4 h-4" />
+                      Generate AI Summary
+                    </>
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="prose prose-sm max-w-none">
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {aiSummary}
+                </div>
+                <div className="mt-4 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={generateAISummary}
+                    disabled={isGeneratingSummary}
+                    className="flex items-center gap-2"
+                  >
+                    {isGeneratingSummary ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+                        Regenerating...
+                      </>
+                    ) : (
+                      <>
+                        <Star className="w-3 h-3" />
+                        Regenerate Summary
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="text-center mt-6 text-sm text-muted-foreground">
           These are preliminary estimates based on your wizard responses. Use the detailed calculator for more precise projections.
