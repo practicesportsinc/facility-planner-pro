@@ -114,6 +114,8 @@ const WizardResults = () => {
       'volleyball': 3500,
       'pickleball': 1500,
       'soccer': 6000,
+      'football': 5500,
+      'lacrosse': 5000,
       'tennis': 2800,
       'multi_sport': 4500,
       'fitness': 2000
@@ -453,35 +455,119 @@ const WizardResults = () => {
           })()}
         </div>
 
-        {/* Facility Overview */}
+        {/* Sports & Facility Breakdown */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="w-5 h-5" />
-              Facility Overview
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Building className="w-6 h-6 text-primary" />
+              Sports & Facility Breakdown
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <h3 className="font-semibold text-sm text-muted-foreground">Facility Type</h3>
-                <p className="text-lg">{wizardResult.recommendations.facilityType}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm text-muted-foreground">Recommended Size</h3>
-                <p className="text-lg">{wizardResult.recommendations.suggestedSize.toLocaleString()} sq ft</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm text-muted-foreground">Sports Offered</h3>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {wizardResult.recommendations.keyFeatures.slice(0, 3).map((feature, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {feature}
-                    </Badge>
-                  ))}
-                </div>
+            {/* Individual Sport Analysis */}
+            <div className="mb-6">
+              <h4 className="font-semibold mb-3">Sport-by-Sport Analysis</h4>
+              <div className="grid gap-3">
+                {(() => {
+                  const sportsResponse = wizardResult.responses.find(r => r.questionId === 'primary_sport');
+                  const selectedSports = Array.isArray(sportsResponse?.value) ? sportsResponse.value : [sportsResponse?.value];
+                  const sportsQuestion = WIZARD_QUESTIONS.find(q => q.id === 'primary_sport');
+                  
+                  return selectedSports.filter(Boolean).map((sportId: string) => {
+                    const sport = sportsQuestion?.options?.find(opt => opt.id === sportId);
+                    const sportSqft = getSportSquareFootage(sportId);
+                    const sportCost = sportSqft * 200; // Estimated cost per sq ft
+                    
+                    return sport ? (
+                      <div key={sportId} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{sport.icon}</span>
+                          <div>
+                            <div className="font-medium text-lg">{sport.label}</div>
+                            <div className="text-sm text-muted-foreground">{sport.description}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-lg">{(sportSqft / 1000).toFixed(1)}K sq ft</div>
+                          <div className="text-sm text-muted-foreground">${(sportCost / 1000).toFixed(0)}K estimated cost</div>
+                        </div>
+                      </div>
+                    ) : null;
+                  });
+                })()}
               </div>
             </div>
+
+            {/* Facility Summary */}
+            <div className="grid md:grid-cols-3 gap-6 pt-4 border-t">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">{(financialMetrics.space.grossSF / 1000).toFixed(1)}K</div>
+                <div className="text-sm text-muted-foreground">Total Square Feet</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{wizardResult.recommendations.estimatedCapacity}</div>
+                <div className="text-sm text-muted-foreground">Courts/Fields</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{wizardResult.recommendations.facilityType}</div>
+                <div className="text-sm text-muted-foreground">Facility Type</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Budget & Investment Analysis */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <CreditCard className="w-6 h-6 text-primary" />
+              Budget & Investment Analysis
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const budgetResponse = wizardResult.responses.find(r => r.questionId === 'budget_range');
+              const budgetQuestion = WIZARD_QUESTIONS.find(q => q.id === 'budget_range');
+              const selectedBudget = budgetQuestion?.options?.find(opt => opt.id === budgetResponse?.value);
+              
+              return (
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3">Your Budget Target</h4>
+                    <div className="p-4 bg-primary/10 rounded-lg mb-4">
+                      <div className="text-lg font-bold text-primary">{selectedBudget?.label || 'Not specified'}</div>
+                      <div className="text-sm text-muted-foreground">{selectedBudget?.description || ''}</div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <strong>Layout:</strong> {wizardResult.recommendations.layout}<br />
+                      <strong>Business Model:</strong> {wizardResult.recommendations.businessModel}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-3">Projected Investment Breakdown</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span>Construction/Build-out</span>
+                        <span className="font-semibold">${(financialMetrics.capex.total * 0.7 / 1000000).toFixed(1)}M</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Equipment & Fixtures</span>
+                        <span className="font-semibold">${(financialMetrics.capex.total * 0.2 / 1000000).toFixed(1)}M</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Working Capital</span>
+                        <span className="font-semibold">${(financialMetrics.capex.total * 0.1 / 1000000).toFixed(1)}M</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between items-center font-bold text-lg">
+                        <span>Total Investment</span>
+                        <span className="text-primary">${(financialMetrics.capex.total / 1000000).toFixed(1)}M</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
 
