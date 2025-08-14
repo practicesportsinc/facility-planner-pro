@@ -38,13 +38,14 @@ const Calculator = () => {
   const projectId = searchParams.get('projectId');
   const mode = searchParams.get('mode');
   const isQuickMode = mode === 'quick';
+  const isWizardMode = mode === 'wizard';
   const contentRef = useRef<HTMLDivElement>(null);
   
   // If it's quick mode, start at the KPI Results step (step 8)
   const [currentStep, setCurrentStep] = useState(isQuickMode ? 8 : 1);
   const [calculatorData, setCalculatorData] = useState({});
 
-  // Load quick estimate data from localStorage if available
+  // Load data from localStorage (quick estimate or wizard)
   useEffect(() => {
     if (isQuickMode && projectId) {
       const savedData = localStorage.getItem(`ps:project:${projectId}`);
@@ -96,8 +97,44 @@ const Calculator = () => {
           console.error('Error loading quick estimate data:', error);
         }
       }
+    } else if (mode === 'wizard') {
+      // Load wizard result data
+      const wizardData = localStorage.getItem('wizard-result');
+      if (wizardData) {
+        try {
+          const wizardResult = JSON.parse(wizardData);
+          const responses = wizardResult.responses.reduce((acc: any, response: any) => {
+            acc[response.questionId] = response.value;
+            return acc;
+          }, {});
+
+          // Map wizard responses to calculator format
+          setCalculatorData({
+            1: { // Project Basics
+              projectName: responses.facilityName || '',
+              location: responses.location || '',
+              selectedSports: Array.isArray(responses.sports) ? responses.sports : [responses.sports].filter(Boolean),
+              stage_code: responses.stage || 'concept',
+              budget: responses.budget || ''
+            },
+            2: { // Build Mode
+              buildMode: responses.buildType || 'lease'
+            },
+            3: { // Facility Plan
+              totalSquareFootage: responses.squareFootage?.toString() || '',
+              selectedSports: Array.isArray(responses.sports) ? responses.sports : [responses.sports].filter(Boolean),
+              amenities: Array.isArray(responses.amenities) ? responses.amenities : []
+            },
+            6: { // Revenue Programs
+              primaryRevenue: Array.isArray(responses.revenueModel) ? responses.revenueModel : [responses.revenueModel].filter(Boolean)
+            }
+          });
+        } catch (error) {
+          console.error('Error loading wizard data:', error);
+        }
+      }
     }
-  }, [isQuickMode, projectId]);
+  }, [isQuickMode, projectId, mode]);
 
   // Auto-scroll to content when in quick mode
   useEffect(() => {
@@ -153,12 +190,14 @@ const Calculator = () => {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <CardTitle className="text-2xl flex items-center">
-                  {isQuickMode && <Zap className="h-6 w-6 mr-2 text-primary" />}
-                  {isQuickMode ? 'Quick Estimate Review' : 'Facility Budget Calculator'}
+                  {(isQuickMode || isWizardMode) && <Zap className="h-6 w-6 mr-2 text-primary" />}
+                  {isQuickMode ? 'Quick Estimate Review' : isWizardMode ? 'Wizard Results Review' : 'Facility Budget Calculator'}
                 </CardTitle>
                 <CardDescription>
                   {isQuickMode 
                     ? 'Review and customize your quick estimate'
+                    : isWizardMode
+                    ? 'Review and refine your facility recommendations'
                     : `Step ${currentStep} of ${STEPS.length}: ${currentStepData?.title}`
                   }
                 </CardDescription>
@@ -168,12 +207,15 @@ const Calculator = () => {
                 {isQuickMode ? 'Quick Estimate' : 'Auto-saved'}
               </Button>
             </div>
-            {!isQuickMode && <Progress value={progress} className="h-2" />}
-            {isQuickMode && (
+            {!isQuickMode && !isWizardMode && <Progress value={progress} className="h-2" />}
+            {(isQuickMode || isWizardMode) && (
               <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mt-4">
                 <p className="text-sm text-primary">
                   <Zap className="h-4 w-4 inline mr-1" />
-                  This is your quick estimate. You can review the financial overview below or navigate to any step to customize the details.
+                  {isQuickMode 
+                    ? 'This is your quick estimate. You can review the financial overview below or navigate to any step to customize the details.'
+                    : 'Your facility wizard recommendations have been pre-filled. Navigate through the steps to review and customize your plan.'
+                  }
                 </p>
               </div>
             )}

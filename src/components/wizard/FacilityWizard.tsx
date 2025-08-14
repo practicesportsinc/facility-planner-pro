@@ -283,10 +283,13 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
             </div>
 
             <div className="flex gap-4 pt-6">
-              <Button onClick={() => window.location.href = '/calculator'} className="flex-1">
+              <Button onClick={() => window.location.href = '/calculator?mode=wizard'} className="flex-1">
                 Build Your Financial Model
               </Button>
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="outline" onClick={() => window.location.href = '/calculator'}>
+                Customize My Plan
+              </Button>
+              <Button variant="ghost" onClick={onClose}>
                 Start Over
               </Button>
             </div>
