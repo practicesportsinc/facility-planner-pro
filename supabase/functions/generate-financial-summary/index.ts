@@ -86,7 +86,21 @@ Keep the tone professional but accessible, as if speaking to a potential investo
     if (!response.ok) {
       const errorData = await response.text();
       console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      
+      // Parse the error to provide better user feedback
+      let errorMessage = `OpenAI API error: ${response.status}`;
+      try {
+        const errorJson = JSON.parse(errorData);
+        if (errorJson.error?.code === 'insufficient_quota') {
+          errorMessage = 'OpenAI API quota exceeded. Please check your OpenAI account billing and add credits to continue using AI summaries.';
+        } else if (errorJson.error?.message) {
+          errorMessage = errorJson.error.message;
+        }
+      } catch (e) {
+        // Use default error message if parsing fails
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();

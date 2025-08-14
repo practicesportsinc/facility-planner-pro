@@ -208,7 +208,14 @@ const WizardResults = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to generate summary');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
       
       setAiSummary(data.summary);
       toast.success("AI summary generated successfully!");
