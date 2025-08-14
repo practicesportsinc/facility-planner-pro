@@ -146,7 +146,8 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     description: "Include construction, equipment, and initial operating capital",
     required: true,
     options: [
-      { id: "under_100k", label: "Under $100K", description: "Basic renovation, used equipment" },
+      { id: "10k_50k", label: "$10K - $50K", description: "Basic equipment and minimal renovation" },
+      { id: "50k_100k", label: "$50K - $100K", description: "Small renovation, used/basic equipment" },
       { id: "100k_250k", label: "$100K - $250K", description: "Moderate renovation, mixed equipment" },
       { id: "250k_500k", label: "$250K - $500K", description: "Moderate renovation, standard equipment" },
       { id: "500k_1m", label: "$500K - $1M", description: "Significant renovation or small new build" },
