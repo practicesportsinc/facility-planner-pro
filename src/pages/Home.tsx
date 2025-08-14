@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/layout/Layout";
 import { Calculator, TrendingUp, FileText, Users, Target, Clock } from "lucide-react";
+import QuickEstimatesButton from "@/components/QuickEstimatesButton";
 
 const Home = () => {
   return (
@@ -25,6 +26,7 @@ const Home = () => {
                   Start Your Calculation
                 </Link>
               </Button>
+              <QuickEstimatesButton />
               <Button 
                 variant="outline" 
                 size="lg" 
