@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   Calculator, 
   DollarSign, 
@@ -12,7 +14,9 @@ import {
   Users, 
   MapPin,
   ArrowLeft,
-  Edit
+  Edit,
+  Lock,
+  Unlock
 } from "lucide-react";
 import { WizardResult } from "@/types/wizard";
 import { 
@@ -27,6 +31,13 @@ const WizardResults = () => {
   const navigate = useNavigate();
   const [wizardResult, setWizardResult] = useState<WizardResult | null>(null);
   const [financialMetrics, setFinancialMetrics] = useState<any>(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [leadData, setLeadData] = useState({
+    name: '',
+    email: '',
+    business: '',
+    phone: ''
+  });
 
   useEffect(() => {
     const savedResult = localStorage.getItem('wizard-result');
@@ -116,6 +127,16 @@ const WizardResults = () => {
     return baseMembers * avgMembershipPrice;
   };
 
+  const handleUnlock = () => {
+    if (leadData.name && leadData.email && leadData.business && leadData.phone) {
+      setIsUnlocked(true);
+      // Here you could save the lead data to your database
+      console.log('Lead captured:', leadData);
+    }
+  };
+
+  const isFormValid = leadData.name && leadData.email && leadData.business && leadData.phone;
+
   if (!wizardResult || !financialMetrics) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -149,6 +170,74 @@ const WizardResults = () => {
             Customize Plan
           </Button>
         </div>
+
+        {/* Lead Capture Gate */}
+        {!isUnlocked && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <Card className="w-full max-w-md mx-4">
+              <CardHeader className="text-center">
+                <CardTitle className="flex items-center justify-center gap-2">
+                  <Lock className="w-5 h-5 text-primary" />
+                  Unlock Your Financial Projections
+                </CardTitle>
+                <p className="text-muted-foreground">
+                  Get instant access to your personalized facility financial analysis
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={leadData.name}
+                    onChange={(e) => setLeadData({...leadData, name: e.target.value})}
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={leadData.email}
+                    onChange={(e) => setLeadData({...leadData, email: e.target.value})}
+                    placeholder="Enter your email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="business">Business Name</Label>
+                  <Input
+                    id="business"
+                    value={leadData.business}
+                    onChange={(e) => setLeadData({...leadData, business: e.target.value})}
+                    placeholder="Enter your business name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={leadData.phone}
+                    onChange={(e) => setLeadData({...leadData, phone: e.target.value})}
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+                <Button 
+                  onClick={handleUnlock}
+                  disabled={!isFormValid}
+                  className="w-full flex items-center gap-2"
+                >
+                  <Unlock className="w-4 h-4" />
+                  Unlock Financial Projections
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Financial Content with Conditional Blur */}
+        <div className={!isUnlocked ? "blur-sm pointer-events-none" : ""}>
 
         {/* Facility Overview */}
         <Card className="mb-6">
@@ -311,6 +400,7 @@ const WizardResults = () => {
 
         <div className="text-center mt-6 text-sm text-muted-foreground">
           These are preliminary estimates based on your wizard responses. Use the detailed calculator for more precise projections.
+        </div>
         </div>
       </div>
     </div>
