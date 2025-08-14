@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { WizardResult } from "@/types/wizard";
 import { WIZARD_QUESTIONS } from "@/data/wizardQuestions";
-import { saveWizardSubmission } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   calculateSpacePlanning,
