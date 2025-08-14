@@ -819,30 +819,92 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
               <p className="text-muted-foreground mb-4">
                 Based on your responses, you've expressed interest in the following products and equipment:
               </p>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-                {wizardResult.recommendations.productsOfInterest.map((product) => {
-                  const productLabels: Record<string, string> = {
-                    'turf': 'Artificial Turf Systems',
-                    'nets_cages': 'Protective Netting & Batting Cages',
-                    'hoops': 'Basketball Goals & Systems',
-                    'volleyball': 'Volleyball Net Systems & Equipment',
-                    'lighting': 'LED Sports Lighting Systems',
-                    'hvac': 'Climate Control Systems',
-                    'court_flooring': 'Sport Court & Hardwood Flooring',
-                    'rubber_flooring': 'Rubber Fitness & Safety Flooring',
-                    'machines': 'Fitness & Training Equipment',
-                    'pickleball': 'Pickleball Courts & Equipment',
-                    'divider_curtains': 'Court Separation Systems',
-                    'other': 'Custom or Specialty Products'
-                  };
+              
+              {/* Product Estimates Grid */}
+              {wizardResult.recommendations.productEstimates && wizardResult.recommendations.productEstimates.length > 0 ? (
+                <div className="space-y-4 mb-4">
+                  <h4 className="font-semibold text-lg">Budget Estimates</h4>
+                  <div className="grid gap-3">
+                    {wizardResult.recommendations.productEstimates.map((estimate) => {
+                      const productLabels: Record<string, string> = {
+                        'turf': 'Artificial Turf Systems',
+                        'nets_cages': 'Protective Netting & Batting Cages',
+                        'hoops': 'Basketball Goals & Systems',
+                        'volleyball': 'Volleyball Net Systems & Equipment',
+                        'lighting': 'LED Sports Lighting Systems',
+                        'hvac': 'Climate Control Systems',
+                        'court_flooring': 'Sport Court & Hardwood Flooring',
+                        'rubber_flooring': 'Rubber Fitness & Safety Flooring',
+                        'machines': 'Fitness & Training Equipment',
+                        'pickleball': 'Pickleball Courts & Equipment',
+                        'divider_curtains': 'Court Separation Systems',
+                        'other': 'Custom or Specialty Products'
+                      };
+                      
+                      return (
+                        <div key={estimate.product} className="flex justify-between items-center p-4 bg-muted/30 rounded-lg border">
+                          <div>
+                            <div className="font-medium">
+                              {productLabels[estimate.product] || estimate.product.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </div>
+                            <div className="text-sm text-muted-foreground">{estimate.description}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-primary">{formatCurrency(estimate.estimatedCost)}</div>
+                            <div className="text-xs text-muted-foreground">Est. cost</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                   
-                  return (
-                    <Badge key={product} variant="secondary" className="justify-start p-3 h-auto">
-                      {productLabels[product] || product.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </Badge>
-                  );
-                })}
-              </div>
+                  {/* Total Estimate */}
+                  <div className="flex justify-between items-center p-4 bg-primary/10 rounded-lg border-2 border-primary/20">
+                    <div className="font-semibold text-lg">Total Equipment Investment</div>
+                    <div className="text-xl font-bold text-primary">
+                      {formatCurrency(wizardResult.recommendations.productEstimates.reduce((sum, est) => sum + est.estimatedCost, 0))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                  {wizardResult.recommendations.productsOfInterest?.map((product) => {
+                    const productLabels: Record<string, string> = {
+                      'turf': 'Artificial Turf Systems',
+                      'nets_cages': 'Protective Netting & Batting Cages',
+                      'hoops': 'Basketball Goals & Systems',
+                      'volleyball': 'Volleyball Net Systems & Equipment',
+                      'lighting': 'LED Sports Lighting Systems',
+                      'hvac': 'Climate Control Systems',
+                      'court_flooring': 'Sport Court & Hardwood Flooring',
+                      'rubber_flooring': 'Rubber Fitness & Safety Flooring',
+                      'machines': 'Fitness & Training Equipment',
+                      'pickleball': 'Pickleball Courts & Equipment',
+                      'divider_curtains': 'Court Separation Systems',
+                      'other': 'Custom or Specialty Products'
+                    };
+                    
+                    return (
+                      <Badge key={product} variant="secondary" className="justify-start p-3 h-auto">
+                        {productLabels[product] || product.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+              
+              {/* Vendor Quotes Preference */}
+              {wizardResult.recommendations.vendorQuotesHelp && (
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                  <h4 className="font-semibold mb-2">Vendor Quote Preference:</h4>
+                  <p className="text-sm text-blue-800">
+                    {wizardResult.recommendations.vendorQuotesHelp === 'yes_help' 
+                      ? "✅ You've requested help getting discounted quotes from vetted suppliers. We'll connect you with competitive vendors."
+                      : "✅ You prefer to source vendors independently. We respect your procurement process."
+                    }
+                  </p>
+                </div>
+              )}
               {wizardResult.recommendations.customProducts && (
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <h4 className="font-semibold mb-2">Additional Requirements:</h4>

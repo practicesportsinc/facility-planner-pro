@@ -186,6 +186,20 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     }
   },
   {
+    id: "vendor_quotes_help",
+    type: "single",
+    title: "Need help getting discounted quotes from Vendors?",
+    description: "We can connect you with vetted suppliers for competitive pricing",
+    dependsOn: {
+      questionId: "products_interest",
+      values: ["turf", "nets_cages", "hoops", "volleyball", "lighting", "hvac", "court_flooring", "rubber_flooring", "machines", "pickleball", "divider_curtains", "other"]
+    },
+    options: [
+      { id: "yes_help", label: "Sure! Make it easy.", description: "Connect me with vetted suppliers for quotes" },
+      { id: "no_self_source", label: "No, I'll source myself.", description: "I prefer to handle vendor sourcing independently" }
+    ]
+  },
+  {
     id: "experience_level",
     type: "single",
     title: "What's your experience in the sports facility industry?",
@@ -210,6 +224,30 @@ export const generateRecommendations = (responses: any) => {
   const budget = responses.budget_range;
   const productsOfInterest = responses.products_interest || [];
   const customProducts = responses.other_products_description || "";
+  const vendorQuotesHelp = responses.vendor_quotes_help || "";
+
+  // Product cost estimates based on equipment data from calculator
+  const productCostEstimates: Record<string, { cost: number; description: string }> = {
+    turf: { cost: 56000, description: "Artificial turf system (7,000 sq ft @ $8/sq ft)" },
+    nets_cages: { cost: 15000, description: "Protective netting and batting cage systems" },
+    hoops: { cost: 8000, description: "Basketball goals and mounting systems" },
+    volleyball: { cost: 3000, description: "Professional volleyball net systems" },
+    lighting: { cost: 10000, description: "LED sports lighting fixtures (20 fixtures @ $500 each)" },
+    hvac: { cost: 25000, description: "Climate control system for sports facility" },
+    court_flooring: { cost: 30000, description: "Professional sport court flooring installation" },
+    rubber_flooring: { cost: 15000, description: "Safety and fitness rubber flooring" },
+    machines: { cost: 20000, description: "Fitness and training equipment package" },
+    pickleball: { cost: 12000, description: "Pickleball court setup with nets and lines" },
+    divider_curtains: { cost: 8000, description: "Court separation curtain systems" },
+    other: { cost: 5000, description: "Custom or specialty products (estimated)" }
+  };
+
+  // Generate estimates for selected products
+  const productEstimates = productsOfInterest.map(product => ({
+    product,
+    estimatedCost: productCostEstimates[product]?.cost || 5000,
+    description: productCostEstimates[product]?.description || "Estimated cost"
+  }));
 
   // Size recommendations based on sport and market
   const sizeMap: Record<string, Record<string, number>> = {
@@ -288,6 +326,8 @@ export const generateRecommendations = (responses: any) => {
     businessModel,
     estimatedCapacity: primarySports.reduce((total, sport) => total + (capacityMap[sport] || 0), 0) || Math.floor(suggestedSize / 4000),
     productsOfInterest: productsOfInterest.length > 0 ? productsOfInterest : undefined,
-    customProducts: customProducts || undefined
+    customProducts: customProducts || undefined,
+    vendorQuotesHelp: vendorQuotesHelp || undefined,
+    productEstimates: productEstimates.length > 0 ? productEstimates : undefined
   };
 };

@@ -46,5 +46,11 @@ export interface WizardResult {
     estimatedCapacity: number;
     productsOfInterest?: string[];
     customProducts?: string;
+    vendorQuotesHelp?: string;
+    productEstimates?: Array<{
+      product: string;
+      estimatedCost: number;
+      description: string;
+    }>;
   };
 }

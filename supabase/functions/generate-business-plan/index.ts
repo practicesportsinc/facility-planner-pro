@@ -34,6 +34,8 @@ serve(async (req) => {
     const targetMarkets = Array.isArray(responses.target_market) ? responses.target_market : [responses.target_market];
     const productsOfInterest = project.recommendations?.productsOfInterest || [];
     const customProducts = project.recommendations?.customProducts || "";
+    const vendorQuotesHelp = project.recommendations?.vendorQuotesHelp || "";
+    const productEstimates = project.recommendations?.productEstimates || [];
 
     const financialMetrics = project.financialMetrics || {};
     const grossSqft = Math.round(financialMetrics.space?.grossSF || 0);
@@ -73,7 +75,9 @@ serve(async (req) => {
       financialMetrics,
       includeImages,
       productsOfInterest,
-      customProducts
+      customProducts,
+      vendorQuotesHelp,
+      productEstimates
     });
     
     return new Response(JSON.stringify({ 
@@ -114,7 +118,9 @@ function generateBusinessPlanHTML({
   financialMetrics,
   includeImages,
   productsOfInterest,
-  customProducts
+  customProducts,
+  vendorQuotesHelp,
+  productEstimates
 }: any) {
   const currentDate = new Date().toLocaleDateString();
   const sportsNames = selectedSports.map((sport: string) => {
@@ -253,8 +259,36 @@ function generateBusinessPlanHTML({
         <p>Estimated staffing costs of ${formatCurrency(financialMetrics.opex?.staffing || monthlyOpex * 0.4)} per month will support facility operations, coaching, and customer service.</p>
         
         ${productsOfInterest && productsOfInterest.length > 0 ? `
-        <h3>Products of Interest</h3>
+        <h3>Products of Interest & Budget Estimates</h3>
         <p>The following products have been identified for procurement and installation:</p>
+        
+        ${productEstimates && productEstimates.length > 0 ? `
+        <table class="financial-table">
+            <tr><th>Product Category</th><th>Description</th><th>Estimated Cost</th></tr>
+            ${productEstimates.map((estimate: any) => {
+              const productMap: Record<string, string> = {
+                'turf': 'Artificial Turf Systems',
+                'nets_cages': 'Protective Netting and Batting Cages',
+                'hoops': 'Basketball Goals and Systems',
+                'volleyball': 'Volleyball Net Systems and Equipment',
+                'lighting': 'LED Sports Lighting Systems',
+                'hvac': 'Climate Control Systems',
+                'court_flooring': 'Sport Court and Hardwood Flooring',
+                'rubber_flooring': 'Rubber Fitness and Safety Flooring',
+                'machines': 'Fitness and Training Equipment',
+                'pickleball': 'Pickleball Courts and Equipment',
+                'divider_curtains': 'Court Separation Systems',
+                'other': 'Custom or Specialty Products'
+              };
+              const productName = productMap[estimate.product] || estimate.product.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+              return `<tr><td>${productName}</td><td>${estimate.description}</td><td>${formatCurrency(estimate.estimatedCost)}</td></tr>`;
+            }).join('')}
+            <tr style="font-weight: bold; background-color: #f0f9ff;">
+                <td colspan="2">Total Equipment Investment</td>
+                <td>${formatCurrency(productEstimates.reduce((sum: number, est: any) => sum + est.estimatedCost, 0))}</td>
+            </tr>
+        </table>
+        ` : `
         <ul>
             ${productsOfInterest.map((product: string) => {
               const productMap: Record<string, string> = {
@@ -274,7 +308,19 @@ function generateBusinessPlanHTML({
               return `<li>${productMap[product] || product.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</li>`;
             }).join('')}
         </ul>
+        `}
+        
         ${customProducts ? `<p><strong>Additional Requirements:</strong> ${customProducts}</p>` : ''}
+        
+        ${vendorQuotesHelp ? `
+        <div class="highlight">
+            <strong>Vendor Sourcing Preference:</strong> 
+            ${vendorQuotesHelp === 'yes_help' 
+              ? 'Client has requested assistance with vendor sourcing and competitive quotes from vetted suppliers.' 
+              : 'Client prefers to handle vendor sourcing independently through their own procurement process.'
+            }
+        </div>
+        ` : ''}
         ` : ''}
     </div>
 
