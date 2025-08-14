@@ -806,6 +806,58 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
           </Card>
         </div>
 
+        {/* Products of Interest Section */}
+        {wizardResult.recommendations.productsOfInterest && wizardResult.recommendations.productsOfInterest.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Target className="w-6 h-6 text-primary" />
+                Products of Interest
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Based on your responses, you've expressed interest in the following products and equipment:
+              </p>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                {wizardResult.recommendations.productsOfInterest.map((product) => {
+                  const productLabels: Record<string, string> = {
+                    'turf': 'Artificial Turf Systems',
+                    'nets_cages': 'Protective Netting & Batting Cages',
+                    'hoops': 'Basketball Goals & Systems',
+                    'volleyball': 'Volleyball Net Systems & Equipment',
+                    'lighting': 'LED Sports Lighting Systems',
+                    'hvac': 'Climate Control Systems',
+                    'court_flooring': 'Sport Court & Hardwood Flooring',
+                    'rubber_flooring': 'Rubber Fitness & Safety Flooring',
+                    'machines': 'Fitness & Training Equipment',
+                    'pickleball': 'Pickleball Courts & Equipment',
+                    'divider_curtains': 'Court Separation Systems',
+                    'other': 'Custom or Specialty Products'
+                  };
+                  
+                  return (
+                    <Badge key={product} variant="secondary" className="justify-start p-3 h-auto">
+                      {productLabels[product] || product.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </Badge>
+                  );
+                })}
+              </div>
+              {wizardResult.recommendations.customProducts && (
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-semibold mb-2">Additional Requirements:</h4>
+                  <p className="text-sm text-muted-foreground">{wizardResult.recommendations.customProducts}</p>
+                </div>
+              )}
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                <p className="text-sm text-blue-800">
+                  <strong>Next Steps:</strong> Contact suppliers for detailed quotes on these items to refine your budget and timeline.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Detailed Breakdown */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Revenue Breakdown */}
