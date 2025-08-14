@@ -161,10 +161,20 @@ export default function VisualDesignerHome() {
             grossSf={shellSf || 16000}
             counts={counts}
             onChoose={(choice) => {
+              console.log("Layout choice clicked:", choice);
+              console.log("Current selection:", sel);
+              console.log("Counts:", counts);
               // Create a quick draft using the user's selection path
               if (sel.size) {
-                const id = createQuickDraftFromVisual({ ...sel, size: sel.size }, shellSf || 16000, counts, choice.id);
-                navigate(`/calculator?projectId=${id}&mode=visual`);
+                try {
+                  const id = createQuickDraftFromVisual({ ...sel, size: sel.size }, shellSf || 16000, counts, choice.id);
+                  console.log("Created draft with ID:", id);
+                  navigate(`/calculator?projectId=${id}&mode=visual`);
+                } catch (error) {
+                  console.error("Error creating draft:", error);
+                }
+              } else {
+                console.error("No size selected");
               }
             }}
           />
