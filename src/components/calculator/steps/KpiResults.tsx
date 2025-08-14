@@ -13,7 +13,8 @@ import {
   Building,
   Users,
   Trophy,
-  AlertCircle
+  AlertCircle,
+  Edit
 } from "lucide-react";
 // Simple metrics calculation for demo
 
@@ -23,9 +24,10 @@ interface KpiResultsProps {
   onNext: () => void;
   onPrevious: () => void;
   allData: any;
+  onNavigateToStep?: (stepId: number) => void;
 }
 
-const KpiResults = ({ data, onNext, onPrevious, allData }: KpiResultsProps) => {
+const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: KpiResultsProps) => {
   const [gatingMode] = useState('soft'); // soft gate by default
 
   // Calculate metrics from actual data
@@ -178,6 +180,12 @@ const KpiResults = ({ data, onNext, onPrevious, allData }: KpiResultsProps) => {
     `Recommended next steps: ${metrics.breakEvenMonths && metrics.breakEvenMonths > 24 ? 'Review revenue assumptions and market analysis' : 'Proceed with site selection and financing discussions'}.`
   ];
 
+  const handleEditFacility = () => {
+    if (onNavigateToStep) {
+      onNavigateToStep(3); // Navigate to Facility Plan step
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -191,11 +199,24 @@ const KpiResults = ({ data, onNext, onPrevious, allData }: KpiResultsProps) => {
       {metrics.facilityLayout && Object.keys(metrics.facilityLayout).length > 0 && (
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building className="h-5 w-5 mr-2 text-primary" />
-              Your Facility Layout
-            </CardTitle>
-            <CardDescription>Sports and courts included in this analysis</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center">
+                  <Building className="h-5 w-5 mr-2 text-primary" />
+                  Your Facility Layout
+                </CardTitle>
+                <CardDescription>Sports and courts included in this analysis</CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleEditFacility}
+                className="shrink-0"
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

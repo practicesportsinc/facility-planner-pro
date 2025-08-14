@@ -115,6 +115,10 @@ const Calculator = () => {
     setCurrentStep(stepId);
   };
 
+  const handleNavigateToStep = (stepId: number) => {
+    setCurrentStep(stepId);
+  };
+
   const updateData = (stepData: any) => {
     setCalculatorData(prev => ({
       ...prev,
@@ -195,13 +199,24 @@ const Calculator = () => {
             <Card className="shadow-custom-lg">
               <CardContent className="p-8">
                 {StepComponent && (
-                  <StepComponent
-                    data={calculatorData[currentStep] || {}}
-                    onUpdate={updateData}
-                    onNext={handleNext}
-                    onPrevious={handlePrevious}
-                    allData={calculatorData}
-                  />
+                  currentStep === 8 ? (
+                    <KpiResults
+                      data={calculatorData[currentStep] || {}}
+                      onUpdate={updateData}
+                      onNext={handleNext}
+                      onPrevious={handlePrevious}
+                      allData={calculatorData}
+                      onNavigateToStep={handleNavigateToStep}
+                    />
+                  ) : (
+                    <StepComponent
+                      data={calculatorData[currentStep] || {}}
+                      onUpdate={updateData}
+                      onNext={handleNext}
+                      onPrevious={handlePrevious}
+                      allData={calculatorData}
+                    />
+                  )
                 )}
               </CardContent>
             </Card>
