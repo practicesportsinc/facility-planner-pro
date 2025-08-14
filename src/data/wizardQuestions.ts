@@ -170,8 +170,20 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
       { id: "hoops", label: "Hoops", description: "Basketball goals and systems" },
       { id: "volleyball", label: "Volleyball", description: "Net systems and equipment" },
       { id: "lighting", label: "Lighting", description: "LED sports lighting systems" },
-      { id: "hvac", label: "HVAC", description: "Climate control systems" }
-    ]
+      { id: "hvac", label: "HVAC", description: "Climate control systems" },
+      { id: "court_flooring", label: "Court Flooring", description: "Sport court and hardwood flooring" },
+      { id: "rubber_flooring", label: "Rubber Flooring", description: "Fitness and safety flooring" },
+      { id: "machines", label: "Machines", description: "Fitness and training equipment" },
+      { id: "pickleball", label: "Pickleball", description: "Pickleball courts and equipment" },
+      { id: "divider_curtains", label: "Divider Curtains", description: "Court separation systems" },
+      { id: "other", label: "Other", description: "Custom or specialty products" }
+    ],
+    textField: {
+      id: "other_products_description",
+      label: "Please specify other products",
+      placeholder: "Describe the products you're interested in...",
+      dependsOnValue: "other"
+    }
   },
   {
     id: "experience_level",

@@ -128,52 +128,76 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
 
       case 'multiple':
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {currentQuestion.options?.map((option) => {
-              const isSelected = Array.isArray(currentValue) && currentValue.includes(option.id);
-              return (
-                <Card
-                  key={option.id}
-                  className={`cursor-pointer transition-smooth hover:shadow-custom-md ${
-                    isSelected
-                      ? 'border-primary bg-primary/5 shadow-custom-sm'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => {
-                    const current = Array.isArray(currentValue) ? currentValue : [];
-                    const updated = isSelected
-                      ? current.filter(v => v !== option.id)
-                      : [...current, option.id];
-                    handleResponse(updated);
-                  }}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start space-x-3">
-                      {option.icon && (
-                        <div className="text-2xl">{option.icon}</div>
-                      )}
-                      <div className="flex-1">
-                        <div className="font-medium">{option.label}</div>
-                        {option.description && (
-                          <div className="text-sm text-muted-foreground mt-1">
-                            {option.description}
-                          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {currentQuestion.options?.map((option) => {
+                const isSelected = Array.isArray(currentValue) && currentValue.includes(option.id);
+                return (
+                  <Card
+                    key={option.id}
+                    className={`cursor-pointer transition-smooth hover:shadow-custom-md ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 shadow-custom-sm'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => {
+                      const current = Array.isArray(currentValue) ? currentValue : [];
+                      const updated = isSelected
+                        ? current.filter(v => v !== option.id)
+                        : [...current, option.id];
+                      handleResponse(updated);
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start space-x-3">
+                        {option.icon && (
+                          <div className="text-2xl">{option.icon}</div>
                         )}
-                        {option.recommended && (
-                          <Badge variant="secondary" className="mt-2">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            Recommended
-                          </Badge>
+                        <div className="flex-1">
+                          <div className="font-medium">{option.label}</div>
+                          {option.description && (
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {option.description}
+                            </div>
+                          )}
+                          {option.recommended && (
+                            <Badge variant="secondary" className="mt-2">
+                              <Sparkles className="w-3 h-3 mr-1" />
+                              Recommended
+                            </Badge>
+                          )}
+                        </div>
+                        {isSelected && (
+                          <div className="text-primary">✓</div>
                         )}
                       </div>
-                      {isSelected && (
-                        <div className="text-primary">✓</div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+            
+            {/* Conditional text field for "other" option */}
+            {currentQuestion.textField && 
+             Array.isArray(currentValue) && 
+             currentValue.includes(currentQuestion.textField.dependsOnValue) && (
+              <div className="max-w-md">
+                <Label htmlFor={currentQuestion.textField.id}>
+                  {currentQuestion.textField.label}
+                </Label>
+                <Input
+                  id={currentQuestion.textField.id}
+                  type="text"
+                  value={responses[currentQuestion.textField.id] || ''}
+                  onChange={(e) => setResponses(prev => ({
+                    ...prev,
+                    [currentQuestion.textField!.id]: e.target.value
+                  }))}
+                  placeholder={currentQuestion.textField.placeholder || "Enter details..."}
+                  className="mt-2"
+                />
+              </div>
+            )}
           </div>
         );
 

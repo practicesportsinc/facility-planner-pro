@@ -19,6 +19,12 @@ export interface WizardQuestion {
     questionId: string;
     values: string[];
   };
+  textField?: {
+    id: string;
+    label: string;
+    placeholder?: string;
+    dependsOnValue: string;
+  };
 }
 
 export interface WizardOption {
