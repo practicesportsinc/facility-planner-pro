@@ -54,6 +54,7 @@ serve(async (req) => {
     // Generate comprehensive business plan content
     const businessPlanContent = generateBusinessPlanHTML({
       projectName,
+      ownerName,
       location,
       currency,
       targetOpeningDate,
@@ -70,15 +71,9 @@ serve(async (req) => {
       financialMetrics,
       includeImages
     });
-
-    // Convert HTML to PDF using a PDF generation service
-    // For now, we'll return the HTML content as a simple PDF-like structure
-    // In production, you'd use a service like Puppeteer, jsPDF, or a PDF API
-    
-    const pdfBuffer = await generatePDFFromHTML(businessPlanContent);
     
     return new Response(JSON.stringify({ 
-      pdfBuffer: pdfBuffer,
+      htmlContent: businessPlanContent,
       success: true 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -98,6 +93,7 @@ serve(async (req) => {
 
 function generateBusinessPlanHTML({
   projectName,
+  ownerName,
   location,
   currency,
   targetOpeningDate,
@@ -273,72 +269,4 @@ function generateBusinessPlanHTML({
     </div>
 </body>
 </html>`;
-}
-
-async function generatePDFFromHTML(htmlContent: string): Promise<string> {
-  // For now, we'll create a simple base64 encoded PDF-like content
-  // In production, you'd use a proper PDF generation service
-  
-  // Create a simple PDF structure (this is a placeholder implementation)
-  const pdfHeader = "%PDF-1.4\n";
-  const pdfContent = htmlContent.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
-  
-  // This is a very basic PDF-like structure for demonstration
-  // In production, use proper PDF generation libraries
-  const basicPdf = `${pdfHeader}
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
-
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Contents 4 0 R
->>
-endobj
-
-4 0 obj
-<<
-/Length ${pdfContent.length}
->>
-stream
-BT
-/F1 12 Tf
-72 720 Td
-(${pdfContent.substring(0, 500)}...) Tj
-ET
-endstream
-endobj
-
-xref
-0 5
-0000000000 65535 f 
-0000000010 00000 n 
-0000000079 00000 n 
-0000000173 00000 n 
-0000000301 00000 n 
-trailer
-<<
-/Size 5
-/Root 1 0 R
->>
-startxref
-${400 + pdfContent.length}
-%%EOF`;
-
-  // Convert to base64
-  return btoa(basicPdf);
 }

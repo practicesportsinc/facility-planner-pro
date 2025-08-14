@@ -61,32 +61,21 @@ export default function GenerateBusinessPlanButton({
         throw new Error(error.message || 'Failed to generate business plan');
       }
 
-      if (!data?.pdfBuffer) {
-        throw new Error('No PDF data received');
+      if (!data?.htmlContent) {
+        throw new Error('No business plan content received');
       }
 
-      // Convert base64 to blob and download
-      const binaryString = atob(data.pdfBuffer);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+      // Open the business plan in a new window
+      const newWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+      if (newWindow) {
+        newWindow.document.write(data.htmlContent);
+        newWindow.document.close();
+        newWindow.focus();
+      } else {
+        throw new Error('Unable to open new window. Please check your popup blocker settings.');
       }
       
-      const blob = new Blob([bytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      
-      const businessName = project?.leadData?.business || 'SportsFacility';
-      const sanitizedName = businessName.replace(/[^a-zA-Z0-9]/g, '_');
-      a.download = `${sanitizedName}_BusinessPlan_${Date.now()}.pdf`;
-      
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      toast.success("Business plan downloaded successfully!");
+      toast.success("Business plan opened in new window!");
       onDone?.(true);
     } catch (e: any) {
       console.error('Business plan generation error:', e);
