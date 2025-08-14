@@ -2,7 +2,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TOOLTIP_LIBRARY, type TooltipKey } from "@/data/tooltipLibrary";
 
@@ -10,9 +10,10 @@ interface HelpTooltipProps {
   fieldId: TooltipKey;
   label: string;
   className?: string;
+  onOpenGlossary?: (fieldId: string) => void;
 }
 
-export const HelpTooltip: React.FC<HelpTooltipProps> = ({ fieldId, label, className }) => {
+export const HelpTooltip: React.FC<HelpTooltipProps> = ({ fieldId, label, className, onOpenGlossary }) => {
   const [popoverOpen, setPopoverOpen] = React.useState(false);
   const tooltipData = TOOLTIP_LIBRARY[fieldId];
 
@@ -44,6 +45,13 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({ fieldId, label, classN
   const handleTooltipTrigger = () => {
     // Optional telemetry
     // console.log('tooltip_viewed', { field_id: fieldId });
+  };
+
+  const handleLearnMore = () => {
+    setPopoverOpen(false);
+    if (onOpenGlossary) {
+      onOpenGlossary(fieldId);
+    }
   };
 
   return (
@@ -152,6 +160,19 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({ fieldId, label, classN
                   </ul>
                 </div>
               )}
+
+              {/* Learn More Button */}
+              <div className="pt-2 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLearnMore}
+                  className="w-full"
+                >
+                  <ExternalLink className="h-3 w-3 mr-2" />
+                  Learn more
+                </Button>
+              </div>
             </div>
           </PopoverContent>
         </Tooltip>

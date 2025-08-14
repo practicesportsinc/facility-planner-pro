@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Calculator from "./pages/Calculator";
 import Admin from "./pages/Admin";
 import Legal from "./pages/Legal";
+import Glossary from "./pages/Glossary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,8 @@ const App = () => (
           <Route path="/calculator" element={<Calculator />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/legal" element={<Legal />} />
+          <Route path="/glossary" element={<Glossary />} />
+          <Route path="/glossary/:slug" element={<Glossary />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
