@@ -284,7 +284,9 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
 
             <div className="flex gap-4 pt-6">
               <Button onClick={() => window.location.href = '/wizard-results'} className="flex-1">
-                Generate Your Financial Model & Business Plan
+                <span className="text-center">
+                  Generate My Financials<br />& Business Plan
+                </span>
               </Button>
               <Button variant="outline" onClick={() => window.location.href = '/calculator'}>
                 Customize My Plan
