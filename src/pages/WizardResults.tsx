@@ -869,7 +869,16 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
           <Button 
             variant="outline"
             size="lg"
-            onClick={() => toast.info("Business plan generation coming soon!")}
+            onClick={() => {
+              const responses = wizardResult.responses.reduce((acc, response) => {
+                acc[response.questionId] = response.value;
+                return acc;
+              }, {} as Record<string, any>);
+              
+              const projectName = responses.project_name || "New Sports Facility";
+              console.log("Generating business plan for:", projectName);
+              toast.info(`Generating business plan for ${projectName} - feature coming soon!`);
+            }}
             className="flex items-center gap-2"
           >
             <Building className="w-5 h-5" />
