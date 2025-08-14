@@ -16,38 +16,95 @@ export type Database = {
     Tables: {
       wizard_submissions: {
         Row: {
+          amenities: Json | null
+          break_even_months: number | null
+          business_model: string | null
           created_at: string
+          experience_level: string | null
+          facility_size: string | null
+          facility_type: string | null
           financial_metrics: Json | null
           id: string
           lead_business: string | null
           lead_email: string
           lead_name: string
           lead_phone: string | null
+          location_type: string | null
+          monthly_opex: number | null
+          monthly_revenue: number | null
+          operating_hours: string | null
           recommendations: Json
+          revenue_model: Json | null
+          roi_percentage: number | null
+          selected_sports: Json | null
+          sports_breakdown: Json | null
+          submission_date: string | null
+          target_market: Json | null
+          timeline: string | null
+          total_investment: number | null
+          total_square_footage: number | null
           updated_at: string
           wizard_responses: Json
         }
         Insert: {
+          amenities?: Json | null
+          break_even_months?: number | null
+          business_model?: string | null
           created_at?: string
+          experience_level?: string | null
+          facility_size?: string | null
+          facility_type?: string | null
           financial_metrics?: Json | null
           id?: string
           lead_business?: string | null
           lead_email: string
           lead_name: string
           lead_phone?: string | null
+          location_type?: string | null
+          monthly_opex?: number | null
+          monthly_revenue?: number | null
+          operating_hours?: string | null
           recommendations: Json
+          revenue_model?: Json | null
+          roi_percentage?: number | null
+          selected_sports?: Json | null
+          sports_breakdown?: Json | null
+          submission_date?: string | null
+          target_market?: Json | null
+          timeline?: string | null
+          total_investment?: number | null
+          total_square_footage?: number | null
           updated_at?: string
           wizard_responses: Json
         }
         Update: {
+          amenities?: Json | null
+          break_even_months?: number | null
+          business_model?: string | null
           created_at?: string
+          experience_level?: string | null
+          facility_size?: string | null
+          facility_type?: string | null
           financial_metrics?: Json | null
           id?: string
           lead_business?: string | null
           lead_email?: string
           lead_name?: string
           lead_phone?: string | null
+          location_type?: string | null
+          monthly_opex?: number | null
+          monthly_revenue?: number | null
+          operating_hours?: string | null
           recommendations?: Json
+          revenue_model?: Json | null
+          roi_percentage?: number | null
+          selected_sports?: Json | null
+          sports_breakdown?: Json | null
+          submission_date?: string | null
+          target_market?: Json | null
+          timeline?: string | null
+          total_investment?: number | null
+          total_square_footage?: number | null
           updated_at?: string
           wizard_responses?: Json
         }

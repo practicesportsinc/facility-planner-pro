@@ -181,22 +181,55 @@ const WizardResults = () => {
   const handleUnlock = async () => {
     if (leadData.name && leadData.email && leadData.business && leadData.phone && wizardResult && financialMetrics) {
       try {
-        const { error } = await (supabase as any).from('wizard_submissions').insert({
+        // Extract comprehensive data from wizard responses
+        const responses = wizardResult.responses.reduce((acc, response) => {
+          acc[response.questionId] = response.value;
+          return acc;
+        }, {} as Record<string, any>);
+
+        // Prepare comprehensive submission data
+        const submissionData = {
           lead_name: leadData.name,
           lead_email: leadData.email,
           lead_business: leadData.business,
           lead_phone: leadData.phone,
           wizard_responses: wizardResult.responses,
           recommendations: wizardResult.recommendations,
-          financial_metrics: financialMetrics
-        });
+          financial_metrics: financialMetrics,
+          
+          // Individual response fields for easier querying
+          facility_size: responses.facility_size,
+          location_type: responses.location_type,
+          target_market: responses.target_market,
+          revenue_model: responses.revenue_model,
+          selected_sports: responses.primary_sport,
+          timeline: responses.timeline,
+          amenities: responses.amenities,
+          operating_hours: responses.operating_hours,
+          experience_level: responses.experience_level,
+          
+          // Financial summary fields
+          sports_breakdown: financialMetrics.sportsBreakdown,
+          total_square_footage: Math.round(financialMetrics.space.grossSF),
+          total_investment: financialMetrics.capex.total,
+          monthly_revenue: financialMetrics.revenue.total,
+          monthly_opex: financialMetrics.opex.total,
+          break_even_months: financialMetrics.profitability.breakEvenMonths,
+          roi_percentage: financialMetrics.profitability.roi,
+          facility_type: wizardResult.recommendations.facilityType,
+          business_model: wizardResult.recommendations.businessModel
+        };
+
+        const { error } = await (supabase as any)
+          .from('wizard_submissions')
+          .insert(submissionData);
         
         if (error) throw error;
         
         setIsUnlocked(true);
-        toast.success("Thank you! Your financial projections have been unlocked.");
+        toast.success("Thank you! Your comprehensive facility analysis has been saved and unlocked.");
       } catch (error) {
-        console.error('Error saving lead data:', error);
+        console.error('Error saving comprehensive wizard data:', error);
         toast.error("There was an error processing your request. Please try again.");
       }
     }
