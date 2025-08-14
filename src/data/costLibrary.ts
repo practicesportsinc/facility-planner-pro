@@ -83,7 +83,7 @@ export const COST_LIBRARY: Record<string, CostItem> = {
     name: "CurtainCage (Collapsible)",
     category: "baseball",
     unit: "each",
-    costTiers: { low: 8000, mid: 12000, high: 18000 },
+    costTiers: { low: 2500, mid: 3000, high: 3500 },
     installFactorPct: 15,
     description: "Collapsible curtain-style batting cage system, most affordable option",
     userAdjustable: true,
@@ -94,12 +94,12 @@ export const COST_LIBRARY: Record<string, CostItem> = {
     id: "shell_cage", 
     name: "ShellCage (Multi-Lane)",
     category: "baseball",
-    unit: "each",
-    costTiers: { low: 15000, mid: 22000, high: 35000 },
+    unit: "lane",
+    costTiers: { low: 1700, mid: 2000, high: 2300 },
     installFactorPct: 20,
     description: "Multi-lane shell cage system, mid-tier option with enhanced durability",
     userAdjustable: true,
-    marketNote: "Professional-grade, multiple lane configuration"
+    marketNote: "Professional-grade, priced per lane"
   },
 
   air_cage: {
@@ -107,7 +107,7 @@ export const COST_LIBRARY: Record<string, CostItem> = {
     name: "AirCage (Retractable)",
     category: "baseball", 
     unit: "each",
-    costTiers: { low: 25000, mid: 35000, high: 50000 },
+    costTiers: { low: 13000, mid: 15000, high: 17000 },
     installFactorPct: 25,
     description: "Premium electric retractable batting cage, highest-end option",
     userAdjustable: true,
