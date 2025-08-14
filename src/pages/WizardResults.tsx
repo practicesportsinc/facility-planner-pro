@@ -16,9 +16,16 @@ import {
   ArrowLeft,
   Edit,
   Lock,
-  Unlock
+  Unlock,
+  Target,
+  Clock,
+  CreditCard,
+  Star
 } from "lucide-react";
 import { WizardResult } from "@/types/wizard";
+import { WIZARD_QUESTIONS } from "@/data/wizardQuestions";
+import { saveWizardSubmission } from "@/lib/supabase";
+import { toast } from "sonner";
 import { 
   calculateSpacePlanning,
   calculateCapExBuild,
@@ -127,11 +134,25 @@ const WizardResults = () => {
     return baseMembers * avgMembershipPrice;
   };
 
-  const handleUnlock = () => {
-    if (leadData.name && leadData.email && leadData.business && leadData.phone) {
-      setIsUnlocked(true);
-      // Here you could save the lead data to your database
-      console.log('Lead captured:', leadData);
+  const handleUnlock = async () => {
+    if (leadData.name && leadData.email && leadData.business && leadData.phone && wizardResult && financialMetrics) {
+      try {
+        await saveWizardSubmission({
+          lead_name: leadData.name,
+          lead_email: leadData.email,
+          lead_business: leadData.business,
+          lead_phone: leadData.phone,
+          wizard_responses: wizardResult.responses,
+          recommendations: wizardResult.recommendations,
+          financial_metrics: financialMetrics
+        });
+        
+        setIsUnlocked(true);
+        toast.success("Thank you! Your financial projections have been unlocked.");
+      } catch (error) {
+        console.error('Error saving lead data:', error);
+        toast.error("There was an error processing your request. Please try again.");
+      }
     }
   };
 
@@ -238,6 +259,197 @@ const WizardResults = () => {
 
         {/* Financial Content with Conditional Blur */}
         <div className={!isUnlocked ? "blur-sm pointer-events-none" : ""}>
+
+        {/* Comprehensive Wizard Selections */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          {/* Selected Sports */}
+          {(() => {
+            const sportsResponse = wizardResult.responses.find(r => r.questionId === 'primary_sport');
+            const selectedSports = Array.isArray(sportsResponse?.value) ? sportsResponse.value : [sportsResponse?.value];
+            const sportsQuestion = WIZARD_QUESTIONS.find(q => q.id === 'primary_sport');
+            
+            return (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Target className="w-5 h-5 text-primary" />
+                    Selected Sports
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {selectedSports.filter(Boolean).map((sportId: string) => {
+                    const sport = sportsQuestion?.options?.find(opt => opt.id === sportId);
+                    return sport ? (
+                      <div key={sportId} className="flex items-center gap-2">
+                        <span className="text-lg">{sport.icon}</span>
+                        <span className="font-medium">{sport.label}</span>
+                      </div>
+                    ) : null;
+                  })}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Target Market */}
+          {(() => {
+            const marketResponse = wizardResult.responses.find(r => r.questionId === 'target_market');
+            const selectedMarkets = Array.isArray(marketResponse?.value) ? marketResponse.value : [marketResponse?.value];
+            const marketQuestion = WIZARD_QUESTIONS.find(q => q.id === 'target_market');
+            
+            return (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    Target Market
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {selectedMarkets.filter(Boolean).map((marketId: string) => {
+                    const market = marketQuestion?.options?.find(opt => opt.id === marketId);
+                    return market ? (
+                      <Badge key={marketId} variant="secondary" className="mr-1 mb-1">
+                        {market.label}
+                      </Badge>
+                    ) : null;
+                  })}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Revenue Model */}
+          {(() => {
+            const revenueResponse = wizardResult.responses.find(r => r.questionId === 'revenue_model');
+            const selectedRevenue = Array.isArray(revenueResponse?.value) ? revenueResponse.value : [revenueResponse?.value];
+            const revenueQuestion = WIZARD_QUESTIONS.find(q => q.id === 'revenue_model');
+            
+            return (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-primary" />
+                    Revenue Streams
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {selectedRevenue.filter(Boolean).map((revenueId: string) => {
+                    const revenue = revenueQuestion?.options?.find(opt => opt.id === revenueId);
+                    return revenue ? (
+                      <div key={revenueId} className="flex items-center justify-between">
+                        <span className="text-sm">{revenue.label}</span>
+                        {revenue.recommended && <Star className="w-3 h-3 text-yellow-500" />}
+                      </div>
+                    ) : null;
+                  })}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Additional Selections */}
+          {(() => {
+            const facilitySize = wizardResult.responses.find(r => r.questionId === 'facility_size');
+            const locationType = wizardResult.responses.find(r => r.questionId === 'location_type');
+            const timeline = wizardResult.responses.find(r => r.questionId === 'timeline');
+            const budget = wizardResult.responses.find(r => r.questionId === 'budget_range');
+            
+            const sizeQuestion = WIZARD_QUESTIONS.find(q => q.id === 'facility_size');
+            const locationQuestion = WIZARD_QUESTIONS.find(q => q.id === 'location_type');
+            const timelineQuestion = WIZARD_QUESTIONS.find(q => q.id === 'timeline');
+            const budgetQuestion = WIZARD_QUESTIONS.find(q => q.id === 'budget_range');
+            
+            return (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Building className="w-5 h-5 text-primary" />
+                    Facility Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {facilitySize?.value && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Size:</span>
+                      <p className="text-sm">{sizeQuestion?.options?.find(opt => opt.id === facilitySize.value)?.label}</p>
+                    </div>
+                  )}
+                  {locationType?.value && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Location:</span>
+                      <p className="text-sm">{locationQuestion?.options?.find(opt => opt.id === locationType.value)?.label}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Timeline & Budget */}
+          {(() => {
+            const timeline = wizardResult.responses.find(r => r.questionId === 'timeline');
+            const budget = wizardResult.responses.find(r => r.questionId === 'budget_range');
+            
+            const timelineQuestion = WIZARD_QUESTIONS.find(q => q.id === 'timeline');
+            const budgetQuestion = WIZARD_QUESTIONS.find(q => q.id === 'budget_range');
+            
+            return (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-primary" />
+                    Timeline & Budget
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {timeline?.value && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Timeline:</span>
+                      <p className="text-sm">{timelineQuestion?.options?.find(opt => opt.id === timeline.value)?.label}</p>
+                    </div>
+                  )}
+                  {budget?.value && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Budget:</span>
+                      <p className="text-sm">{budgetQuestion?.options?.find(opt => opt.id === budget.value)?.label}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Amenities */}
+          {(() => {
+            const amenitiesResponse = wizardResult.responses.find(r => r.questionId === 'amenities');
+            const selectedAmenities = Array.isArray(amenitiesResponse?.value) ? amenitiesResponse.value : [amenitiesResponse?.value];
+            const amenitiesQuestion = WIZARD_QUESTIONS.find(q => q.id === 'amenities');
+            
+            if (!selectedAmenities.filter(Boolean).length) return null;
+            
+            return (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Star className="w-5 h-5 text-primary" />
+                    Selected Amenities
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                  {selectedAmenities.filter(Boolean).map((amenityId: string) => {
+                    const amenity = amenitiesQuestion?.options?.find(opt => opt.id === amenityId);
+                    return amenity ? (
+                      <div key={amenityId} className="text-sm">
+                        • {amenity.label}
+                      </div>
+                    ) : null;
+                  })}
+                </CardContent>
+              </Card>
+            );
+          })()}
+        </div>
 
         {/* Facility Overview */}
         <Card className="mb-6">
