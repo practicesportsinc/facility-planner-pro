@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Package, RefreshCw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Package, RefreshCw, Check } from "lucide-react";
 
 interface EquipmentProps {
   data: any;
@@ -16,22 +17,22 @@ interface EquipmentProps {
 
 // Product catalog as specified in requirements
 const PRODUCT_CATALOG = [
-  {"key":"batting_cages","label":"Batting Cages (70' x 15')","unit":"ea","min":0,"max":24,"step":1,"defaultFormula":"counts.baseball_tunnels || 0"},
-  {"key":"pitching_machines","label":"Pitching Machines","unit":"ea","min":0,"max":12,"step":1,"defaultFormula":"Math.ceil((counts.baseball_tunnels||0)/2)"},
-  {"key":"l_screens","label":"L-Screens / Protective Screens","unit":"ea","min":0,"max":24,"step":1,"defaultFormula":"counts.baseball_tunnels || 0"},
-  {"key":"ball_carts","label":"Ball Carts / Buckets","unit":"ea","min":0,"max":24,"step":1,"defaultFormula":"Math.ceil((counts.baseball_tunnels||0)/2)"},
-  {"key":"divider_curtains","label":"Divider Curtains/Nets","unit":"ea","min":0,"max":16,"step":1,"defaultFormula":"Math.max( (counts.volleyball_courts||0)-(1), (counts.pickleball_courts||0)-(1), (counts.basketball_courts_full||0)-(1), (counts.training_turf_zone||0)-(1) )"},
-  {"key":"volleyball_systems","label":"Volleyball Systems (standards+net)","unit":"ea","min":0,"max":12,"step":1,"defaultFormula":"counts.volleyball_courts || 0"},
-  {"key":"ref_stands","label":"Referee Stands","unit":"ea","min":0,"max":12,"step":1,"defaultFormula":"counts.volleyball_courts || 0"},
-  {"key":"basketball_hoops","label":"Basketball Hoops/Goals","unit":"ea","min":0,"max":12,"step":1,"defaultFormula":"(counts.basketball_courts_full||0)*2 + (counts.basketball_courts_half||0)*1"},
-  {"key":"scoreboards","label":"Scoreboards/Shot Clocks (set)","unit":"ea","min":0,"max":8,"step":1,"defaultFormula":"Math.max((counts.basketball_courts_full||0), (counts.volleyball_courts||0)>0?1:0)"},
-  {"key":"pickleball_nets","label":"Pickleball Nets (portable/permanent)","unit":"ea","min":0,"max":16,"step":1,"defaultFormula":"counts.pickleball_courts || 0"},
-  {"key":"paddle_starter_sets","label":"Pickleball Paddle Starter Sets (4 paddles + balls)","unit":"ea","min":0,"max":24,"step":1,"defaultFormula":"(counts.pickleball_courts||0) * 2"},
-  {"key":"soccer_goals_pair","label":"Indoor Soccer Goals (pair)","unit":"ea","min":0,"max":6,"step":1,"defaultFormula":"counts.soccer_field_small || 0"},
-  {"key":"training_turf_zone","label":"Training Turf Zones","unit":"ea","min":0,"max":4,"step":1,"defaultFormula":"counts.training_turf_zone || 0"},
-  {"key":"turf_area_sf","label":"Indoor Turf (area)","unit":"sf","min":0,"maxFormula":"facility_plan.total_sqft || 0","step":100,"defaultFormula":"Math.round((facility_plan.total_sqft||0)*0.35/100)*100"},
-  {"key":"hardwood_floor_area_sf","label":"Hardwood Flooring (area)","unit":"sf","min":0,"maxFormula":"facility_plan.total_sqft || 0","step":100,"defaultFormula":"(counts.basketball_courts_full||0)>0 ? Math.round((facility_plan.total_sqft||0)*0.30/100)*100 : 0"},
-  {"key":"rubber_floor_area_sf","label":"Rubber Flooring (area)","unit":"sf","min":0,"maxFormula":"facility_plan.total_sqft || 0","step":100,"defaultFormula":"(counts.volleyball_courts||0)+(counts.pickleball_courts||0)>0 ? Math.round((facility_plan.total_sqft||0)*0.25/100)*100 : 0"}
+  {"key":"batting_cages","label":"Batting Cages (70' x 15')","unit":"ea","min":0,"max":24,"step":1,"defaultFormula":"counts.baseball_tunnels || 0","description":"Each = one 70′ × 15′ tunnel (hardware + net)"},
+  {"key":"pitching_machines","label":"Pitching Machines","unit":"ea","min":0,"max":12,"step":1,"defaultFormula":"Math.ceil((counts.baseball_tunnels||0)/2)","description":"Professional pitching machines for batting practice"},
+  {"key":"l_screens","label":"L-Screens / Protective Screens","unit":"ea","min":0,"max":24,"step":1,"defaultFormula":"counts.baseball_tunnels || 0","description":"Safety screens for batting practice"},
+  {"key":"ball_carts","label":"Ball Carts / Buckets","unit":"ea","min":0,"max":24,"step":1,"defaultFormula":"Math.ceil((counts.baseball_tunnels||0)/2)","description":"Ball storage and transport carts"},
+  {"key":"divider_curtains","label":"Divider Curtains/Nets","unit":"ea","min":0,"max":16,"step":1,"defaultFormula":"Math.max( (counts.volleyball_courts||0)-(1), (counts.pickleball_courts||0)-(1), (counts.basketball_courts_full||0)-(1), (counts.training_turf_zone||0)-(1) )","description":"Motorized or manual court/turf dividers"},
+  {"key":"volleyball_systems","label":"Volleyball Systems (standards+net)","unit":"ea","min":0,"max":12,"step":1,"defaultFormula":"counts.volleyball_courts || 0","description":"Professional volleyball net systems"},
+  {"key":"ref_stands","label":"Referee Stands","unit":"ea","min":0,"max":12,"step":1,"defaultFormula":"counts.volleyball_courts || 0","description":"Referee chairs for volleyball games"},
+  {"key":"basketball_hoops","label":"Basketball Hoops/Goals","unit":"ea","min":0,"max":12,"step":1,"defaultFormula":"(counts.basketball_courts_full||0)*2 + (counts.basketball_courts_half||0)*1","description":"Professional basketball goal systems"},
+  {"key":"scoreboards","label":"Scoreboards/Shot Clocks (set)","unit":"ea","min":0,"max":8,"step":1,"defaultFormula":"Math.max((counts.basketball_courts_full||0), (counts.volleyball_courts||0)>0?1:0)","description":"Electronic scoreboards and shot clocks"},
+  {"key":"pickleball_nets","label":"Pickleball Nets (portable/permanent)","unit":"ea","min":0,"max":16,"step":1,"defaultFormula":"counts.pickleball_courts || 0","description":"Pickleball net systems"},
+  {"key":"paddle_starter_sets","label":"Pickleball Paddle Starter Sets (4 paddles + balls)","unit":"ea","min":0,"max":24,"step":1,"defaultFormula":"(counts.pickleball_courts||0) * 2","description":"Starter paddle and ball sets"},
+  {"key":"soccer_goals_pair","label":"Indoor Soccer Goals (pair)","unit":"ea","min":0,"max":6,"step":1,"defaultFormula":"counts.soccer_field_small || 0","description":"Indoor soccer goal pairs"},
+  {"key":"training_turf_zone","label":"Training Turf Zones","unit":"ea","min":0,"max":4,"step":1,"defaultFormula":"counts.training_turf_zone || 0","description":"Designated training areas with turf"},
+  {"key":"turf_area_sf","label":"Indoor Turf (area)","unit":"sf","min":0,"maxFormula":"facility_plan.total_sqft || 0","step":100,"defaultFormula":"Math.round((facility_plan.total_sqft||0)*0.35/100)*100","description":"Approximate coverage area; refine later per court count"},
+  {"key":"hardwood_floor_area_sf","label":"Hardwood Flooring (area)","unit":"sf","min":0,"maxFormula":"facility_plan.total_sqft || 0","step":100,"defaultFormula":"(counts.basketball_courts_full||0)>0 ? Math.round((facility_plan.total_sqft||0)*0.30/100)*100 : 0","description":"Professional sport court flooring"},
+  {"key":"rubber_floor_area_sf","label":"Rubber Flooring (area)","unit":"sf","min":0,"maxFormula":"facility_plan.total_sqft || 0","step":100,"defaultFormula":"(counts.volleyball_courts||0)+(counts.pickleball_courts||0)>0 ? Math.round((facility_plan.total_sqft||0)*0.25/100)*100 : 0","description":"Safety and fitness rubber flooring"}
 ];
 
 // Sport to products mapping
@@ -121,36 +122,76 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
     }
   };
   
-  // Initialize quantities based on formulas
-  const initializeQuantities = () => {
+  // Initialize quantities and selection based on formulas
+  const initializeData = () => {
     const catalog = getFilteredCatalog();
     const quantities: any = {};
+    const selectedProducts = new Set<string>();
     
     catalog.forEach(item => {
-      quantities[item.key] = calculateDefaultQuantity(item);
+      const defaultQty = calculateDefaultQuantity(item);
+      quantities[item.key] = defaultQty;
+      // Auto-select products with non-zero default quantities
+      if (defaultQty > 0) {
+        selectedProducts.add(item.key);
+      }
     });
     
-    return quantities;
+    return {
+      quantities,
+      selectedProducts: Array.from(selectedProducts)
+    };
   };
 
-  // Initialize form data with quantities
+  // Initialize form data with quantities and selection
   const [formData, setFormData] = useState(() => {
-    const initialQuantities = data.quantities || initializeQuantities();
+    const initialData = data.selectedProducts && data.quantities ? 
+      { selectedProducts: data.selectedProducts || [], quantities: data.quantities || {} } :
+      initializeData();
+    
     return {
-      quantities: initialQuantities,
+      selectedProducts: initialData.selectedProducts,
+      quantities: initialData.quantities,
       ...data
     };
   });
 
-  // Update quantities when dependencies change
+  // Update data when dependencies change
   useEffect(() => {
-    if (!data.quantities) {
-      const newQuantities = initializeQuantities();
-      const newData = { ...formData, quantities: newQuantities };
-      setFormData(newData);
-      onUpdate(newData);
+    if (!data.quantities || !data.selectedProducts) {
+      const newData = initializeData();
+      const updatedData = { ...formData, ...newData };
+      setFormData(updatedData);
+      onUpdate(updatedData);
     }
   }, [selectedSports, facilityPlan]);
+
+  const handleProductToggle = (productKey: string) => {
+    const isSelected = formData.selectedProducts.includes(productKey);
+    const updatedSelection = isSelected 
+      ? formData.selectedProducts.filter(key => key !== productKey)
+      : [...formData.selectedProducts, productKey];
+    
+    // If deselecting, set quantity to 0
+    const updatedQuantities = { ...formData.quantities };
+    if (isSelected) {
+      updatedQuantities[productKey] = 0;
+    } else {
+      // If selecting, set to default quantity
+      const item = PRODUCT_CATALOG.find(p => p.key === productKey);
+      if (item) {
+        updatedQuantities[productKey] = calculateDefaultQuantity(item);
+      }
+    }
+    
+    const newData = { 
+      ...formData, 
+      selectedProducts: updatedSelection,
+      quantities: updatedQuantities
+    };
+    setFormData(newData);
+    onUpdate(newData);
+  };
 
   const handleQuantityChange = (key: string, newQuantity: number[]) => {
     const updatedQuantities = { 
@@ -195,15 +236,24 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2">Product Quantities</h2>
+        <h2 className="text-3xl font-bold mb-2">Select Products & Set Quantities</h2>
         <p className="text-muted-foreground">
-          We've loaded typical items for your chosen sports. Adjust quantities; you can refine costs later.
+          We've pre-selected typical items for your chosen sports. Select/deselect products and adjust quantities as needed.
         </p>
+        <div className="flex justify-center items-center gap-4 mt-4">
+          <Badge variant="outline" className="text-sm">
+            {selectedSports.join(", ")} 
+          </Badge>
+          <Badge variant="secondary" className="text-sm">
+            {formData.selectedProducts?.length || 0} products selected
+          </Badge>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {filteredCatalog.map((item) => {
+            const isSelected = formData.selectedProducts?.includes(item.key) || false;
             const currentValue = formData.quantities[item.key] || 0;
             
             // Calculate max bound
@@ -218,64 +268,104 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
             }
 
             return (
-              <Card key={item.key}>
+              <Card 
+                key={item.key}
+                className={`transition-all duration-200 ${
+                  isSelected 
+                    ? 'border-primary shadow-custom-sm bg-primary/5' 
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
                 <CardContent className="p-6">
                   <div className="space-y-4">
+                    {/* Product Selection Header */}
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{item.label}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {PRODUCT_HELPERS[item.key as keyof typeof PRODUCT_HELPERS]}
-                        </p>
-                        {item.unit === "sf" && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Capped at building gross SF.
-                          </p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => resetToTypical(item.key)}
-                        className="text-xs"
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => handleProductToggle(item.key)}
                       >
-                        <RefreshCw className="h-3 w-3 mr-1" />
-                        Typical
-                      </Button>
+                        <div className="flex items-start gap-3">
+                          <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                            isSelected 
+                              ? 'bg-primary border-primary text-primary-foreground' 
+                              : 'border-muted-foreground/30 hover:border-primary'
+                          }`}>
+                            {isSelected && <Check className="h-3 w-3" />}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{item.label}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {item.description}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="outline" className="text-xs">
+                                Unit: {item.unit}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {PRODUCT_HELPERS[item.key as keyof typeof PRODUCT_HELPERS]}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {isSelected && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => resetToTypical(item.key)}
+                          className="text-xs"
+                        >
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                          Typical
+                        </Button>
+                      )}
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-4">
-                        <Label className="text-sm font-medium min-w-12">
-                          {item.unit}:
-                        </Label>
-                        <div className="flex-1">
-                          <Slider
-                            value={[currentValue]}
-                            onValueChange={(value) => handleQuantityChange(item.key, value)}
+                    {/* Quantity Controls - only show if selected */}
+                    {isSelected && (
+                      <div className="space-y-3 pt-4 border-t border-border/50">
+                        <div className="flex items-center gap-4">
+                          <Label className="text-sm font-medium min-w-16">
+                            Quantity:
+                          </Label>
+                          <div className="flex-1">
+                            <Slider
+                              value={[currentValue]}
+                              onValueChange={(value) => handleQuantityChange(item.key, value)}
+                              min={item.min}
+                              max={maxBound}
+                              step={item.step}
+                              className="flex-1"
+                            />
+                          </div>
+                          <Input
+                            type="number"
+                            value={currentValue}
+                            onChange={(e) => handleInputChange(item.key, e.target.value)}
                             min={item.min}
                             max={maxBound}
                             step={item.step}
-                            className="flex-1"
+                            className="w-20 text-center"
                           />
+                          <span className="text-sm text-muted-foreground min-w-8">
+                            {item.unit}
+                          </span>
                         </div>
-                        <Input
-                          type="number"
-                          value={currentValue}
-                          onChange={(e) => handleInputChange(item.key, e.target.value)}
-                          min={item.min}
-                          max={maxBound}
-                          step={item.step}
-                          className="w-20 text-center"
-                        />
+                        
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Min: {item.min}</span>
+                          <span>Current: {currentValue.toLocaleString()} {item.unit}</span>
+                          <span>Max: {maxBound.toLocaleString()}</span>
+                        </div>
+                        
+                        {item.unit === "sf" && (
+                          <p className="text-xs text-muted-foreground">
+                            💡 Capped at building gross SF. Area estimates can be refined later.
+                          </p>
+                        )}
                       </div>
-                      
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Min: {item.min}</span>
-                        <span>Current: {currentValue.toLocaleString()} {item.unit}</span>
-                        <span>Max: {maxBound.toLocaleString()}</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -286,9 +376,9 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
             <Card>
               <CardContent className="p-8 text-center">
                 <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Equipment Selected</h3>
+                <h3 className="text-lg font-semibold mb-2">No Products Available</h3>
                 <p className="text-muted-foreground">
-                  Please select sports in the Project Basics step to see relevant equipment.
+                  Please select sports in the Project Basics step to see relevant products.
                 </p>
               </CardContent>
             </Card>
