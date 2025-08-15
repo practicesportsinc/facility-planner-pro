@@ -6,15 +6,18 @@ import { LayoutGallery, GalleryChoice } from "@/components/layout/LayoutGallery"
 
 /** ---------- Types (aligned to your schema prompts) ---------- */
 type BuildMode = "build" | "buy" | "lease";
-type SizeKey = "small" | "medium" | "large";
+type SizeKey = "small" | "small_plus" | "medium" | "large" | "giant" | "arena";
 type SportKey =
   | "baseball_softball"
   | "basketball"
   | "volleyball"
   | "pickleball"
-  | "soccer_indoor_small_sided"
+  | "soccer"
   | "football"
-  | "multi_sport";
+  | "lacrosse"
+  | "tennis"
+  | "multi_sport"
+  | "fitness";
 
 type CourtOrCageCounts = Record<string, number>;
 
@@ -223,14 +226,14 @@ const GLOBAL = {
   capexDefaults: (size: SizeKey) => ({
     soft_costs_pct: 10,
     contingency_pct: 10,
-    fixtures_allowance: size === "small" ? 15000 : size === "medium" ? 25000 : 40000,
-    it_security_allowance: size === "small" ? 10000 : size === "medium" ? 15000 : 25000,
+    fixtures_allowance: size === "small" ? 15000 : size === "small_plus" ? 20000 : size === "medium" ? 25000 : size === "large" ? 40000 : size === "giant" ? 60000 : 80000,
+    it_security_allowance: size === "small" ? 10000 : size === "small_plus" ? 12000 : size === "medium" ? 15000 : size === "large" ? 25000 : size === "giant" ? 35000 : 50000,
     // TI per SF baseline for lease mode
     ti_cost_per_sf: 18
   }),
   opexDefaults: (size: SizeKey): OpEx => {
-    const coaches = size === "small" ? 2 : size === "medium" ? 4 : 6;
-    const frontDeskFTE = size === "small" ? 1 : size === "medium" ? 1.25 : 1.5;
+    const coaches = size === "small" ? 2 : size === "small_plus" ? 3 : size === "medium" ? 4 : size === "large" ? 6 : size === "giant" ? 8 : 10;
+    const frontDeskFTE = size === "small" ? 1 : size === "small_plus" ? 1.25 : size === "medium" ? 1.5 : size === "large" ? 2 : size === "giant" ? 2.5 : 3;
     return {
       staffing: [
         { role: "GM", ftes: 1, loaded_wage_per_hr: 35 },
@@ -253,13 +256,16 @@ const GLOBAL = {
 
 function membershipsBySize(size: SizeKey): MembershipPlan[] {
   if (size === "small") return [{ name: "Individual", price_month: 59, members: 200 }, { name: "Family", price_month: 99, members: 80 }];
+  if (size === "small_plus") return [{ name: "Individual", price_month: 59, members: 250 }, { name: "Family", price_month: 99, members: 100 }];
   if (size === "medium") return [{ name: "Individual", price_month: 59, members: 300 }, { name: "Family", price_month: 99, members: 120 }];
-  return [{ name: "Individual", price_month: 59, members: 400 }, { name: "Family", price_month: 99, members: 180 }];
+  if (size === "large") return [{ name: "Individual", price_month: 59, members: 400 }, { name: "Family", price_month: 99, members: 180 }];
+  if (size === "giant") return [{ name: "Individual", price_month: 59, members: 600 }, { name: "Family", price_month: 99, members: 250 }];
+  return [{ name: "Individual", price_month: 59, members: 800 }, { name: "Family", price_month: 99, members: 350 }]; // arena
 }
 
 /** Sport presets */
 function presetsBaseball(size: SizeKey): QuickPreset {
-  const tunnels = size === "small" ? 6 : size === "medium" ? 8 : 12;
+  const tunnels = size === "small" ? 6 : size === "small_plus" ? 8 : size === "medium" ? 10 : size === "large" ? 12 : size === "giant" ? 16 : 20;
   const perUnitSF = { baseball_tunnels: 1050 };
   return {
     label: "Baseball / Softball",
@@ -278,23 +284,23 @@ function presetsBaseball(size: SizeKey): QuickPreset {
     opex: GLOBAL.opexDefaults(size),
     revenue: {
       memberships: membershipsBySize(size),
-      rentals: [{ unit: "batting_tunnel", rate_per_hr: 45, util_hours_per_week: size === "small" ? 30 : size === "medium" ? 40 : 50 }],
-      lessons: [{ coach_count: size === "small" ? 2 : size === "medium" ? 3 : 4, avg_rate_per_hr: 70, hours_per_coach_week: size === "large" ? 18 : 15, utilization_pct: size === "small" ? 65 : 70 }],
+      rentals: [{ unit: "batting_tunnel", rate_per_hr: 45, util_hours_per_week: size === "small" ? 30 : size === "small_plus" ? 35 : size === "medium" ? 40 : size === "large" ? 50 : size === "giant" ? 60 : 70 }],
+      lessons: [{ coach_count: size === "small" ? 2 : size === "small_plus" ? 3 : size === "medium" ? 3 : size === "large" ? 4 : size === "giant" ? 5 : 6, avg_rate_per_hr: 70, hours_per_coach_week: size === "giant" || size === "arena" ? 18 : 15, utilization_pct: size === "small" ? 65 : 70 }],
       camps_clinics: [{ sessions_per_year: 12, avg_price: 199, capacity: 30, fill_rate_pct: 70 }],
       leagues_tournaments: [{ events_per_year: 6, teams_per_event: 10, avg_team_fee: 400, net_margin_pct: 35 }],
-      parties_events: [{ events_per_month: size === "small" ? 4 : size === "medium" ? 6 : 8, avg_net: 225 }],
-      merchandising: [{ annual_merch_net: size === "small" ? 6000 : size === "medium" ? 9000 : 12000 }],
-      concessions: [{ annual_concessions_net: size === "small" ? 3600 : size === "medium" ? 4800 : 6000 }],
-      sponsorships: [{ annual_sponsorships: size === "small" ? 5000 : size === "medium" ? 8000 : 12000 }],
+      parties_events: [{ events_per_month: size === "small" ? 4 : size === "small_plus" ? 5 : size === "medium" ? 6 : size === "large" ? 8 : size === "giant" ? 10 : 12, avg_net: 225 }],
+      merchandising: [{ annual_merch_net: size === "small" ? 6000 : size === "small_plus" ? 7500 : size === "medium" ? 9000 : size === "large" ? 12000 : size === "giant" ? 15000 : 20000 }],
+      concessions: [{ annual_concessions_net: size === "small" ? 3600 : size === "small_plus" ? 4200 : size === "medium" ? 4800 : size === "large" ? 6000 : size === "giant" ? 7500 : 9000 }],
+      sponsorships: [{ annual_sponsorships: size === "small" ? 5000 : size === "small_plus" ? 6500 : size === "medium" ? 8000 : size === "large" ? 12000 : size === "giant" ? 15000 : 20000 }],
       seasonality: GLOBAL.seasonality
     },
     per_unit_space_sf: perUnitSF,
-    equipment_lump_sum: size === "small" ? 40000 : size === "medium" ? 65000 : 95000
+    equipment_lump_sum: size === "small" ? 40000 : size === "small_plus" ? 50000 : size === "medium" ? 65000 : size === "large" ? 95000 : size === "giant" ? 130000 : 180000
   };
 }
 
 function presetsBasketball(size: SizeKey): QuickPreset {
-  const courts = size === "small" ? 1 : size === "medium" ? 2 : 3;
+  const courts = size === "small" ? 1 : size === "small_plus" ? 2 : size === "medium" ? 3 : size === "large" ? 4 : size === "giant" ? 6 : 8;
   const perUnitSF = { basketball_courts_full: 6240 };
   return {
     label: "Basketball",
@@ -313,22 +319,22 @@ function presetsBasketball(size: SizeKey): QuickPreset {
     opex: GLOBAL.opexDefaults(size),
     revenue: {
       memberships: membershipsBySize(size),
-      rentals: [{ unit: "basketball_court_full", rate_per_hr: 95, util_hours_per_week: size === "small" ? 35 : size === "medium" ? 45 : 55 }],
-      lessons: [{ coach_count: size === "small" ? 2 : 3, avg_rate_per_hr: 75, hours_per_coach_week: 15, utilization_pct: 70 }],
+      rentals: [{ unit: "basketball_court_full", rate_per_hr: 95, util_hours_per_week: size === "small" ? 35 : size === "small_plus" ? 40 : size === "medium" ? 45 : size === "large" ? 55 : size === "giant" ? 65 : 75 }],
+      lessons: [{ coach_count: size === "small" ? 2 : size === "small_plus" ? 3 : size === "medium" ? 3 : size === "large" ? 4 : size === "giant" ? 5 : 6, avg_rate_per_hr: 75, hours_per_coach_week: 15, utilization_pct: 70 }],
       camps_clinics: [{ sessions_per_year: 10, avg_price: 229, capacity: 40, fill_rate_pct: 70 }],
-      leagues_tournaments: [{ events_per_year: size === "small" ? 6 : 8, teams_per_event: 12, avg_team_fee: 500, net_margin_pct: 40 }],
-      parties_events: [{ events_per_month: size === "small" ? 4 : 6, avg_net: 275 }],
-      merchandising: [{ annual_merch_net: size === "small" ? 5000 : size === "medium" ? 8000 : 11000 }],
-      sponsorships: [{ annual_sponsorships: size === "small" ? 6000 : size === "medium" ? 9000 : 13000 }],
+      leagues_tournaments: [{ events_per_year: size === "small" ? 6 : size === "small_plus" ? 7 : size === "medium" ? 8 : size === "large" ? 10 : size === "giant" ? 12 : 15, teams_per_event: 12, avg_team_fee: 500, net_margin_pct: 40 }],
+      parties_events: [{ events_per_month: size === "small" ? 4 : size === "small_plus" ? 5 : size === "medium" ? 6 : size === "large" ? 8 : size === "giant" ? 10 : 12, avg_net: 275 }],
+      merchandising: [{ annual_merch_net: size === "small" ? 5000 : size === "small_plus" ? 6500 : size === "medium" ? 8000 : size === "large" ? 11000 : size === "giant" ? 14000 : 18000 }],
+      sponsorships: [{ annual_sponsorships: size === "small" ? 6000 : size === "small_plus" ? 7500 : size === "medium" ? 9000 : size === "large" ? 13000 : size === "giant" ? 16000 : 20000 }],
       seasonality: GLOBAL.seasonality
     },
     per_unit_space_sf: perUnitSF,
-    equipment_lump_sum: size === "small" ? 35000 : size === "medium" ? 55000 : 80000
+    equipment_lump_sum: size === "small" ? 35000 : size === "small_plus" ? 45000 : size === "medium" ? 55000 : size === "large" ? 80000 : size === "giant" ? 110000 : 150000
   };
 }
 
 function presetsVolleyball(size: SizeKey): QuickPreset {
-  const courts = size === "small" ? 3 : size === "medium" ? 4 : 6;
+  const courts = size === "small" ? 3 : size === "small_plus" ? 4 : size === "medium" ? 6 : size === "large" ? 8 : size === "giant" ? 12 : 16;
   const perUnitSF = { volleyball_courts: 2592 };
   return {
     label: "Volleyball",
@@ -347,22 +353,22 @@ function presetsVolleyball(size: SizeKey): QuickPreset {
     opex: GLOBAL.opexDefaults(size),
     revenue: {
       memberships: membershipsBySize(size),
-      rentals: [{ unit: "volleyball_court", rate_per_hr: 45, util_hours_per_week: size === "small" ? 35 : size === "medium" ? 45 : 55 }],
-      lessons: [{ coach_count: size === "small" ? 2 : 3, avg_rate_per_hr: 70, hours_per_coach_week: 15, utilization_pct: 70 }],
+      rentals: [{ unit: "volleyball_court", rate_per_hr: 45, util_hours_per_week: size === "small" ? 35 : size === "small_plus" ? 40 : size === "medium" ? 45 : size === "large" ? 55 : size === "giant" ? 65 : 75 }],
+      lessons: [{ coach_count: size === "small" ? 2 : size === "small_plus" ? 3 : size === "medium" ? 3 : size === "large" ? 4 : size === "giant" ? 5 : 6, avg_rate_per_hr: 70, hours_per_coach_week: 15, utilization_pct: 70 }],
       camps_clinics: [{ sessions_per_year: 12, avg_price: 219, capacity: 30, fill_rate_pct: 70 }],
-      leagues_tournaments: [{ events_per_year: size === "small" ? 8 : 10, teams_per_event: 12, avg_team_fee: 450, net_margin_pct: 40 }],
-      parties_events: [{ events_per_month: size === "small" ? 3 : 5, avg_net: 225 }],
-      merchandising: [{ annual_merch_net: size === "small" ? 4000 : size === "medium" ? 7000 : 9000 }],
-      sponsorships: [{ annual_sponsorships: size === "small" ? 5000 : size === "medium" ? 8000 : 11000 }],
+      leagues_tournaments: [{ events_per_year: size === "small" ? 8 : size === "small_plus" ? 9 : size === "medium" ? 10 : size === "large" ? 12 : size === "giant" ? 15 : 18, teams_per_event: 12, avg_team_fee: 450, net_margin_pct: 40 }],
+      parties_events: [{ events_per_month: size === "small" ? 3 : size === "small_plus" ? 4 : size === "medium" ? 5 : size === "large" ? 6 : size === "giant" ? 8 : 10, avg_net: 225 }],
+      merchandising: [{ annual_merch_net: size === "small" ? 4000 : size === "small_plus" ? 5500 : size === "medium" ? 7000 : size === "large" ? 9000 : size === "giant" ? 12000 : 15000 }],
+      sponsorships: [{ annual_sponsorships: size === "small" ? 5000 : size === "small_plus" ? 6500 : size === "medium" ? 8000 : size === "large" ? 11000 : size === "giant" ? 14000 : 18000 }],
       seasonality: GLOBAL.seasonality
     },
     per_unit_space_sf: perUnitSF,
-    equipment_lump_sum: size === "small" ? 30000 : size === "medium" ? 45000 : 65000
+    equipment_lump_sum: size === "small" ? 30000 : size === "small_plus" ? 37000 : size === "medium" ? 45000 : size === "large" ? 65000 : size === "giant" ? 85000 : 110000
   };
 }
 
 function presetsPickleball(size: SizeKey): QuickPreset {
-  const courts = size === "small" ? 4 : size === "medium" ? 6 : 8;
+  const courts = size === "small" ? 4 : size === "small_plus" ? 6 : size === "medium" ? 8 : size === "large" ? 10 : size === "giant" ? 16 : 20;
   const perUnitSF = { pickleball_courts: 1800 };
   return {
     label: "Pickleball",
@@ -381,20 +387,20 @@ function presetsPickleball(size: SizeKey): QuickPreset {
     opex: GLOBAL.opexDefaults(size),
     revenue: {
       memberships: membershipsBySize(size),
-      rentals: [{ unit: "pickleball_court", rate_per_hr: 35, util_hours_per_week: size === "small" ? 40 : size === "medium" ? 48 : 56 }],
-      lessons: [{ coach_count: size === "small" ? 2 : 3, avg_rate_per_hr: 60, hours_per_coach_week: 12, utilization_pct: 65 }],
+      rentals: [{ unit: "pickleball_court", rate_per_hr: 35, util_hours_per_week: size === "small" ? 40 : size === "small_plus" ? 44 : size === "medium" ? 48 : size === "large" ? 56 : size === "giant" ? 64 : 72 }],
+      lessons: [{ coach_count: size === "small" ? 2 : size === "small_plus" ? 3 : size === "medium" ? 3 : size === "large" ? 4 : size === "giant" ? 5 : 6, avg_rate_per_hr: 60, hours_per_coach_week: 12, utilization_pct: 65 }],
       camps_clinics: [{ sessions_per_year: 8, avg_price: 179, capacity: 20, fill_rate_pct: 65 }],
-      leagues_tournaments: [{ events_per_year: size === "small" ? 6 : 8, teams_per_event: 12, avg_team_fee: 350, net_margin_pct: 40 }],
-      parties_events: [{ events_per_month: size === "small" ? 4 : 6, avg_net: 200 }],
+      leagues_tournaments: [{ events_per_year: size === "small" ? 6 : size === "small_plus" ? 7 : size === "medium" ? 8 : size === "large" ? 10 : size === "giant" ? 12 : 15, teams_per_event: 12, avg_team_fee: 350, net_margin_pct: 40 }],
+      parties_events: [{ events_per_month: size === "small" ? 4 : size === "small_plus" ? 5 : size === "medium" ? 6 : size === "large" ? 7 : size === "giant" ? 9 : 12, avg_net: 200 }],
       seasonality: GLOBAL.seasonality
     },
     per_unit_space_sf: perUnitSF,
-    equipment_lump_sum: size === "small" ? 20000 : size === "medium" ? 30000 : 40000
+    equipment_lump_sum: size === "small" ? 20000 : size === "small_plus" ? 25000 : size === "medium" ? 30000 : size === "large" ? 40000 : size === "giant" ? 55000 : 75000
   };
 }
 
 function presetsSoccer(size: SizeKey): QuickPreset {
-  const fields = size === "small" ? 1 : size === "medium" ? 2 : 3;
+  const fields = size === "small" ? 1 : size === "small_plus" ? 1 : size === "medium" ? 2 : size === "large" ? 3 : size === "giant" ? 4 : 6;
   const perUnitSF = { soccer_field_small: 14400 };
   return {
     label: "Indoor Soccer (small-sided)",
@@ -413,20 +419,20 @@ function presetsSoccer(size: SizeKey): QuickPreset {
     opex: GLOBAL.opexDefaults(size),
     revenue: {
       memberships: membershipsBySize(size),
-      rentals: [{ unit: "soccer_field_small", rate_per_hr: 140, util_hours_per_week: size === "small" ? 35 : size === "medium" ? 55 : 70 }],
-      lessons: [{ coach_count: size === "small" ? 2 : 3, avg_rate_per_hr: 80, hours_per_coach_week: 12, utilization_pct: 65 }],
+      rentals: [{ unit: "soccer_field_small", rate_per_hr: 140, util_hours_per_week: size === "small" ? 35 : size === "small_plus" ? 40 : size === "medium" ? 55 : size === "large" ? 70 : size === "giant" ? 85 : 100 }],
+      lessons: [{ coach_count: size === "small" ? 2 : size === "small_plus" ? 3 : size === "medium" ? 3 : size === "large" ? 4 : size === "giant" ? 5 : 6, avg_rate_per_hr: 80, hours_per_coach_week: 12, utilization_pct: 65 }],
       camps_clinics: [{ sessions_per_year: 8, avg_price: 249, capacity: 25, fill_rate_pct: 70 }],
-      leagues_tournaments: [{ events_per_year: size === "small" ? 6 : 8, teams_per_event: 16, avg_team_fee: 600, net_margin_pct: 40 }],
-      parties_events: [{ events_per_month: size === "small" ? 3 : 5, avg_net: 300 }],
+      leagues_tournaments: [{ events_per_year: size === "small" ? 6 : size === "small_plus" ? 7 : size === "medium" ? 8 : size === "large" ? 10 : size === "giant" ? 12 : 15, teams_per_event: 16, avg_team_fee: 600, net_margin_pct: 40 }],
+      parties_events: [{ events_per_month: size === "small" ? 3 : size === "small_plus" ? 4 : size === "medium" ? 5 : size === "large" ? 6 : size === "giant" ? 8 : 10, avg_net: 300 }],
       seasonality: GLOBAL.seasonality
     },
     per_unit_space_sf: perUnitSF,
-    equipment_lump_sum: size === "small" ? 35000 : size === "medium" ? 60000 : 85000
+    equipment_lump_sum: size === "small" ? 35000 : size === "small_plus" ? 45000 : size === "medium" ? 60000 : size === "large" ? 85000 : size === "giant" ? 115000 : 150000
   };
 }
 
 function presetsFootball(size: SizeKey): QuickPreset {
-  const fields = size === "small" ? 1 : size === "medium" ? 1 : 2;
+  const fields = size === "small" ? 1 : size === "small_plus" ? 1 : size === "medium" ? 1 : size === "large" ? 2 : size === "giant" ? 2 : 3;
   const perUnitSF = { football_field: 19200 };
   return {
     label: "Football",
@@ -445,15 +451,15 @@ function presetsFootball(size: SizeKey): QuickPreset {
     opex: GLOBAL.opexDefaults(size),
     revenue: {
       memberships: membershipsBySize(size),
-      rentals: [{ unit: "football_field", rate_per_hr: 180, util_hours_per_week: size === "small" ? 40 : size === "medium" ? 60 : 80 }],
-      lessons: [{ coach_count: size === "small" ? 3 : 4, avg_rate_per_hr: 90, hours_per_coach_week: 15, utilization_pct: 70 }],
+      rentals: [{ unit: "football_field", rate_per_hr: 180, util_hours_per_week: size === "small" ? 40 : size === "small_plus" ? 45 : size === "medium" ? 60 : size === "large" ? 80 : size === "giant" ? 95 : 110 }],
+      lessons: [{ coach_count: size === "small" ? 3 : size === "small_plus" ? 4 : size === "medium" ? 4 : size === "large" ? 5 : size === "giant" ? 6 : 8, avg_rate_per_hr: 90, hours_per_coach_week: 15, utilization_pct: 70 }],
       camps_clinics: [{ sessions_per_year: 6, avg_price: 299, capacity: 40, fill_rate_pct: 75 }],
-      leagues_tournaments: [{ events_per_year: size === "small" ? 4 : 6, teams_per_event: 20, avg_team_fee: 800, net_margin_pct: 45 }],
-      parties_events: [{ events_per_month: size === "small" ? 2 : 4, avg_net: 400 }],
+      leagues_tournaments: [{ events_per_year: size === "small" ? 4 : size === "small_plus" ? 5 : size === "medium" ? 6 : size === "large" ? 8 : size === "giant" ? 10 : 12, teams_per_event: 20, avg_team_fee: 800, net_margin_pct: 45 }],
+      parties_events: [{ events_per_month: size === "small" ? 2 : size === "small_plus" ? 3 : size === "medium" ? 4 : size === "large" ? 5 : size === "giant" ? 6 : 8, avg_net: 400 }],
       seasonality: GLOBAL.seasonality
     },
     per_unit_space_sf: perUnitSF,
-    equipment_lump_sum: size === "small" ? 50000 : size === "medium" ? 75000 : 120000
+    equipment_lump_sum: size === "small" ? 50000 : size === "small_plus" ? 60000 : size === "medium" ? 75000 : size === "large" ? 120000 : size === "giant" ? 160000 : 220000
   };
 }
 
@@ -467,9 +473,15 @@ function presetsMultiSport(size: SizeKey): QuickPreset {
   const counts =
     size === "small"
       ? { training_turf_zone: 1, pickleball_courts: 4 }
+      : size === "small_plus"
+      ? { training_turf_zone: 1, pickleball_courts: 6 }
       : size === "medium"
       ? { training_turf_zone: 1, volleyball_courts: 2, pickleball_courts: 4 }
-      : { training_turf_zone: 1, volleyball_courts: 2, pickleball_courts: 6 };
+      : size === "large"
+      ? { training_turf_zone: 1, volleyball_courts: 2, pickleball_courts: 6 }
+      : size === "giant"
+      ? { training_turf_zone: 2, volleyball_courts: 4, pickleball_courts: 8 }
+      : { training_turf_zone: 2, volleyball_courts: 6, pickleball_courts: 12 };
 
   return {
     label: "Multi‑sport",
@@ -501,7 +513,104 @@ function presetsMultiSport(size: SizeKey): QuickPreset {
       seasonality: GLOBAL.seasonality
     },
     per_unit_space_sf: perUnitSF,
-    equipment_lump_sum: size === "small" ? 40000 : size === "medium" ? 60000 : 80000
+    equipment_lump_sum: size === "small" ? 40000 : size === "small_plus" ? 50000 : size === "medium" ? 60000 : size === "large" ? 80000 : size === "giant" ? 110000 : 150000
+  };
+}
+
+// Additional sport presets for new sports
+function presetsLacrosse(size: SizeKey): QuickPreset {
+  const courts = size === "small" ? 1 : size === "small_plus" ? 1 : size === "medium" ? 2 : size === "large" ? 2 : size === "giant" ? 3 : 4;
+  const perUnitSF = { lacrosse_box: 15000 };
+  return {
+    label: "Lacrosse",
+    size,
+    region_multiplier: GLOBAL.region_multiplier,
+    facility: {
+      build_mode: "lease",
+      clear_height_ft: 24,
+      admin_pct_addon: GLOBAL.admin_pct_addon,
+      circulation_pct_addon: GLOBAL.circulation_pct_addon,
+      court_or_cage_counts: { lacrosse_box: courts },
+      amenities: { team_benches: true, penalty_box: true, scoreboard: true }
+    },
+    capex: GLOBAL.capexDefaults(size),
+    lease: { ...GLOBAL.leaseDefaults },
+    opex: GLOBAL.opexDefaults(size),
+    revenue: {
+      memberships: membershipsBySize(size),
+      rentals: [{ unit: "lacrosse_box", rate_per_hr: 150, util_hours_per_week: size === "small" ? 30 : size === "small_plus" ? 35 : size === "medium" ? 45 : 55 }],
+      lessons: [{ coach_count: size === "small" ? 2 : 3, avg_rate_per_hr: 85, hours_per_coach_week: 12, utilization_pct: 70 }],
+      camps_clinics: [{ sessions_per_year: 8, avg_price: 259, capacity: 30, fill_rate_pct: 70 }],
+      leagues_tournaments: [{ events_per_year: size === "small" ? 4 : 6, teams_per_event: 12, avg_team_fee: 700, net_margin_pct: 40 }],
+      parties_events: [{ events_per_month: size === "small" ? 2 : 4, avg_net: 350 }],
+      seasonality: GLOBAL.seasonality
+    },
+    per_unit_space_sf: perUnitSF,
+    equipment_lump_sum: size === "small" ? 45000 : size === "small_plus" ? 55000 : size === "medium" ? 70000 : 90000
+  };
+}
+
+function presetsTennis(size: SizeKey): QuickPreset {
+  const courts = size === "small" ? 2 : size === "small_plus" ? 3 : size === "medium" ? 4 : size === "large" ? 6 : size === "giant" ? 8 : 10;
+  const perUnitSF = { tennis_courts: 2800 };
+  return {
+    label: "Tennis",
+    size,
+    region_multiplier: GLOBAL.region_multiplier,
+    facility: {
+      build_mode: "lease",
+      clear_height_ft: 20,
+      admin_pct_addon: GLOBAL.admin_pct_addon,
+      circulation_pct_addon: GLOBAL.circulation_pct_addon,
+      court_or_cage_counts: { tennis_courts: courts },
+      amenities: { viewing_area: true, ball_machine_storage: true }
+    },
+    capex: GLOBAL.capexDefaults(size),
+    lease: { ...GLOBAL.leaseDefaults },
+    opex: GLOBAL.opexDefaults(size),
+    revenue: {
+      memberships: membershipsBySize(size),
+      rentals: [{ unit: "tennis_court", rate_per_hr: 75, util_hours_per_week: size === "small" ? 40 : size === "small_plus" ? 45 : size === "medium" ? 50 : 60 }],
+      lessons: [{ coach_count: size === "small" ? 2 : 3, avg_rate_per_hr: 90, hours_per_coach_week: 15, utilization_pct: 75 }],
+      camps_clinics: [{ sessions_per_year: 10, avg_price: 239, capacity: 20, fill_rate_pct: 70 }],
+      leagues_tournaments: [{ events_per_year: size === "small" ? 6 : 8, teams_per_event: 16, avg_team_fee: 450, net_margin_pct: 40 }],
+      parties_events: [{ events_per_month: size === "small" ? 3 : 5, avg_net: 275 }],
+      seasonality: GLOBAL.seasonality
+    },
+    per_unit_space_sf: perUnitSF,
+    equipment_lump_sum: size === "small" ? 25000 : size === "small_plus" ? 35000 : size === "medium" ? 45000 : 65000
+  };
+}
+
+function presetsFitness(size: SizeKey): QuickPreset {
+  const zones = size === "small" ? 1 : size === "small_plus" ? 1 : size === "medium" ? 2 : size === "large" ? 2 : size === "giant" ? 3 : 4;
+  const perUnitSF = { fitness_zone: 3000 };
+  return {
+    label: "Fitness/Training",
+    size,
+    region_multiplier: GLOBAL.region_multiplier,
+    facility: {
+      build_mode: "lease",
+      clear_height_ft: 16,
+      admin_pct_addon: GLOBAL.admin_pct_addon,
+      circulation_pct_addon: GLOBAL.circulation_pct_addon,
+      court_or_cage_counts: { fitness_zone: zones },
+      amenities: { locker_rooms: true, water_stations: true, equipment_storage: true }
+    },
+    capex: GLOBAL.capexDefaults(size),
+    lease: { ...GLOBAL.leaseDefaults },
+    opex: GLOBAL.opexDefaults(size),
+    revenue: {
+      memberships: membershipsBySize(size),
+      rentals: [{ unit: "fitness_zone", rate_per_hr: 80, util_hours_per_week: size === "small" ? 35 : size === "small_plus" ? 40 : size === "medium" ? 50 : 60 }],
+      lessons: [{ coach_count: size === "small" ? 3 : 4, avg_rate_per_hr: 60, hours_per_coach_week: 20, utilization_pct: 80 }],
+      camps_clinics: [{ sessions_per_year: 15, avg_price: 159, capacity: 15, fill_rate_pct: 75 }],
+      leagues_tournaments: [{ events_per_year: 4, teams_per_event: 20, avg_team_fee: 200, net_margin_pct: 30 }],
+      parties_events: [{ events_per_month: size === "small" ? 4 : 6, avg_net: 150 }],
+      seasonality: GLOBAL.seasonality
+    },
+    per_unit_space_sf: perUnitSF,
+    equipment_lump_sum: size === "small" ? 30000 : size === "small_plus" ? 45000 : size === "medium" ? 60000 : 85000
   };
 }
 
@@ -510,9 +619,12 @@ const QUICK_PRESETS: Record<SportKey, (size: SizeKey) => QuickPreset> = {
   basketball: presetsBasketball,
   volleyball: presetsVolleyball,
   pickleball: presetsPickleball,
-  soccer_indoor_small_sided: presetsSoccer,
+  soccer: presetsSoccer,
   football: presetsFootball,
-  multi_sport: presetsMultiSport
+  lacrosse: presetsLacrosse,
+  tennis: presetsTennis,
+  multi_sport: presetsMultiSport,
+  fitness: presetsFitness
 };
 
 /** Save draft to localStorage (replace with your API if available) */
@@ -523,9 +635,12 @@ function getSportsForPreset(sportKey: SportKey): string[] {
     "basketball": ["basketball"],
     "volleyball": ["volleyball"],
     "pickleball": ["pickleball"],
-    "soccer_indoor_small_sided": ["soccer"],
+    "soccer": ["soccer"],
     "football": ["football"],
-    "multi_sport": ["basketball", "volleyball", "soccer"]
+    "lacrosse": ["lacrosse"],
+    "tennis": ["tennis"],
+    "multi_sport": ["basketball", "volleyball", "soccer"],
+    "fitness": ["fitness"]
   };
   return sportMapping[sportKey] || [];
 }
@@ -605,9 +720,12 @@ export default function QuickEstimatesButton() {
     { key: "basketball", label: "Basketball" },
     { key: "volleyball", label: "Volleyball" },
     { key: "pickleball", label: "Pickleball" },
-    { key: "soccer_indoor_small_sided", label: "Indoor Soccer (small-sided)" },
+    { key: "soccer", label: "Indoor Soccer" },
     { key: "football", label: "Football" },
-    { key: "multi_sport", label: "Multi‑sport" }
+    { key: "lacrosse", label: "Lacrosse" },
+    { key: "tennis", label: "Tennis" },
+    { key: "multi_sport", label: "Multi‑sport" },
+    { key: "fitness", label: "Fitness/Training" }
   ];
 
   return (
@@ -650,14 +768,14 @@ export default function QuickEstimatesButton() {
 
                 <h3>2) Choose a size</h3>
                 <div className="qs-pills">
-                  {(["small","medium","large"] as SizeKey[]).map(s => (
+                  {(["small","small_plus","medium","large","giant","arena"] as SizeKey[]).map(s => (
                     <button
                       key={s}
                       className={`qs-pill ${size === s ? "active" : ""}`}
                       onClick={() => setSize(s)}
                       aria-pressed={size === s}
                     >
-                      {s[0].toUpperCase() + s.slice(1)}
+                      {s === "small_plus" ? "Small+" : s[0].toUpperCase() + s.slice(1)}
                     </button>
                   ))}
                 </div>
