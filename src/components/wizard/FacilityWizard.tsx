@@ -44,17 +44,20 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
     }
   }, [responses.primary_sport]);
 
-  // Initialize product quantities when products are selected
+  // Initialize product quantities when products are selected or facility size changes
   useEffect(() => {
     const selectedProducts = responses.feature_products || [];
     const facilitySize = responses.facility_size || 'medium';
     const quantities = responses.product_quantities || {};
     
-    if (selectedProducts.length > 0 && Object.keys(quantities).length === 0) {
-      const newQuantities = getDefaultQuantities(selectedProducts, facilitySize);
-      setResponses(prev => ({ ...prev, product_quantities: newQuantities }));
+    if (selectedProducts.length > 0) {
+      // Recalculate quantities if facility size changed or if no quantities exist
+      if (Object.keys(quantities).length === 0 || responses.facility_size) {
+        const newQuantities = getDefaultQuantities(selectedProducts, facilitySize);
+        setResponses(prev => ({ ...prev, product_quantities: newQuantities }));
+      }
     }
-  }, [responses.feature_products]);
+  }, [responses.feature_products, responses.facility_size]);
 
   const getDefaultProductsBySpots = (sports: string[]): string[] => {
     const defaults: Record<string, string[]> = {
@@ -113,9 +116,10 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
       
       const dependentValue = responses[question.dependsOn.questionId];
       
-      // Special handling for sport ratios - show if multiple sports selected
+      // Special handling for sport ratios - show if facility size is selected and multiple sports selected
       if (question.id === 'sport_ratios') {
-        return Array.isArray(dependentValue) && dependentValue.length > 1;
+        const primarySports = responses.primary_sport;
+        return dependentValue && Array.isArray(primarySports) && primarySports.length > 1;
       }
       
       // Special handling for feature products - show if sport ratios exist

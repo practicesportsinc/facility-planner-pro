@@ -21,14 +21,27 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     ]
   },
   {
+    id: "facility_size",
+    type: "single",
+    title: "What size facility are you considering?",
+    description: "This helps determine court/field capacity and equipment quantities",
+    required: true,
+    options: [
+      { id: "small", label: "Small (8,000-15,000 sq ft)", description: "2-4 courts/cages, basic amenities" },
+      { id: "medium", label: "Medium (15,000-30,000 sq ft)", description: "4-8 courts/fields, full amenities" },
+      { id: "large", label: "Large (30,000-50,000 sq ft)", description: "8+ courts/fields, premium features" },
+      { id: "xl", label: "Extra Large (50,000+ sq ft)", description: "Multiple sports, tournament ready" }
+    ]
+  },
+  {
     id: "sport_ratios",
     type: "range",
     title: "What percentage breakdown do you want for each sport?",
     description: "Use the sliders to allocate percentages for each selected sport. Total must equal 100%.",
     required: true,
     dependsOn: {
-      questionId: "primary_sport",
-      values: ["baseball_softball", "basketball", "volleyball", "pickleball", "soccer", "football", "lacrosse", "tennis", "multi_sport", "fitness"]
+      questionId: "facility_size",
+      values: ["small", "medium", "large", "xl"]
     },
     min: 0,
     max: 100,
@@ -80,19 +93,6 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
       { id: "seniors", label: "Seniors 55+", description: "Lower impact activities" },
       { id: "families", label: "Families", description: "Multi-generational programming" },
       { id: "corporate", label: "Corporate Groups", description: "Team building, events" }
-    ]
-  },
-  {
-    id: "facility_size",
-    type: "single",
-    title: "What size facility are you considering?",
-    description: "This helps determine court/field capacity and amenities",
-    required: true,
-    options: [
-      { id: "small", label: "Small (8,000-15,000 sq ft)", description: "2-4 courts/cages, basic amenities" },
-      { id: "medium", label: "Medium (15,000-30,000 sq ft)", description: "4-8 courts/fields, full amenities" },
-      { id: "large", label: "Large (30,000-50,000 sq ft)", description: "8+ courts/fields, premium features" },
-      { id: "xl", label: "Extra Large (50,000+ sq ft)", description: "Multiple sports, tournament ready" }
     ]
   },
   {
