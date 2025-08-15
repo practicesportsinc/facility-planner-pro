@@ -143,9 +143,8 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
 
   // Initialize form data with quantities and selection
   const [formData, setFormData] = useState(() => {
-    const initialData = data.selectedProducts && data.quantities ? 
-      { selectedProducts: data.selectedProducts || [], quantities: data.quantities || {} } :
-      initializeData();
+    // Always use initializeData for fresh initialization with all items checked
+    const initialData = initializeData();
     
     return {
       selectedProducts: initialData.selectedProducts,
@@ -156,12 +155,10 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
 
   // Update data when dependencies change
   useEffect(() => {
-    if (!data.quantities || !data.selectedProducts) {
-      const newData = initializeData();
-      const updatedData = { ...formData, ...newData };
-      setFormData(updatedData);
-      onUpdate(updatedData);
-    }
+    const newData = initializeData();
+    const updatedData = { ...formData, ...newData };
+    setFormData(updatedData);
+    onUpdate(updatedData);
   }, [selectedSports, facilityPlan]);
 
   const handleProductToggle = (productKey: string) => {
