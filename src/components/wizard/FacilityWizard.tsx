@@ -26,7 +26,8 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
     const selectedSports: string[] = responses.primary_sport || [];
     const sportRatios: Record<string, number> = responses.sport_ratios || {};
     
-    if (selectedSports.length > 1 && Object.keys(sportRatios).length === 0) {
+    if (selectedSports.length > 1) {
+      // Always reset to equal distribution when sports change
       const baseRatio = Math.floor(100 / selectedSports.length);
       const remainder = 100 % selectedSports.length;
       const newRatios: Record<string, number> = {};
