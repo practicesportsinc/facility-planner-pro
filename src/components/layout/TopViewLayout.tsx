@@ -21,10 +21,10 @@ export type UnitKind =
   | "football_field";
 
 const UNIT_DIMS_FT: Record<UnitKind, { w: number; h: number; label: string }> = {
-  volleyball_court:       { w: 72,  h: 36, label: "Volleyball" },
+  volleyball_court:       { w: 60,  h: 30, label: "Volleyball" },
   pickleball_court:       { w: 60,  h: 30, label: "Pickleball" },
-  basketball_court_full:  { w: 112, h: 56, label: "Basketball (Full)" },
-  basketball_court_half:  { w: 56,  h: 56, label: "Basketball (Half)" },
+  basketball_court_full:  { w: 84,  h: 50, label: "Basketball (Full)" },
+  basketball_court_half:  { w: 42,  h: 50, label: "Basketball (Half)" },
   baseball_tunnel:        { w: 70,  h: 15, label: "Batting Tunnel" },
   training_turf_zone:     { w: 120, h: 60, label: "Training Turf" },
   soccer_field_small:     { w: 180, h: 80, label: "Small Soccer" },

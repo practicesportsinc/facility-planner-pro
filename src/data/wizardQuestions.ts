@@ -27,11 +27,12 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     description: "This helps determine court/field capacity and equipment quantities",
     required: true,
     options: [
-      { id: "micro", label: "Micro (2,000-8,000 sq ft)", description: "1-2 courts/cages, minimal amenities" },
-      { id: "small", label: "Small (8,000-15,000 sq ft)", description: "2-4 courts/cages, basic amenities" },
-      { id: "medium", label: "Medium (15,000-30,000 sq ft)", description: "4-8 courts/fields, full amenities" },
-      { id: "large", label: "Large (30,000-50,000 sq ft)", description: "8+ courts/fields, premium features" },
-      { id: "xl", label: "Extra Large (50,000+ sq ft)", description: "Multiple sports, tournament ready" },
+      { id: "small", label: "Small (2,000–5,000 sq ft)", description: "1–2 courts/cages, minimal amenities" },
+      { id: "small_plus", label: "Small+ (5,000–8,000 sq ft)", description: "2–4 courts/cages, basic amenities" },
+      { id: "medium", label: "Medium (8,000–15,000 sq ft)", description: "4–6 courts/cages, full amenities" },
+      { id: "large", label: "Large (15,000–30,000 sq ft)", description: "6–10 courts/fields, premium features" },
+      { id: "giant", label: "Giant (30,000–50,000 sq ft)", description: "multi-court/field complex" },
+      { id: "arena", label: "Arena (50,000+ sq ft)", description: "tournament-ready, multi-sport" },
       { id: "custom", label: "Custom Size", description: "Enter your exact square footage" }
     ],
     textField: {
@@ -49,7 +50,7 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     required: true,
     dependsOn: {
       questionId: "facility_size",
-      values: ["micro", "small", "medium", "large", "xl", "custom"]
+      values: ["small", "small_plus", "medium", "large", "giant", "arena", "custom"]
     },
     min: 0,
     max: 100,
@@ -285,14 +286,14 @@ export const generateRecommendations = (responses: any) => {
 
   // Size recommendations based on sport and market
   const sizeMap: Record<string, Record<string, number>> = {
-    baseball_softball: { micro: 5000, small: 12000, medium: 18000, large: 28000, xl: 40000 },
-    basketball: { micro: 6000, small: 15000, medium: 24000, large: 36000, xl: 50000 },
-    volleyball: { micro: 5000, small: 12000, medium: 20000, large: 30000, xl: 45000 },
-    pickleball: { micro: 4000, small: 10000, medium: 16000, large: 24000, xl: 35000 },
-    soccer: { micro: 8000, small: 20000, medium: 36000, large: 54000, xl: 75000 },
-    football: { micro: 7000, small: 18000, medium: 32000, large: 48000, xl: 65000 },
-    lacrosse: { micro: 6000, small: 16000, medium: 28000, large: 42000, xl: 58000 },
-    multi_sport: { micro: 5000, small: 15000, medium: 25000, large: 40000, xl: 60000 }
+    baseball_softball: { small: 2500, small_plus: 6000, medium: 10000, large: 18000, giant: 30000, arena: 50000 },
+    basketball: { small: 2500, small_plus: 6000, medium: 10000, large: 18000, giant: 30000, arena: 50000 },
+    volleyball: { small: 2500, small_plus: 6000, medium: 10000, large: 18000, giant: 30000, arena: 50000 },
+    pickleball: { small: 2500, small_plus: 6000, medium: 10000, large: 18000, giant: 30000, arena: 50000 },
+    soccer: { small: 2500, small_plus: 6000, medium: 10000, large: 18000, giant: 30000, arena: 50000 },
+    football: { small: 2500, small_plus: 6000, medium: 10000, large: 18000, giant: 30000, arena: 50000 },
+    lacrosse: { small: 2500, small_plus: 6000, medium: 10000, large: 18000, giant: 30000, arena: 50000 },
+    multi_sport: { small: 2500, small_plus: 6000, medium: 10000, large: 18000, giant: 30000, arena: 50000 }
   };
 
   const suggestedSize = primarySports.reduce((total, sport) => total + (sizeMap[sport]?.[facilitySize] || 0), 0) || 20000;
