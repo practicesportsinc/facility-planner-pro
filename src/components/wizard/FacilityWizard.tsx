@@ -57,7 +57,7 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
         setResponses(prev => ({ ...prev, product_quantities: newQuantities }));
       }
     }
-  }, [responses.feature_products, responses.facility_size]);
+  }, [responses.feature_products, responses.facility_size, responses.custom_facility_size]);
 
   const getDefaultProductsBySpots = (sports: string[]): string[] => {
     const defaults: Record<string, string[]> = {
@@ -105,8 +105,14 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
   };
 
   const getSqftBySize = (size: string): number => {
+    // If custom size, get the exact square footage from custom input
+    if (size === 'custom') {
+      const customSqft = parseInt(responses.custom_facility_size || '0');
+      return customSqft > 0 ? customSqft : 22000; // Default to medium if invalid
+    }
+    
     const sizes = { small: 12000, medium: 22000, large: 40000, xl: 60000 };
-    return sizes[size] || 22000;
+    return sizes[size as keyof typeof sizes] || 22000;
   };
 
   // Filter questions based on dependencies

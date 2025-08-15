@@ -30,8 +30,15 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
       { id: "small", label: "Small (8,000-15,000 sq ft)", description: "2-4 courts/cages, basic amenities" },
       { id: "medium", label: "Medium (15,000-30,000 sq ft)", description: "4-8 courts/fields, full amenities" },
       { id: "large", label: "Large (30,000-50,000 sq ft)", description: "8+ courts/fields, premium features" },
-      { id: "xl", label: "Extra Large (50,000+ sq ft)", description: "Multiple sports, tournament ready" }
-    ]
+      { id: "xl", label: "Extra Large (50,000+ sq ft)", description: "Multiple sports, tournament ready" },
+      { id: "custom", label: "Custom Size", description: "Enter your exact square footage" }
+    ],
+    textField: {
+      id: "custom_facility_size",
+      label: "Enter square footage",
+      placeholder: "e.g. 18500",
+      dependsOnValue: "custom"
+    }
   },
   {
     id: "sport_ratios",
@@ -41,7 +48,7 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     required: true,
     dependsOn: {
       questionId: "facility_size",
-      values: ["small", "medium", "large", "xl"]
+      values: ["small", "medium", "large", "xl", "custom"]
     },
     min: 0,
     max: 100,
