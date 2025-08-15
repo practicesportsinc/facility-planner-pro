@@ -60,16 +60,18 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
   }, [responses.feature_products, responses.facility_size, responses.custom_facility_size]);
 
   const getDefaultProductsBySpots = (sports: string[]): string[] => {
+    // Sport to products mapping - updated to match the complete catalog
     const defaults: Record<string, string[]> = {
-      baseball_softball: ['batting_cages', 'divider_curtains', 'turf_area_sf'],
-      volleyball: ['volleyball_systems', 'divider_curtains', 'rubber_floor_area_sf'],
-      basketball: ['basketball_hoops', 'hardwood_floor_area_sf'],
-      pickleball: ['divider_curtains', 'rubber_floor_area_sf'],
-      soccer: ['turf_area_sf', 'divider_curtains'],
+      baseball_softball: ["batting_cages","pitching_machines","l_screens","ball_carts","divider_curtains","turf_area_sf"],
+      basketball: ["basketball_hoops","scoreboards","hardwood_floor_area_sf","divider_curtains"],
+      volleyball: ["volleyball_systems","ref_stands","scoreboards","rubber_floor_area_sf","divider_curtains"],
+      pickleball: ["pickleball_nets","paddle_starter_sets","rubber_floor_area_sf","divider_curtains"],
+      soccer_indoor_small_sided: ["soccer_goals_pair","turf_area_sf","divider_curtains","training_turf_zone"],
+      soccer: ["soccer_goals_pair","turf_area_sf","divider_curtains","training_turf_zone"], // alias
+      multi_sport: ["divider_curtains","turf_area_sf","rubber_floor_area_sf","scoreboards"],
       football: ['turf_area_sf', 'divider_curtains'],
       lacrosse: ['turf_area_sf', 'divider_curtains'],
       tennis: ['divider_curtains', 'hardwood_floor_area_sf'],
-      multi_sport: ['divider_curtains', 'turf_area_sf', 'rubber_floor_area_sf'],
       fitness: ['rubber_floor_area_sf']
     };
     
@@ -88,9 +90,18 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
     
     const defaults: Record<string, number> = {
       batting_cages: Math.round(6 * multiplier),
+      pitching_machines: Math.round(3 * multiplier),
+      l_screens: Math.round(6 * multiplier),
+      ball_carts: Math.round(3 * multiplier),
       volleyball_systems: Math.round(4 * multiplier),
+      ref_stands: Math.round(4 * multiplier),
       divider_curtains: Math.round(4 * multiplier),
       basketball_hoops: Math.round(4 * multiplier),
+      scoreboards: Math.round(2 * multiplier),
+      pickleball_nets: Math.round(6 * multiplier),
+      paddle_starter_sets: Math.round(12 * multiplier),
+      soccer_goals_pair: Math.round(2 * multiplier),
+      training_turf_zone: Math.round(1 * multiplier),
       turf_area_sf: Math.round((totalSqft * 0.35) / 100) * 100,
       rubber_floor_area_sf: Math.round((totalSqft * 0.25) / 100) * 100,
       hardwood_floor_area_sf: Math.round((totalSqft * 0.30) / 100) * 100
@@ -294,13 +305,22 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
         if (currentQuestion.id === 'feature_products') {
           const selectedProducts = Array.isArray(currentValue) ? currentValue : [];
           const productLabels: Record<string, string> = {
-            batting_cages: "Batting Cages",
-            volleyball_systems: "Volleyball Nets/Systems", 
+            batting_cages: "Batting Cages (70' x 15')",
+            pitching_machines: "Pitching Machines",
+            l_screens: "L-Screens / Protective Screens",
+            ball_carts: "Ball Carts / Buckets",
+            volleyball_systems: "Volleyball Systems (standards+net)",
+            ref_stands: "Referee Stands",
             divider_curtains: "Divider Curtains/Nets",
             basketball_hoops: "Basketball Hoops/Goals",
-            turf_area_sf: "Indoor Turf",
-            rubber_floor_area_sf: "Rubber Flooring",
-            hardwood_floor_area_sf: "Hardwood Flooring"
+            scoreboards: "Scoreboards/Shot Clocks (set)",
+            pickleball_nets: "Pickleball Nets (portable/permanent)",
+            paddle_starter_sets: "Pickleball Paddle Starter Sets (4 paddles + balls)",
+            soccer_goals_pair: "Indoor Soccer Goals (pair)",
+            training_turf_zone: "Training Turf Zones",
+            turf_area_sf: "Indoor Turf (area)",
+            rubber_floor_area_sf: "Rubber Flooring (area)",
+            hardwood_floor_area_sf: "Hardwood Flooring (area)"
           };
 
           return (
@@ -457,22 +477,40 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
 
           const productSpecs: Record<string, { min: number; max: number; step: number; default: number; helper: string }> = {
             batting_cages: { min: 0, max: 16, step: 1, default: 6, helper: "Typical for this size: 6" },
-            volleyball_systems: { min: 0, max: 12, step: 1, default: 4, helper: "Typical for this size: 4" },
-            divider_curtains: { min: 0, max: 12, step: 1, default: 4, helper: "Typical for this size: 4" },
-            basketball_hoops: { min: 0, max: 12, step: 1, default: 4, helper: "Typical for this size: 4" },
+            pitching_machines: { min: 0, max: 12, step: 1, default: 3, helper: "Typical: 1 per 2 cages" },
+            l_screens: { min: 0, max: 24, step: 1, default: 6, helper: "Typical: 1 per cage" },
+            ball_carts: { min: 0, max: 24, step: 1, default: 3, helper: "Typical: 1 per 2 cages" },
+            volleyball_systems: { min: 0, max: 12, step: 1, default: 4, helper: "Typical: 1 per court" },
+            ref_stands: { min: 0, max: 12, step: 1, default: 4, helper: "Typical: 1 per court" },
+            divider_curtains: { min: 0, max: 12, step: 1, default: 4, helper: "Use to separate courts/zones" },
+            basketball_hoops: { min: 0, max: 12, step: 1, default: 4, helper: "Full court = 2, half = 1" },
+            scoreboards: { min: 0, max: 8, step: 1, default: 2, helper: "1-2 per facility typical" },
+            pickleball_nets: { min: 0, max: 16, step: 1, default: 6, helper: "Typical: 1 per court" },
+            paddle_starter_sets: { min: 0, max: 24, step: 1, default: 12, helper: "Optional starter sets" },
+            soccer_goals_pair: { min: 0, max: 6, step: 1, default: 2, helper: "1 pair per field" },
+            training_turf_zone: { min: 0, max: 4, step: 1, default: 1, helper: "Designated training areas" },
             turf_area_sf: { min: 0, max: totalSqft, step: 100, default: Math.round((totalSqft * 0.35) / 100) * 100, helper: "Cap at building gross SF. Defaults scale with size." },
             rubber_floor_area_sf: { min: 0, max: totalSqft, step: 100, default: Math.round((totalSqft * 0.25) / 100) * 100, helper: "Cap at building gross SF. Defaults scale with size." },
             hardwood_floor_area_sf: { min: 0, max: totalSqft, step: 100, default: Math.round((totalSqft * 0.30) / 100) * 100, helper: "Cap at building gross SF. Defaults scale with size." }
           };
 
           const productLabels: Record<string, string> = {
-            batting_cages: "Batting Cages",
-            volleyball_systems: "Volleyball Nets/Systems",
-            divider_curtains: "Divider Curtains/Nets", 
+            batting_cages: "Batting Cages (70' x 15')",
+            pitching_machines: "Pitching Machines",
+            l_screens: "L-Screens / Protective Screens",
+            ball_carts: "Ball Carts / Buckets",
+            volleyball_systems: "Volleyball Systems (standards+net)",
+            ref_stands: "Referee Stands",
+            divider_curtains: "Divider Curtains/Nets",
             basketball_hoops: "Basketball Hoops/Goals",
-            turf_area_sf: "Indoor Turf",
-            rubber_floor_area_sf: "Rubber Flooring",
-            hardwood_floor_area_sf: "Hardwood Flooring"
+            scoreboards: "Scoreboards/Shot Clocks (set)",
+            pickleball_nets: "Pickleball Nets (portable/permanent)",
+            paddle_starter_sets: "Pickleball Paddle Starter Sets (4 paddles + balls)",
+            soccer_goals_pair: "Indoor Soccer Goals (pair)",
+            training_turf_zone: "Training Turf Zones",
+            turf_area_sf: "Indoor Turf (area)",
+            rubber_floor_area_sf: "Rubber Flooring (area)",
+            hardwood_floor_area_sf: "Hardwood Flooring (area)"
           };
 
           const updateQuantity = (productId: string, newValue: number) => {
