@@ -131,10 +131,8 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
     catalog.forEach(item => {
       const defaultQty = calculateDefaultQuantity(item);
       quantities[item.key] = defaultQty;
-      // Auto-select products with non-zero default quantities
-      if (defaultQty > 0) {
-        selectedProducts.add(item.key);
-      }
+      // Auto-select all products by default
+      selectedProducts.add(item.key);
     });
     
     return {
