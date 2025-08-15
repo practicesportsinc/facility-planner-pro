@@ -56,34 +56,14 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     unit: "%"
   },
   {
-    id: "feature_products",
-    type: "multiple",
-    title: "Select Featured Products",
-    description: "Choose the products you want to include in your facility. We've pre-selected recommended items based on your sports.",
+    id: "product_quantities",
+    type: "range",
+    title: "Select Products & Set Quantities",
+    description: "Choose the products you want and set quantities. We've pre-selected recommended items based on your sports.",
     required: true,
     dependsOn: {
       questionId: "sport_ratios",
       values: ["any"] // Show if sport ratios exist
-    },
-    options: [
-      { id: "batting_cages", label: "Batting Cages", description: "Each = one 70′ × 15′ tunnel (hardware + net)", unit: "ea" },
-      { id: "volleyball_systems", label: "Volleyball Nets/Systems", description: "Professional volleyball net systems", unit: "ea" },
-      { id: "divider_curtains", label: "Divider Curtains/Nets", description: "Motorized or manual court/turf dividers", unit: "ea" },
-      { id: "basketball_hoops", label: "Basketball Hoops/Goals", description: "Professional basketball goal systems", unit: "ea" },
-      { id: "turf_area_sf", label: "Indoor Turf", description: "Approximate coverage area; refine later per court count", unit: "sf" },
-      { id: "rubber_floor_area_sf", label: "Rubber Flooring", description: "Safety and fitness rubber flooring", unit: "sf" },
-      { id: "hardwood_floor_area_sf", label: "Hardwood Flooring", description: "Professional sport court flooring", unit: "sf" }
-    ]
-  },
-  {
-    id: "product_quantities",
-    type: "range",
-    title: "Product Quantities",
-    description: "Set the quantities for each selected product. Use the sliders or type exact numbers.",
-    required: true,
-    dependsOn: {
-      questionId: "feature_products",
-      values: ["any"] // Show if products are selected
     }
   },
   {

@@ -35,29 +35,40 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
       setResponses(prev => ({ ...prev, sport_ratios: newRatios }));
     }
     
-    // Initialize feature products based on selected sports
-    if (selectedSports.length > 0 && !responses.feature_products) {
-      const defaults = getDefaultProductsBySpots(selectedSports);
-      if (defaults.length > 0) {
-        setResponses(prev => ({ ...prev, feature_products: defaults }));
-      }
+    // Initialize product selection and quantities based on selected sports
+    if (selectedSports.length > 0 && !responses.product_quantities) {
+      const defaultProducts = getDefaultProductsBySpots(selectedSports);
+      const defaultQuantities = getDefaultQuantities(defaultProducts, responses.facility_size || 'medium');
+      
+      // Create combined data with selected products and their quantities
+      const productData = {
+        selectedProducts: defaultProducts,
+        quantities: defaultQuantities
+      };
+      
+      setResponses(prev => ({ ...prev, product_quantities: productData }));
     }
   }, [responses.primary_sport]);
 
-  // Initialize product quantities when products are selected or facility size changes
+  // Update product quantities when facility size changes
   useEffect(() => {
-    const selectedProducts = responses.feature_products || [];
+    const productData = responses.product_quantities;
     const facilitySize = responses.facility_size || 'medium';
-    const quantities = responses.product_quantities || {};
     
-    if (selectedProducts.length > 0) {
-      // Recalculate quantities if facility size changed or if no quantities exist
-      if (Object.keys(quantities).length === 0 || responses.facility_size) {
+    if (productData && typeof productData === 'object' && 'selectedProducts' in productData) {
+      const selectedProducts = productData.selectedProducts || [];
+      
+      // Recalculate quantities if facility size changed
+      if (selectedProducts.length > 0 && responses.facility_size) {
         const newQuantities = getDefaultQuantities(selectedProducts, facilitySize);
-        setResponses(prev => ({ ...prev, product_quantities: newQuantities }));
+        const updatedProductData = {
+          selectedProducts,
+          quantities: newQuantities
+        };
+        setResponses(prev => ({ ...prev, product_quantities: updatedProductData }));
       }
     }
-  }, [responses.feature_products, responses.facility_size, responses.custom_facility_size]);
+  }, [responses.facility_size, responses.custom_facility_size]);
 
   const getDefaultProductsBySpots = (sports: string[]): string[] => {
     // Sport to products mapping - updated to match the complete catalog
@@ -139,14 +150,9 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
         return dependentValue && Array.isArray(primarySports) && primarySports.length > 1;
       }
       
-      // Special handling for feature products - show if sport ratios exist
-      if (question.id === 'feature_products') {
-        return dependentValue && typeof dependentValue === 'object' && Object.keys(dependentValue).length > 0;
-      }
-      
-      // Special handling for product quantities - show if products selected
+      // Special handling for product quantities - show if sport ratios exist
       if (question.id === 'product_quantities') {
-        return Array.isArray(dependentValue) && dependentValue.length > 0;
+        return dependentValue && typeof dependentValue === 'object' && Object.keys(dependentValue).length > 0;
       }
       
       // Check if dependent value matches any of the required values
@@ -163,7 +169,7 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
   const isLastStep = currentStep === visibleQuestions.length - 1;
   const progress = ((currentStep + 1) / visibleQuestions.length) * 100;
 
-  const handleResponse = (value: string | string[] | number | Record<string, number>) => {
+  const handleResponse = (value: string | string[] | number | Record<string, number> | { selectedProducts: string[]; quantities: Record<string, number> }) => {
     const newResponses = { ...responses, [currentQuestion.id]: value };
     setResponses(newResponses);
 
@@ -188,14 +194,12 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
       return total === 100;
     }
     
-    // Special validation for feature products
-    if (currentQuestion.id === 'feature_products') {
-      return Array.isArray(response) && response.length > 0;
-    }
-    
-    // Special validation for product quantities
+    // Special validation for product quantities  
     if (currentQuestion.id === 'product_quantities') {
       if (!response || typeof response !== 'object') return false;
+      if ('selectedProducts' in response) {
+        return response.selectedProducts && Array.isArray(response.selectedProducts) && response.selectedProducts.length > 0;
+      }
       return Object.values(response).some((qty: any) => qty > 0);
     }
     
@@ -301,82 +305,6 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
         );
 
       case 'multiple':
-        // Special handling for feature products
-        if (currentQuestion.id === 'feature_products') {
-          const selectedProducts = Array.isArray(currentValue) ? currentValue : [];
-          const productLabels: Record<string, string> = {
-            batting_cages: "Batting Cages (70' x 15')",
-            pitching_machines: "Pitching Machines",
-            l_screens: "L-Screens / Protective Screens",
-            ball_carts: "Ball Carts / Buckets",
-            volleyball_systems: "Volleyball Systems (standards+net)",
-            ref_stands: "Referee Stands",
-            divider_curtains: "Divider Curtains/Nets",
-            basketball_hoops: "Basketball Hoops/Goals",
-            scoreboards: "Scoreboards/Shot Clocks (set)",
-            pickleball_nets: "Pickleball Nets (portable/permanent)",
-            paddle_starter_sets: "Pickleball Paddle Starter Sets (4 paddles + balls)",
-            soccer_goals_pair: "Indoor Soccer Goals (pair)",
-            training_turf_zone: "Training Turf Zones",
-            turf_area_sf: "Indoor Turf (area)",
-            rubber_floor_area_sf: "Rubber Flooring (area)",
-            hardwood_floor_area_sf: "Hardwood Flooring (area)"
-          };
-
-          return (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <Badge variant="outline" className="text-sm">
-                  Selected: {selectedProducts.length} products
-                </Badge>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {currentQuestion.options?.map((option) => {
-                  const isSelected = selectedProducts.includes(option.id);
-                  return (
-                    <Card
-                      key={option.id}
-                      className={`cursor-pointer transition-smooth hover:shadow-custom-md ${
-                        isSelected
-                          ? 'border-primary bg-primary text-primary-foreground shadow-custom-sm'
-                          : 'border-border hover:border-primary/50 bg-background'
-                      }`}
-                      onClick={() => {
-                        const updated = isSelected
-                          ? selectedProducts.filter(p => p !== option.id)
-                          : [...selectedProducts, option.id];
-                        handleResponse(updated);
-                      }}
-                    >
-                      <CardContent className="p-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className={`font-semibold ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
-                              {option.label}
-                            </div>
-                            {isSelected && (
-                              <div className="text-primary-foreground">✓</div>
-                            )}
-                          </div>
-                          {option.description && (
-                            <div className={`text-xs ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                              {option.description}
-                            </div>
-                          )}
-                          <Badge variant={isSelected ? "secondary" : "outline"} className="text-xs">
-                            Unit: {option.id.includes('_sf') ? 'sf' : 'ea'}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        }
-
         // Default multiple choice handling
         return (
           <div className="space-y-4">
@@ -468,30 +396,35 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
         );
 
       case 'range':
-        // Special handling for product quantities
+        // Special handling for product quantities - combined selection + quantities
         if (currentQuestion.id === 'product_quantities') {
-          const selectedProducts = responses.feature_products || [];
-          const quantities: Record<string, number> = currentValue || {};
+          const productData = currentValue || { selectedProducts: [], quantities: {} };
+          const selectedProducts = productData.selectedProducts || [];
+          const quantities = productData.quantities || {};
           const facilitySize = responses.facility_size || 'medium';
           const totalSqft = getSqftBySize(facilitySize);
+          const selectedSports = responses.primary_sport || [];
 
-          const productSpecs: Record<string, { min: number; max: number; step: number; default: number; helper: string }> = {
-            batting_cages: { min: 0, max: 16, step: 1, default: 6, helper: "Typical for this size: 6" },
-            pitching_machines: { min: 0, max: 12, step: 1, default: 3, helper: "Typical: 1 per 2 cages" },
-            l_screens: { min: 0, max: 24, step: 1, default: 6, helper: "Typical: 1 per cage" },
-            ball_carts: { min: 0, max: 24, step: 1, default: 3, helper: "Typical: 1 per 2 cages" },
-            volleyball_systems: { min: 0, max: 12, step: 1, default: 4, helper: "Typical: 1 per court" },
-            ref_stands: { min: 0, max: 12, step: 1, default: 4, helper: "Typical: 1 per court" },
-            divider_curtains: { min: 0, max: 12, step: 1, default: 4, helper: "Use to separate courts/zones" },
-            basketball_hoops: { min: 0, max: 12, step: 1, default: 4, helper: "Full court = 2, half = 1" },
-            scoreboards: { min: 0, max: 8, step: 1, default: 2, helper: "1-2 per facility typical" },
-            pickleball_nets: { min: 0, max: 16, step: 1, default: 6, helper: "Typical: 1 per court" },
-            paddle_starter_sets: { min: 0, max: 24, step: 1, default: 12, helper: "Optional starter sets" },
-            soccer_goals_pair: { min: 0, max: 6, step: 1, default: 2, helper: "1 pair per field" },
-            training_turf_zone: { min: 0, max: 4, step: 1, default: 1, helper: "Designated training areas" },
-            turf_area_sf: { min: 0, max: totalSqft, step: 100, default: Math.round((totalSqft * 0.35) / 100) * 100, helper: "Cap at building gross SF. Defaults scale with size." },
-            rubber_floor_area_sf: { min: 0, max: totalSqft, step: 100, default: Math.round((totalSqft * 0.25) / 100) * 100, helper: "Cap at building gross SF. Defaults scale with size." },
-            hardwood_floor_area_sf: { min: 0, max: totalSqft, step: 100, default: Math.round((totalSqft * 0.30) / 100) * 100, helper: "Cap at building gross SF. Defaults scale with size." }
+          // Get all available products for selected sports
+          const availableProducts = getDefaultProductsBySpots(selectedSports);
+
+          const productSpecs: Record<string, { min: number; max: number; step: number; default: number; helper: string; description: string }> = {
+            batting_cages: { min: 0, max: 16, step: 1, default: 6, helper: "Typical for this size: 6", description: "Each = one 70′ × 15′ tunnel (hardware + net)" },
+            pitching_machines: { min: 0, max: 12, step: 1, default: 3, helper: "Typical: 1 per 2 cages", description: "Professional pitching machines for batting practice" },
+            l_screens: { min: 0, max: 24, step: 1, default: 6, helper: "Typical: 1 per cage", description: "Safety screens for batting practice" },
+            ball_carts: { min: 0, max: 24, step: 1, default: 3, helper: "Typical: 1 per 2 cages", description: "Ball storage and transport carts" },
+            volleyball_systems: { min: 0, max: 12, step: 1, default: 4, helper: "Typical: 1 per court", description: "Professional volleyball net systems" },
+            ref_stands: { min: 0, max: 12, step: 1, default: 4, helper: "Typical: 1 per court", description: "Referee chairs for volleyball games" },
+            divider_curtains: { min: 0, max: 12, step: 1, default: 4, helper: "Use to separate courts/zones", description: "Motorized or manual court/turf dividers" },
+            basketball_hoops: { min: 0, max: 12, step: 1, default: 4, helper: "Full court = 2, half = 1", description: "Professional basketball goal systems" },
+            scoreboards: { min: 0, max: 8, step: 1, default: 2, helper: "1-2 per facility typical", description: "Electronic scoreboards and shot clocks" },
+            pickleball_nets: { min: 0, max: 16, step: 1, default: 6, helper: "Typical: 1 per court", description: "Pickleball net systems" },
+            paddle_starter_sets: { min: 0, max: 24, step: 1, default: 12, helper: "Optional starter sets", description: "Starter paddle and ball sets" },
+            soccer_goals_pair: { min: 0, max: 6, step: 1, default: 2, helper: "1 pair per field", description: "Indoor soccer goal pairs" },
+            training_turf_zone: { min: 0, max: 4, step: 1, default: 1, helper: "Designated training areas", description: "Designated training areas with turf" },
+            turf_area_sf: { min: 0, max: totalSqft, step: 100, default: Math.round((totalSqft * 0.35) / 100) * 100, helper: "Cap at building gross SF. Defaults scale with size.", description: "Approximate coverage area; refine later per court count" },
+            rubber_floor_area_sf: { min: 0, max: totalSqft, step: 100, default: Math.round((totalSqft * 0.25) / 100) * 100, helper: "Cap at building gross SF. Defaults scale with size.", description: "Safety and fitness rubber flooring" },
+            hardwood_floor_area_sf: { min: 0, max: totalSqft, step: 100, default: Math.round((totalSqft * 0.30) / 100) * 100, helper: "Cap at building gross SF. Defaults scale with size.", description: "Professional sport court flooring" }
           };
 
           const productLabels: Record<string, string> = {
@@ -513,88 +446,160 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
             hardwood_floor_area_sf: "Hardwood Flooring (area)"
           };
 
-          const updateQuantity = (productId: string, newValue: number) => {
-            const newQuantities = { ...quantities, [productId]: newValue };
-            handleResponse(newQuantities);
+          const handleProductToggle = (productKey: string) => {
+            const isSelected = selectedProducts.includes(productKey);
+            const updatedSelection = isSelected 
+              ? selectedProducts.filter(key => key !== productKey)
+              : [...selectedProducts, productKey];
+            
+            // If deselecting, set quantity to 0
+            const updatedQuantities = { ...quantities };
+            if (isSelected) {
+              updatedQuantities[productKey] = 0;
+            } else {
+              // If selecting, set to default quantity
+              const specs = productSpecs[productKey];
+              updatedQuantities[productKey] = specs?.default || 0;
+            }
+            
+            const newData = { 
+              selectedProducts: updatedSelection,
+              quantities: updatedQuantities
+            };
+            handleResponse(newData);
+          };
+
+          const updateQuantity = (productKey: string, newValue: number) => {
+            const updatedQuantities = { ...quantities, [productKey]: newValue };
+            const newData = { 
+              selectedProducts,
+              quantities: updatedQuantities
+            };
+            handleResponse(newData);
+          };
+
+          const resetToTypical = () => {
+            const defaultQuantities = getDefaultQuantities(selectedProducts, facilitySize);
+            const newData = { 
+              selectedProducts,
+              quantities: defaultQuantities
+            };
+            handleResponse(newData);
           };
 
           return (
             <div className="max-w-4xl space-y-6">
               <div className="flex items-center justify-between">
                 <Badge variant="outline" className="text-sm">
-                  Selected: {selectedProducts.length} products
+                  {selectedSports.join(", ")} • {selectedProducts.length} products selected
                 </Badge>
-                <Button variant="ghost" size="sm" onClick={() => setCurrentStep(currentStep - 1)}>
-                  Edit products →
+                <Button variant="outline" size="sm" onClick={resetToTypical}>
+                  Reset to Typical
                 </Button>
               </div>
 
               <div className="grid gap-6">
-                {selectedProducts.map((productId) => {
-                  const specs = productSpecs[productId];
-                  const currentQty = quantities[productId] || specs?.default || 0;
+                {availableProducts.map((productKey) => {
+                  const isSelected = selectedProducts.includes(productKey);
+                  const specs = productSpecs[productKey];
+                  const currentQty = quantities[productKey] || 0;
                   
                   return (
-                    <Card key={productId}>
+                    <Card 
+                      key={productKey}
+                      className={`transition-all duration-200 ${
+                        isSelected 
+                          ? 'border-primary shadow-custom-sm bg-primary/5' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
                       <CardContent className="p-6">
                         <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-base font-semibold">
-                              {productLabels[productId] || productId}
-                            </Label>
-                            <div className="flex items-center space-x-2">
-                              <Input
-                                type="number"
-                                min={specs?.min || 0}
-                                max={specs?.max || 100}
-                                step={specs?.step || 1}
-                                value={currentQty}
-                                onChange={(e) => updateQuantity(productId, parseInt(e.target.value) || 0)}
-                                className="w-20 text-center"
-                              />
-                              <span className="text-sm text-muted-foreground">
-                                {productId.includes('_sf') ? 'sf' : 'ea'}
-                              </span>
+                          {/* Product Selection Header */}
+                          <div className="flex items-start justify-between">
+                            <div 
+                              className="flex-1 cursor-pointer"
+                              onClick={() => handleProductToggle(productKey)}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                                  isSelected 
+                                    ? 'bg-primary border-primary text-primary-foreground' 
+                                    : 'border-muted-foreground/30 hover:border-primary'
+                                }`}>
+                                  {isSelected && (
+                                    <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                                    </svg>
+                                  )}
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-lg">{productLabels[productKey]}</h3>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {specs?.description}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Badge variant="outline" className="text-xs">
+                                      Unit: {productKey.includes('_sf') ? 'sf' : 'ea'}
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground">
+                                      {specs?.helper}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                          
-                          <Slider
-                            value={[currentQty]}
-                            onValueChange={(value) => updateQuantity(productId, value[0])}
-                            min={specs?.min || 0}
-                            max={specs?.max || 100}
-                            step={specs?.step || 1}
-                            className="w-full"
-                          />
-                          
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-muted-foreground">
-                              {specs?.min || 0}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {specs?.max || 100}
-                            </span>
-                          </div>
-                          
-                          {specs?.helper && (
-                            <p className="text-xs text-muted-foreground">
-                              {specs.helper}
-                            </p>
+
+                          {/* Quantity Controls - only show if selected */}
+                          {isSelected && (
+                            <div className="space-y-3 pt-4 border-t border-border/50">
+                              <div className="flex items-center gap-4">
+                                <Label className="text-sm font-medium min-w-16">
+                                  Quantity:
+                                </Label>
+                                <div className="flex-1">
+                                  <Slider
+                                    value={[currentQty]}
+                                    onValueChange={(value) => updateQuantity(productKey, value[0])}
+                                    min={specs?.min || 0}
+                                    max={specs?.max || 100}
+                                    step={specs?.step || 1}
+                                    className="flex-1"
+                                  />
+                                </div>
+                                <Input
+                                  type="number"
+                                  value={currentQty}
+                                  onChange={(e) => updateQuantity(productKey, parseInt(e.target.value) || 0)}
+                                  min={specs?.min || 0}
+                                  max={specs?.max || 100}
+                                  step={specs?.step || 1}
+                                  className="w-20 text-center"
+                                />
+                                <span className="text-sm text-muted-foreground min-w-8">
+                                  {productKey.includes('_sf') ? 'sf' : 'ea'}
+                                </span>
+                              </div>
+                              
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>Min: {specs?.min || 0}</span>
+                                <span>Current: {currentQty.toLocaleString()}</span>
+                                <span>Max: {specs?.max || 100}</span>
+                              </div>
+                              
+                              {productKey.includes('_sf') && (
+                                <p className="text-xs text-muted-foreground">
+                                  💡 Capped at building gross SF. Area estimates can be refined later.
+                                </p>
+                              )}
+                            </div>
                           )}
                         </div>
                       </CardContent>
                     </Card>
                   );
                 })}
-              </div>
-
-              <div className="mt-6 p-4 bg-muted rounded-lg">
-                <Button variant="outline" size="sm" onClick={() => {
-                  const defaults = getDefaultQuantities(selectedProducts, facilitySize);
-                  handleResponse(defaults);
-                }}>
-                  Use typical for my sport
-                </Button>
               </div>
             </div>
           );
