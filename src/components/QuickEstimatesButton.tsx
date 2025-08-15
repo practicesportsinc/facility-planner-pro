@@ -5,15 +5,18 @@ import { Zap, X } from "lucide-react";
 
 // Import the types and functions from QuickEstimatesModal
 type BuildMode = "build" | "buy" | "lease";
-type SizeKey = "small" | "medium" | "large";
+type SizeKey = "small" | "small_plus" | "medium" | "large" | "giant" | "arena";
 type SportKey =
   | "baseball_softball"
   | "basketball"
   | "volleyball"
   | "pickleball"
-  | "soccer_indoor_small_sided"
+  | "soccer"
   | "football"
-  | "multi_sport";
+  | "lacrosse"
+  | "tennis"
+  | "multi_sport"
+  | "fitness";
 
 type CourtOrCageCounts = Record<string, number>;
 
@@ -240,46 +243,108 @@ function getPreset(sport: SportKey, size: SizeKey): QuickPreset {
 const EQUIPMENT_RECOMMENDATIONS: Record<SportKey, Record<SizeKey, string[]>> = {
   baseball_softball: {
     small: ["6 Batting Cages", "3 Pitching Machines", "6 L-Screens", "3 Ball Carts", "4 Divider Curtains", "3,500 SF Turf Area"],
-    medium: ["8 Batting Cages", "4 Pitching Machines", "8 L-Screens", "4 Ball Carts", "4 Divider Curtains", "4,200 SF Turf Area"],
-    large: ["12 Batting Cages", "6 Pitching Machines", "12 L-Screens", "6 Ball Carts", "4 Divider Curtains", "5,600 SF Turf Area"]
+    small_plus: ["8 Batting Cages", "4 Pitching Machines", "8 L-Screens", "4 Ball Carts", "4 Divider Curtains", "4,200 SF Turf Area"],
+    medium: ["10 Batting Cages", "5 Pitching Machines", "10 L-Screens", "5 Ball Carts", "4 Divider Curtains", "5,000 SF Turf Area"],
+    large: ["12 Batting Cages", "6 Pitching Machines", "12 L-Screens", "6 Ball Carts", "4 Divider Curtains", "5,600 SF Turf Area"],
+    giant: ["16 Batting Cages", "8 Pitching Machines", "16 L-Screens", "8 Ball Carts", "4 Divider Curtains", "7,000 SF Turf Area"],
+    arena: ["20 Batting Cages", "10 Pitching Machines", "20 L-Screens", "10 Ball Carts", "4 Divider Curtains", "8,500 SF Turf Area"]
   },
   basketball: {
-    small: ["4 Basketball Hoops", "2 Scoreboards", "2,100 SF Hardwood Flooring", "4 Divider Curtains"],
+    small: ["2 Basketball Hoops", "1 Scoreboard", "2,100 SF Hardwood Flooring", "4 Divider Curtains"],
+    small_plus: ["3 Basketball Hoops", "2 Scoreboards", "4,800 SF Hardwood Flooring", "4 Divider Curtains"],
     medium: ["4 Basketball Hoops", "2 Scoreboards", "6,600 SF Hardwood Flooring", "4 Divider Curtains"],
-    large: ["6 Basketball Hoops", "3 Scoreboards", "7,800 SF Hardwood Flooring", "4 Divider Curtains"]
+    large: ["6 Basketball Hoops", "3 Scoreboards", "7,800 SF Hardwood Flooring", "4 Divider Curtains"],
+    giant: ["8 Basketball Hoops", "4 Scoreboards", "12,000 SF Hardwood Flooring", "4 Divider Curtains"],
+    arena: ["12 Basketball Hoops", "6 Scoreboards", "18,000 SF Hardwood Flooring", "4 Divider Curtains"]
   },
   volleyball: {
-    small: ["3 Volleyball Systems", "3 Referee Stands", "2 Scoreboards", "1,750 SF Rubber Flooring", "4 Divider Curtains"],
+    small: ["2 Volleyball Systems", "2 Referee Stands", "1 Scoreboard", "1,750 SF Rubber Flooring", "4 Divider Curtains"],
+    small_plus: ["3 Volleyball Systems", "3 Referee Stands", "2 Scoreboards", "3,500 SF Rubber Flooring", "4 Divider Curtains"],
     medium: ["4 Volleyball Systems", "4 Referee Stands", "2 Scoreboards", "5,500 SF Rubber Flooring", "4 Divider Curtains"],
-    large: ["5 Volleyball Systems", "5 Referee Stands", "3 Scoreboards", "6,500 SF Rubber Flooring", "4 Divider Curtains"]
+    large: ["5 Volleyball Systems", "5 Referee Stands", "3 Scoreboards", "6,500 SF Rubber Flooring", "4 Divider Curtains"],
+    giant: ["8 Volleyball Systems", "8 Referee Stands", "4 Scoreboards", "10,000 SF Rubber Flooring", "4 Divider Curtains"],
+    arena: ["12 Volleyball Systems", "12 Referee Stands", "6 Scoreboards", "15,000 SF Rubber Flooring", "4 Divider Curtains"]
   },
   pickleball: {
-    small: ["4 Pickleball Nets", "8 Paddle Starter Sets", "1,680 SF Rubber Flooring", "4 Divider Curtains"],
-    medium: ["6 Pickleball Nets", "12 Paddle Starter Sets", "5,500 SF Rubber Flooring", "4 Divider Curtains"],
-    large: ["8 Pickleball Nets", "16 Paddle Starter Sets", "6,500 SF Rubber Flooring", "4 Divider Curtains"]
+    small: ["3 Pickleball Nets", "6 Paddle Starter Sets", "1,200 SF Rubber Flooring", "4 Divider Curtains"],
+    small_plus: ["4 Pickleball Nets", "8 Paddle Starter Sets", "2,400 SF Rubber Flooring", "4 Divider Curtains"],
+    medium: ["6 Pickleball Nets", "12 Paddle Starter Sets", "3,600 SF Rubber Flooring", "4 Divider Curtains"],
+    large: ["8 Pickleball Nets", "16 Paddle Starter Sets", "4,800 SF Rubber Flooring", "4 Divider Curtains"],
+    giant: ["12 Pickleball Nets", "24 Paddle Starter Sets", "7,200 SF Rubber Flooring", "4 Divider Curtains"],
+    arena: ["16 Pickleball Nets", "32 Paddle Starter Sets", "9,600 SF Rubber Flooring", "4 Divider Curtains"]
   },
-  soccer_indoor_small_sided: {
-    small: ["2 Soccer Goals (pair)", "3,500 SF Turf Area", "4 Divider Curtains", "1 Training Turf Zone"],
+  soccer: {
+    small: ["1 Soccer Goal (pair)", "3,500 SF Turf Area", "4 Divider Curtains", "1 Training Turf Zone"],
+    small_plus: ["2 Soccer Goals (pair)", "5,500 SF Turf Area", "4 Divider Curtains", "1 Training Turf Zone"],
     medium: ["2 Soccer Goals (pair)", "7,700 SF Turf Area", "4 Divider Curtains", "1 Training Turf Zone"],
-    large: ["3 Soccer Goals (pair)", "9,100 SF Turf Area", "4 Divider Curtains", "1 Training Turf Zone"]
+    large: ["3 Soccer Goals (pair)", "9,100 SF Turf Area", "4 Divider Curtains", "1 Training Turf Zone"],
+    giant: ["4 Soccer Goals (pair)", "15,000 SF Turf Area", "4 Divider Curtains", "2 Training Turf Zones"],
+    arena: ["6 Soccer Goals (pair)", "25,000 SF Turf Area", "4 Divider Curtains", "3 Training Turf Zones"]
   },
   football: {
-    small: ["3,500 SF Turf Area", "4 Divider Curtains"],
-    medium: ["7,700 SF Turf Area", "4 Divider Curtains"],
-    large: ["9,100 SF Turf Area", "4 Divider Curtains"]
+    small: ["3,500 SF Turf Area", "4 Divider Curtains", "Training Equipment Set"],
+    small_plus: ["5,500 SF Turf Area", "4 Divider Curtains", "Training Equipment Set"],
+    medium: ["7,700 SF Turf Area", "4 Divider Curtains", "Training Equipment Set"],
+    large: ["9,100 SF Turf Area", "4 Divider Curtains", "Training Equipment Set"],
+    giant: ["15,000 SF Turf Area", "4 Divider Curtains", "2 Training Equipment Sets"],
+    arena: ["25,000 SF Turf Area", "4 Divider Curtains", "3 Training Equipment Sets"]
+  },
+  lacrosse: {
+    small: ["2 Lacrosse Goals (pair)", "3,500 SF Turf Area", "4 Divider Curtains", "Lacrosse Ball Sets"],
+    small_plus: ["3 Lacrosse Goals (pair)", "5,500 SF Turf Area", "4 Divider Curtains", "Lacrosse Ball Sets"],
+    medium: ["4 Lacrosse Goals (pair)", "7,700 SF Turf Area", "4 Divider Curtains", "Lacrosse Ball Sets"],
+    large: ["5 Lacrosse Goals (pair)", "9,100 SF Turf Area", "4 Divider Curtains", "Lacrosse Ball Sets"],
+    giant: ["8 Lacrosse Goals (pair)", "15,000 SF Turf Area", "4 Divider Curtains", "2 Lacrosse Ball Sets"],
+    arena: ["12 Lacrosse Goals (pair)", "25,000 SF Turf Area", "4 Divider Curtains", "3 Lacrosse Ball Sets"]
+  },
+  tennis: {
+    small: ["1 Tennis Net", "2,800 SF Hard Court Flooring", "4 Divider Curtains", "Tennis Ball Machine"],
+    small_plus: ["2 Tennis Nets", "5,600 SF Hard Court Flooring", "4 Divider Curtains", "Tennis Ball Machine"],
+    medium: ["3 Tennis Nets", "8,400 SF Hard Court Flooring", "4 Divider Curtains", "2 Tennis Ball Machines"],
+    large: ["4 Tennis Nets", "11,200 SF Hard Court Flooring", "4 Divider Curtains", "2 Tennis Ball Machines"],
+    giant: ["6 Tennis Nets", "16,800 SF Hard Court Flooring", "4 Divider Curtains", "3 Tennis Ball Machines"],
+    arena: ["8 Tennis Nets", "22,400 SF Hard Court Flooring", "4 Divider Curtains", "4 Tennis Ball Machines"]
   },
   multi_sport: {
-    small: ["4 Divider Curtains", "3,500 SF Turf Area", "1,750 SF Rubber Flooring", "2 Scoreboards"],
-    medium: ["4 Divider Curtains", "7,700 SF Turf Area", "5,500 SF Rubber Flooring", "2 Scoreboards"],
-    large: ["4 Divider Curtains", "9,100 SF Turf Area", "6,500 SF Rubber Flooring", "3 Scoreboards"]
+    small: ["4 Divider Curtains", "3,500 SF Mixed Flooring", "Multi-Sport Equipment Set", "2 Scoreboards"],
+    small_plus: ["4 Divider Curtains", "5,500 SF Mixed Flooring", "Multi-Sport Equipment Set", "2 Scoreboards"],
+    medium: ["4 Divider Curtains", "7,700 SF Mixed Flooring", "Multi-Sport Equipment Set", "2 Scoreboards"],
+    large: ["4 Divider Curtains", "9,100 SF Mixed Flooring", "2 Multi-Sport Equipment Sets", "3 Scoreboards"],
+    giant: ["4 Divider Curtains", "15,000 SF Mixed Flooring", "3 Multi-Sport Equipment Sets", "4 Scoreboards"],
+    arena: ["4 Divider Curtains", "25,000 SF Mixed Flooring", "4 Multi-Sport Equipment Sets", "6 Scoreboards"]
+  },
+  fitness: {
+    small: ["Basic Fitness Equipment Package", "1,500 SF Rubber Flooring", "Mirror Wall System", "Sound System"],
+    small_plus: ["Standard Fitness Equipment Package", "2,500 SF Rubber Flooring", "Mirror Wall System", "Sound System"],
+    medium: ["Premium Fitness Equipment Package", "4,000 SF Rubber Flooring", "Mirror Wall System", "Sound System"],
+    large: ["Professional Fitness Equipment Package", "6,000 SF Rubber Flooring", "Mirror Wall System", "Professional Sound System"],
+    giant: ["Commercial Fitness Equipment Package", "10,000 SF Rubber Flooring", "Mirror Wall System", "Professional Sound System"],
+    arena: ["Elite Fitness Equipment Package", "15,000 SF Rubber Flooring", "Mirror Wall System", "Professional Sound System"]
   }
+};
+
+// Equipment cost estimates per sport
+const EQUIPMENT_COSTS: Record<SportKey, Record<SizeKey, number>> = {
+  baseball_softball: { small: 40000, small_plus: 50000, medium: 65000, large: 95000, giant: 130000, arena: 180000 },
+  basketball: { small: 35000, small_plus: 45000, medium: 55000, large: 80000, giant: 110000, arena: 150000 },
+  volleyball: { small: 25000, small_plus: 35000, medium: 45000, large: 65000, giant: 85000, arena: 120000 },
+  pickleball: { small: 20000, small_plus: 28000, medium: 35000, large: 50000, giant: 70000, arena: 95000 },
+  soccer: { small: 45000, small_plus: 60000, medium: 75000, large: 100000, giant: 140000, arena: 200000 },
+  football: { small: 35000, small_plus: 50000, medium: 65000, large: 85000, giant: 120000, arena: 170000 },
+  lacrosse: { small: 30000, small_plus: 42000, medium: 55000, large: 75000, giant: 100000, arena: 140000 },
+  tennis: { small: 40000, small_plus: 55000, medium: 70000, large: 95000, giant: 130000, arena: 180000 },
+  multi_sport: { small: 50000, small_plus: 70000, medium: 90000, large: 120000, giant: 160000, arena: 220000 },
+  fitness: { small: 30000, small_plus: 45000, medium: 60000, large: 85000, giant: 115000, arena: 160000 }
 };
 
 // Facility size recommendations
 const FACILITY_SIZES: Record<SizeKey, { sqft: string; description: string }> = {
-  small: { sqft: "8,000-12,000 SF", description: "Compact facility for local community" },
-  medium: { sqft: "12,000-18,000 SF", description: "Mid-size facility with expanded programming" },
-  large: { sqft: "18,000-30,000 SF", description: "Large facility for competitive programs" }
+  small: { sqft: "2,000-5,000 SF", description: "1-2 courts/cages, minimal amenities" },
+  small_plus: { sqft: "5,000-8,000 SF", description: "2-4 courts/cages, basic amenities" },
+  medium: { sqft: "8,000-15,000 SF", description: "4-6 courts/cages, full amenities" },
+  large: { sqft: "15,000-30,000 SF", description: "6-10 courts/fields, premium features" },
+  giant: { sqft: "30,000-50,000 SF", description: "multi-court/field complex" },
+  arena: { sqft: "50,000+ SF", description: "tournament-ready, multi-sport" }
 };
 
 interface QuickEstimatesModalProps {
@@ -288,12 +353,41 @@ interface QuickEstimatesModalProps {
 }
 
 function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesModalProps) {
-  const [sport, setSport] = useState<SportKey>("baseball_softball");
+  const [sports, setSports] = useState<SportKey[]>(["baseball_softball"]);
   const [size, setSize] = useState<SizeKey>("medium");
   const navigate = useNavigate();
 
-  const preset = useMemo(() => getPreset(sport, size), [sport, size]);
+  const preset = useMemo(() => getPreset(sports[0], size), [sports, size]);
   const preview = useMemo(() => estimateQuickNumbers(preset), [preset]);
+
+  // Calculate total equipment cost for selected sports
+  const equipmentCost = useMemo(() => {
+    return sports.reduce((total, sport) => total + (EQUIPMENT_COSTS[sport][size] || 0), 0);
+  }, [sports, size]);
+
+  // Get combined equipment list for selected sports
+  const combinedEquipment = useMemo(() => {
+    const equipmentMap = new Map<string, number>();
+    
+    sports.forEach(sport => {
+      const sportEquipment = EQUIPMENT_RECOMMENDATIONS[sport][size] || [];
+      sportEquipment.forEach(item => {
+        equipmentMap.set(item, (equipmentMap.get(item) || 0) + 1);
+      });
+    });
+
+    return Array.from(equipmentMap.entries()).map(([item, count]) => 
+      count > 1 ? `${item} (${count}x)` : item
+    );
+  }, [sports, size]);
+
+  const toggleSport = (sport: SportKey) => {
+    setSports(prev => 
+      prev.includes(sport) 
+        ? prev.filter(s => s !== sport)
+        : [...prev, sport]
+    );
+  };
 
   function createQuickEstimate() {
     // Create project and navigate
@@ -323,45 +417,51 @@ function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesModalProps) {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-lg font-semibold mb-3">1) Choose sports</h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
                   {[
-                    { key: "baseball_softball", label: "Baseball / Softball" },
-                    { key: "basketball", label: "Basketball" },
-                    { key: "volleyball", label: "Volleyball" },
-                    { key: "pickleball", label: "Pickleball" },
-                    { key: "soccer_indoor_small_sided", label: "Indoor Soccer" },
-                    { key: "football", label: "Football" },
-                    { key: "multi_sport", label: "Multi-sport" }
-                  ].map(({ key, label }) => (
+                    { key: "baseball_softball", label: "Baseball/Softball", icon: "⚾" },
+                    { key: "basketball", label: "Basketball", icon: "🏀" },
+                    { key: "volleyball", label: "Volleyball", icon: "🏐" },
+                    { key: "pickleball", label: "Pickleball", icon: "🏓" },
+                    { key: "soccer", label: "Soccer", icon: "⚽" },
+                    { key: "football", label: "Football", icon: "🏈" },
+                    { key: "lacrosse", label: "Lacrosse", icon: "🥍" },
+                    { key: "tennis", label: "Tennis", icon: "🎾" },
+                    { key: "multi_sport", label: "Multi-Sport", icon: "🏟️" },
+                    { key: "fitness", label: "Fitness/Training", icon: "💪" }
+                  ].map(({ key, label, icon }) => (
                     <button
                       key={key}
-                      onClick={() => setSport(key as SportKey)}
-                      className={`p-3 text-sm font-medium rounded-lg border-2 transition-colors ${
-                        sport === key 
+                      onClick={() => toggleSport(key as SportKey)}
+                      className={`p-3 text-sm font-medium rounded-lg border-2 transition-colors text-left ${
+                        sports.includes(key as SportKey)
                           ? "bg-blue-600 text-white border-blue-600" 
                           : "bg-white text-gray-700 border-gray-200 hover:border-blue-300"
                       }`}
                     >
-                      {label}
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{icon}</span>
+                        <span>{label}</span>
+                      </div>
                     </button>
                   ))}
                 </div>
 
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold mb-3">2) Choose a size</h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(["small", "medium", "large"] as SizeKey[]).map((sizeKey) => (
+                  <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                    {(["small", "small_plus", "medium", "large", "giant", "arena"] as SizeKey[]).map((sizeKey) => (
                       <button
                         key={sizeKey}
                         onClick={() => setSize(sizeKey)}
-                        className={`p-3 text-center rounded-lg border-2 transition-colors ${
+                        className={`p-3 text-left rounded-lg border-2 transition-colors ${
                           size === sizeKey 
                             ? "bg-blue-600 text-white border-blue-600" 
                             : "bg-white text-gray-700 border-gray-200 hover:border-blue-300"
                         }`}
                       >
-                        <div className="font-medium capitalize">{sizeKey}</div>
-                        <div className="text-xs opacity-80">{FACILITY_SIZES[sizeKey].sqft}</div>
+                        <div className="font-medium">{FACILITY_SIZES[sizeKey].sqft}</div>
+                        <div className="text-xs opacity-80">{FACILITY_SIZES[sizeKey].description}</div>
                       </button>
                     ))}
                   </div>
@@ -371,9 +471,11 @@ function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesModalProps) {
               <div>
                 <h3 className="text-lg font-semibold mb-3">3) Recommended Equipment</h3>
                 <div className="bg-gray-50 rounded-lg p-4 max-h-80 overflow-y-auto">
-                  <p className="text-sm text-gray-600 mb-3">Based on your sport and size selections:</p>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Based on your {sports.length > 1 ? 'sports' : 'sport'} and size selections:
+                  </p>
                   <ul className="space-y-2">
-                    {EQUIPMENT_RECOMMENDATIONS[sport][size].map((item, index) => (
+                    {combinedEquipment.map((item, index) => (
                       <li key={index} className="text-sm flex items-start">
                         <span className="w-2 h-2 bg-blue-600 rounded-full mr-3 mt-2 flex-shrink-0"></span>
                         <span className="leading-relaxed">{item}</span>
@@ -389,7 +491,7 @@ function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesModalProps) {
 
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-medium mb-4">Budget Preview (Omaha baseline)</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600">Gross SF</span>
                   <div className="font-bold">{preview.grossSF.toLocaleString()}</div>
@@ -397,6 +499,10 @@ function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesModalProps) {
                 <div>
                   <span className="text-gray-600">CapEx (est.)</span>
                   <div className="font-bold">${preview.capexTotal.toLocaleString()}</div>
+                </div>
+                <div>
+                  <span className="text-gray-600">Equipment (est.)</span>
+                  <div className="font-bold">${equipmentCost.toLocaleString()}</div>
                 </div>
                 <div>
                   <span className="text-gray-600">OpEx/month</span>
@@ -413,6 +519,10 @@ function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesModalProps) {
                 <div>
                   <span className="text-gray-600">Break-even</span>
                   <div className="font-bold">{preview.breakEvenMonths ? `${preview.breakEvenMonths} mo` : "N/A"}</div>
+                </div>
+                <div>
+                  <span className="text-gray-600">Sports Selected</span>
+                  <div className="font-bold">{sports.length}</div>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-3">
