@@ -33,6 +33,7 @@ export type Database = {
           monthly_opex: number | null
           monthly_revenue: number | null
           operating_hours: string | null
+          owner_id: string | null
           recommendations: Json
           revenue_model: Json | null
           roi_percentage: number | null
@@ -64,6 +65,7 @@ export type Database = {
           monthly_opex?: number | null
           monthly_revenue?: number | null
           operating_hours?: string | null
+          owner_id?: string | null
           recommendations: Json
           revenue_model?: Json | null
           roi_percentage?: number | null
@@ -95,6 +97,7 @@ export type Database = {
           monthly_opex?: number | null
           monthly_revenue?: number | null
           operating_hours?: string | null
+          owner_id?: string | null
           recommendations?: Json
           revenue_model?: Json | null
           roi_percentage?: number | null
