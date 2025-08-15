@@ -225,40 +225,63 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
     switch (currentQuestion.type) {
       case 'single':
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {currentQuestion.options?.map((option) => (
-              <Card
-                key={option.id}
-                className={`cursor-pointer transition-smooth hover:shadow-custom-md ${
-                  currentValue === option.id
-                    ? 'border-primary bg-primary/5 shadow-custom-sm'
-                    : 'border-border hover:border-primary/50'
-                }`}
-                onClick={() => handleResponse(option.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start space-x-3">
-                    {option.icon && (
-                      <div className="text-2xl">{option.icon}</div>
-                    )}
-                    <div className="flex-1">
-                      <div className="font-medium">{option.label}</div>
-                      {option.description && (
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {option.description}
-                        </div>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {currentQuestion.options?.map((option) => (
+                <Card
+                  key={option.id}
+                  className={`cursor-pointer transition-smooth hover:shadow-custom-md ${
+                    currentValue === option.id
+                      ? 'border-primary bg-primary/5 shadow-custom-sm'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => handleResponse(option.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start space-x-3">
+                      {option.icon && (
+                        <div className="text-2xl">{option.icon}</div>
                       )}
-                      {option.recommended && (
-                        <Badge variant="secondary" className="mt-2">
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          Recommended
-                        </Badge>
-                      )}
+                      <div className="flex-1">
+                        <div className="font-medium">{option.label}</div>
+                        {option.description && (
+                          <div className="text-sm text-muted-foreground mt-1">
+                            {option.description}
+                          </div>
+                        )}
+                        {option.recommended && (
+                          <Badge variant="secondary" className="mt-2">
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            Recommended
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            {/* Text field for custom input */}
+            {currentQuestion.textField && 
+             currentValue === currentQuestion.textField.dependsOnValue && (
+              <div className="max-w-md">
+                <Label htmlFor={currentQuestion.textField.id}>
+                  {currentQuestion.textField.label}
+                </Label>
+                <Input
+                  id={currentQuestion.textField.id}
+                  type="number"
+                  value={responses[currentQuestion.textField.id] || ''}
+                  onChange={(e) => setResponses(prev => ({
+                    ...prev,
+                    [currentQuestion.textField!.id]: e.target.value
+                  }))}
+                  placeholder={currentQuestion.textField.placeholder || "Enter value..."}
+                  className="mt-2"
+                />
+              </div>
+            )}
           </div>
         );
 
