@@ -93,10 +93,18 @@ function useProductDefaults({
     if (inited.current) return;
     inited.current = true;
 
-    // 1) Selected products: prefer persisted; otherwise use sport defaults
-    const initialSelected = (persistedSelected && persistedSelected.length > 0)
-      ? new Set(persistedSelected)
-      : defaultSet;
+    console.log('Equipment initialization:', {
+      selectedSports,
+      defaultSet: Array.from(defaultSet),
+      persistedSelected,
+      persistedQuantities
+    });
+
+    // 1) Selected products: use sport defaults if no persisted data OR if persisted is empty  
+    const shouldUseDefaults = !persistedSelected || persistedSelected.length === 0;
+    const initialSelected = shouldUseDefaults ? defaultSet : new Set(persistedSelected);
+
+    console.log('Initial selected products:', Array.from(initialSelected));
 
     // 2) Quantities: hydrate persisted, otherwise compute smart defaults
     const initialQty: Record<string, number> = { ...(persistedQuantities || {}) };
