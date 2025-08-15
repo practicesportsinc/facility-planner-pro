@@ -535,7 +535,7 @@ function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesModalProps) {
                 Cancel
               </Button>
               <Button onClick={createQuickEstimate} className="bg-blue-600 hover:bg-blue-700">
-                Select sports →
+                Continue →
               </Button>
             </div>
           </div>
