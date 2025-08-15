@@ -21,6 +21,21 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [result, setResult] = useState<WizardResult | null>(null);
 
+  // Initialize sport ratios when multiple sports are selected
+  useEffect(() => {
+    const selectedSports: string[] = responses.primary_sport || [];
+    const sportRatios: Record<string, number> = responses.sport_ratios || {};
+    
+    if (selectedSports.length > 1 && Object.keys(sportRatios).length === 0) {
+      const initialRatio = Math.floor(100 / selectedSports.length);
+      const newRatios: Record<string, number> = {};
+      selectedSports.forEach((sport, index) => {
+        newRatios[sport] = index === 0 ? 100 - (initialRatio * (selectedSports.length - 1)) : initialRatio;
+      });
+      setResponses(prev => ({ ...prev, sport_ratios: newRatios }));
+    }
+  }, [responses.primary_sport]);
+
   // Filter questions based on dependencies
   const getVisibleQuestions = () => {
     return WIZARD_QUESTIONS.filter(question => {
@@ -242,18 +257,6 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
           const selectedSports: string[] = responses.primary_sport || [];
           const sportRatios: Record<string, number> = currentValue || {};
           
-          // Initialize ratios if not set
-          useEffect(() => {
-            if (selectedSports.length > 0 && Object.keys(sportRatios).length === 0) {
-              const initialRatio = Math.floor(100 / selectedSports.length);
-              const newRatios: Record<string, number> = {};
-              selectedSports.forEach((sport, index) => {
-                newRatios[sport] = index === 0 ? 100 - (initialRatio * (selectedSports.length - 1)) : initialRatio;
-              });
-              handleResponse(newRatios);
-            }
-          }, [selectedSports]);
-
           const getTotalPercentage = (): number => {
             return Object.values(sportRatios).reduce((sum: number, value: number) => sum + (value || 0), 0);
           };
