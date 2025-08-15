@@ -126,39 +126,41 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
   const initializeData = () => {
     const catalog = getFilteredCatalog();
     const quantities: any = {};
-    const selectedProducts = new Set<string>();
+    const selectedProducts: string[] = [];
     
     catalog.forEach(item => {
       const defaultQty = calculateDefaultQuantity(item);
       quantities[item.key] = defaultQty;
-      // Auto-select all products by default
-      selectedProducts.add(item.key);
+      // Auto-select ALL products by default
+      selectedProducts.push(item.key);
     });
     
     return {
       quantities,
-      selectedProducts: Array.from(selectedProducts)
+      selectedProducts
     };
   };
 
-  // Initialize form data with quantities and selection
+  // Initialize form data with quantities and selection  
   const [formData, setFormData] = useState(() => {
-    // Always use initializeData for fresh initialization with all items checked
     const initialData = initializeData();
-    
     return {
       selectedProducts: initialData.selectedProducts,
-      quantities: initialData.quantities,
-      ...data
+      quantities: initialData.quantities
     };
   });
 
   // Update data when dependencies change
   useEffect(() => {
     const newData = initializeData();
-    const updatedData = { ...formData, ...newData };
-    setFormData(updatedData);
-    onUpdate(updatedData);
+    setFormData({
+      selectedProducts: newData.selectedProducts,
+      quantities: newData.quantities
+    });
+    onUpdate({
+      selectedProducts: newData.selectedProducts,
+      quantities: newData.quantities
+    });
   }, [selectedSports, facilityPlan]);
 
   const handleProductToggle = (productKey: string) => {
