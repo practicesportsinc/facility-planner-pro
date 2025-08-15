@@ -16,11 +16,12 @@ const Home = () => {
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-hero bg-clip-text text-transparent">
-              Have An Amazing Sports Facility Idea?
+              Amazing Sports Facility Idea?
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Get itemized estimates + full business plan, in minutes—FREE.<br />
-              Real Estate. Op Expenses. Revenue. Equipment. Start faster, smarter - with SportsFacility.ai
+              Get itemized estimates + full business plan, in minutes - FREE.<br />
+              Real Estate. Op Expenses. Revenue. Equipment.<br />
+              Start faster, smarter - with SportsFacility.ai
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="lg" onClick={() => navigate('/wizard')}>
