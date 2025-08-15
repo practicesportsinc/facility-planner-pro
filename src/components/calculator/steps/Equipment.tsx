@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,20 @@ const PRODUCT_HELPERS = {
 // Helper function max that treats missing values as 0
 const max = (...args: number[]) => Math.max(...args.map(x => x || 0));
 
+// Coerce array function to handle different data shapes
+function coerceArray(x: any): string[] {
+  if (Array.isArray(x)) return x;
+  if (typeof x === "string") {
+    try {
+      const v = JSON.parse(x);
+      return Array.isArray(v) ? v : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 // Custom hook for product defaults with controlled state
 function useProductDefaults({
   selectedSports,
@@ -89,7 +103,15 @@ function useProductDefaults({
   // Guard to run init only once on first mount
   const inited = useRef(false);
 
+  // Key assertion to catch mismatches
+  const CATALOG_KEYS = useMemo(() => new Set(PRODUCT_CATALOG.map(p => p.key)), []);
+  
   useEffect(() => {
+    const bad = Array.from(selected).filter(k => !CATALOG_KEYS.has(k));
+    if (bad.length) console.warn("Unknown product keys in selected_products:", bad);
+  }, [selected, CATALOG_KEYS]);
+
+  useLayoutEffect(() => {
     if (inited.current) return;
     inited.current = true;
 
@@ -100,20 +122,21 @@ function useProductDefaults({
       persistedQuantities
     });
 
-    // 1) Selected products: use sport defaults if no persisted data OR if persisted is empty  
-    const shouldUseDefaults = !persistedSelected || persistedSelected.length === 0;
-    const initialSelected = shouldUseDefaults ? defaultSet : new Set(persistedSelected);
+    // Prefer persisted set; else derive from sports
+    const persistedSel = coerceArray(persistedSelected);
+    const initialSelected = new Set(persistedSel.length ? persistedSel : Array.from(defaultSet));
 
     console.log('Initial selected products:', Array.from(initialSelected));
 
-    // 2) Quantities: hydrate persisted, otherwise compute smart defaults
+    // Seed quantities (clamp area to gross SF)
     const initialQty: Record<string, number> = { ...(persistedQuantities || {}) };
-    for (const key of Array.from(initialSelected)) {
+    for (const key of initialSelected) {
       if (initialQty[key] == null) initialQty[key] = defaultQtyFor(key, facilitySqft, countsFromLayout);
     }
-    // Clamp surface areas to shell size
+    
+    // Clamp surface areas to facility sqft
     ["turf_area_sf","rubber_floor_area_sf","hardwood_floor_area_sf"].forEach(k => {
-      if (initialQty[k] != null) initialQty[k] = Math.max(0, Math.min(initialQty[k], facilitySqft));
+      if (initialQty[k] != null) initialQty[k] = Math.min(Math.max(0, initialQty[k]), facilitySqft);
     });
 
     setSelected(initialSelected);
@@ -122,15 +145,26 @@ function useProductDefaults({
 
   // Toggle & quantity setters
   function toggle(key: string) {
-    setSelected(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else {
-        next.add(key);
-        setQty(q => ({ ...q, [key]: q[key] ?? defaultQtyFor(key, facilitySqft, countsFromLayout) }));
-      }
-      return next;
-    });
+    const qtyVal = qty[key] ?? 0;
+    const isChecked = selected.has(key) || qtyVal > 0;
+    
+    if (isChecked) {
+      // turning OFF → remove from set and zero the qty
+      setSelected(prev => {
+        const n = new Set(prev);
+        n.delete(key);
+        return n;
+      });
+      setQty(q => ({ ...q, [key]: 0 }));
+    } else {
+      // turning ON → add to set and seed a default quantity if empty
+      setSelected(prev => {
+        const n = new Set(prev);
+        n.add(key);
+        return n;
+      });
+      setQty(q => ({ ...q, [key]: q[key] ?? defaultQtyFor(key, facilitySqft, countsFromLayout) }));
+    }
   }
   function setQuantity(key: string, val: number) {
     setQty(q => ({ ...q, [key]: val }));
@@ -254,8 +288,10 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {filteredCatalog.map((item) => {
-            const isSelected = selected.has(item.key);
-            const currentValue = qty[item.key] || 0;
+            const qtyVal = qty[item.key] ?? 0;
+            // derive checked from either set OR qty - single source of truth
+            const isSelected = selected.has(item.key) || qtyVal > 0;
+            const currentValue = qtyVal;
             
             // Calculate max bound
             let maxBound = item.max;

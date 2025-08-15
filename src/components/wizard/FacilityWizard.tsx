@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -11,6 +11,20 @@ import { WIZARD_QUESTIONS, generateRecommendations } from "@/data/wizardQuestion
 import { WizardQuestion, WizardResponse, WizardResult } from "@/types/wizard";
 import { toast } from "sonner";
 
+// Coerce array function to handle different data shapes
+function coerceArray(x: any): string[] {
+  if (Array.isArray(x)) return x;
+  if (typeof x === "string") {
+    try {
+      const v = JSON.parse(x);
+      return Array.isArray(v) ? v : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 interface FacilityWizardProps {
   onComplete?: (result: WizardResult) => void;
   onClose?: () => void;
@@ -20,6 +34,16 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [result, setResult] = useState<WizardResult | null>(null);
+  const inited = useRef(false);
+
+  // Initialize defaults with useLayoutEffect for synchronous init
+  useLayoutEffect(() => {
+    if (inited.current) return;
+    inited.current = true;
+    
+    // Initialize any default state here before first paint
+    console.log('FacilityWizard initialization');
+  }, []);
 
   // Initialize sport ratios when multiple sports are selected
   useEffect(() => {
@@ -41,12 +65,13 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
     
     // Initialize product selection and quantities based on selected sports
     if (selectedSports.length > 0 && !responses.product_quantities) {
-      const defaultProducts = getDefaultProductsBySpots(selectedSports);
-      const defaultQuantities = getDefaultQuantities(defaultProducts, responses.facility_size || 'medium');
+      const persistedSel = coerceArray(responses?.product_quantities?.selectedProducts);
+      const initialProducts = persistedSel.length ? persistedSel : getDefaultProductsBySpots(selectedSports);
+      const defaultQuantities = getDefaultQuantities(initialProducts, responses.facility_size || 'medium');
       
       // Create combined data with selected products and their quantities
       const productData = {
-        selectedProducts: defaultProducts,
+        selectedProducts: initialProducts,
         quantities: defaultQuantities
       };
       
@@ -451,26 +476,33 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
           };
 
           const handleProductToggle = (productKey: string) => {
-            const isSelected = selectedProducts.includes(productKey);
-            const updatedSelection = isSelected 
-              ? selectedProducts.filter(key => key !== productKey)
-              : [...selectedProducts, productKey];
+            const qtyVal = quantities[productKey] ?? 0;
+            // derive checked from either set OR qty - single source of truth
+            const isChecked = selectedProducts.includes(productKey) || qtyVal > 0;
             
-            // If deselecting, set quantity to 0
-            const updatedQuantities = { ...quantities };
-            if (isSelected) {
-              updatedQuantities[productKey] = 0;
+            if (isChecked) {
+              // turning OFF → remove from set and zero the qty
+              const updatedSelection = selectedProducts.filter(key => key !== productKey);
+              const updatedQuantities = { ...quantities, [productKey]: 0 };
+              
+              const newData = { 
+                selectedProducts: updatedSelection,
+                quantities: updatedQuantities
+              };
+              handleResponse(newData);
             } else {
-              // If selecting, set to default quantity
+              // turning ON → add to set and seed a default quantity if empty
+              const updatedSelection = [...selectedProducts, productKey];
+              const updatedQuantities = { ...quantities };
               const specs = productSpecs[productKey];
-              updatedQuantities[productKey] = specs?.default || 0;
+              updatedQuantities[productKey] = updatedQuantities[productKey] ?? (specs?.default || 0);
+              
+              const newData = { 
+                selectedProducts: updatedSelection,
+                quantities: updatedQuantities
+              };
+              handleResponse(newData);
             }
-            
-            const newData = { 
-              selectedProducts: updatedSelection,
-              quantities: updatedQuantities
-            };
-            handleResponse(newData);
           };
 
           const updateQuantity = (productKey: string, newValue: number) => {
@@ -504,9 +536,11 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
 
               <div className="grid gap-6">
                 {availableProducts.map((productKey) => {
-                  const isSelected = selectedProducts.includes(productKey);
+                  const qtyVal = quantities[productKey] ?? 0;
+                  // derive checked from either set OR qty - single source of truth  
+                  const isSelected = selectedProducts.includes(productKey) || qtyVal > 0;
                   const specs = productSpecs[productKey];
-                  const currentQty = quantities[productKey] || 0;
+                  const currentQty = qtyVal;
                   
                   return (
                     <Card 
