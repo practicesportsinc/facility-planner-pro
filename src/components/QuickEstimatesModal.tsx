@@ -319,7 +319,7 @@ export default function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesM
         
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           <div className="grid gap-6">
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-lg font-semibold mb-3">1) Choose sports</h3>
                 <div className="grid grid-cols-2 gap-2">
@@ -327,7 +327,10 @@ export default function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesM
                     { key: "baseball_softball", label: "Baseball / Softball" },
                     { key: "basketball", label: "Basketball" },
                     { key: "volleyball", label: "Volleyball" },
-                    { key: "pickleball", label: "Pickleball" }
+                    { key: "pickleball", label: "Pickleball" },
+                    { key: "soccer_indoor_small_sided", label: "Indoor Soccer" },
+                    { key: "football", label: "Football" },
+                    { key: "multi_sport", label: "Multi-sport" }
                   ].map(({ key, label }) => (
                     <button
                       key={key}
@@ -342,31 +345,30 @@ export default function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesM
                     </button>
                   ))}
                 </div>
-              </div>
 
-              <div>
-                <h3 className="text-lg font-semibold mb-3">2) Choose a size</h3>
-                <div className="space-y-2">
-                  {(["small", "medium", "large"] as SizeKey[]).map((sizeKey) => (
-                    <button
-                      key={sizeKey}
-                      onClick={() => setSize(sizeKey)}
-                      className={`w-full p-3 text-left rounded-lg border-2 transition-colors ${
-                        size === sizeKey 
-                          ? "bg-blue-600 text-white border-blue-600" 
-                          : "bg-white text-gray-700 border-gray-200 hover:border-blue-300"
-                      }`}
-                    >
-                      <div className="font-medium capitalize">{sizeKey}{sizeKey === "medium" ? "+" : ""}</div>
-                      <div className="text-xs opacity-80">{FACILITY_SIZES[sizeKey].sqft}</div>
-                      <div className="text-xs opacity-70">{FACILITY_SIZES[sizeKey].description}</div>
-                    </button>
-                  ))}
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-3">2) Choose a size</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["small", "medium", "large"] as SizeKey[]).map((sizeKey) => (
+                      <button
+                        key={sizeKey}
+                        onClick={() => setSize(sizeKey)}
+                        className={`p-3 text-center rounded-lg border-2 transition-colors ${
+                          size === sizeKey 
+                            ? "bg-blue-600 text-white border-blue-600" 
+                            : "bg-white text-gray-700 border-gray-200 hover:border-blue-300"
+                        }`}
+                      >
+                        <div className="font-medium capitalize">{sizeKey}</div>
+                        <div className="text-xs opacity-80">{FACILITY_SIZES[sizeKey].sqft}</div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-3">Recommended Equipment</h3>
+                <h3 className="text-lg font-semibold mb-3">3) Recommended Equipment</h3>
                 <div className="bg-gray-50 rounded-lg p-4 max-h-80 overflow-y-auto">
                   <p className="text-sm text-gray-600 mb-3">Based on your sport and size selections:</p>
                   <ul className="space-y-2">
