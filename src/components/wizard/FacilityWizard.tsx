@@ -27,10 +27,13 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
     const sportRatios: Record<string, number> = responses.sport_ratios || {};
     
     if (selectedSports.length > 1 && Object.keys(sportRatios).length === 0) {
-      const initialRatio = Math.floor(100 / selectedSports.length);
+      const baseRatio = Math.floor(100 / selectedSports.length);
+      const remainder = 100 % selectedSports.length;
       const newRatios: Record<string, number> = {};
+      
       selectedSports.forEach((sport, index) => {
-        newRatios[sport] = index === 0 ? 100 - (initialRatio * (selectedSports.length - 1)) : initialRatio;
+        // Distribute remainder evenly among first few sports
+        newRatios[sport] = baseRatio + (index < remainder ? 1 : 0);
       });
       setResponses(prev => ({ ...prev, sport_ratios: newRatios }));
     }
