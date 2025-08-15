@@ -33,6 +33,7 @@ export interface WizardOption {
   description?: string;
   icon?: string;
   recommended?: boolean;
+  unit?: string;
 }
 
 export interface WizardResult {
