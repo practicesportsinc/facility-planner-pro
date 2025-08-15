@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
-import { LayoutGallery, GalleryChoice } from "@/components/layout/LayoutGallery";
 
 // Import the types and functions from QuickEstimatesButton
 type BuildMode = "build" | "buy" | "lease";
@@ -241,13 +240,56 @@ interface QuickEstimatesModalProps {
   onClose: () => void;
 }
 
+// Equipment recommendations based on sport and size
+const EQUIPMENT_RECOMMENDATIONS: Record<SportKey, Record<SizeKey, string[]>> = {
+  baseball_softball: {
+    small: ["6 Batting Cages", "3 Pitching Machines", "6 L-Screens", "2 Scoreboards", "1,200 SF Turf Area"],
+    medium: ["8 Batting Cages", "4 Pitching Machines", "8 L-Screens", "2 Scoreboards", "1,600 SF Turf Area"],
+    large: ["12 Batting Cages", "6 Pitching Machines", "12 L-Screens", "3 Scoreboards", "2,400 SF Turf Area"]
+  },
+  basketball: {
+    small: ["4 Basketball Hoops", "2 Scoreboards", "1,800 SF Hardwood Flooring", "2 Divider Curtains"],
+    medium: ["6 Basketball Hoops", "3 Scoreboards", "2,700 SF Hardwood Flooring", "3 Divider Curtains"],
+    large: ["8 Basketball Hoops", "4 Scoreboards", "3,600 SF Hardwood Flooring", "4 Divider Curtains"]
+  },
+  volleyball: {
+    small: ["3 Volleyball Systems", "3 Referee Stands", "1,500 SF Rubber Flooring", "2 Scoreboards"],
+    medium: ["4 Volleyball Systems", "4 Referee Stands", "2,000 SF Rubber Flooring", "2 Scoreboards"],
+    large: ["6 Volleyball Systems", "6 Referee Stands", "3,000 SF Rubber Flooring", "3 Scoreboards"]
+  },
+  pickleball: {
+    small: ["6 Pickleball Nets", "12 Paddle Starter Sets", "1,200 SF Rubber Flooring", "2 Divider Curtains"],
+    medium: ["8 Pickleball Nets", "16 Paddle Starter Sets", "1,600 SF Rubber Flooring", "3 Divider Curtains"],
+    large: ["12 Pickleball Nets", "24 Paddle Starter Sets", "2,400 SF Rubber Flooring", "4 Divider Curtains"]
+  },
+  soccer_indoor_small_sided: {
+    small: ["1 Soccer Field", "1,800 SF Turf Area", "2 Soccer Goals"],
+    medium: ["2 Soccer Fields", "2,400 SF Turf Area", "4 Soccer Goals"],
+    large: ["3 Soccer Fields", "3,600 SF Turf Area", "6 Soccer Goals"]
+  },
+  football: {
+    small: ["1 Football Field", "3,600 SF Turf Area", "2 Goal Posts"],
+    medium: ["1 Football Field", "5,400 SF Turf Area", "2 Goal Posts"],
+    large: ["2 Football Fields", "7,200 SF Turf Area", "4 Goal Posts"]
+  },
+  multi_sport: {
+    small: ["Mixed Equipment", "2,000 SF Turf/Court Area", "4 Divider Curtains"],
+    medium: ["Mixed Equipment", "3,000 SF Turf/Court Area", "6 Divider Curtains"],
+    large: ["Mixed Equipment", "4,500 SF Turf/Court Area", "8 Divider Curtains"]
+  }
+};
+
+// Facility size recommendations
+const FACILITY_SIZES: Record<SizeKey, { sqft: string; description: string }> = {
+  small: { sqft: "8,000-12,000 SF", description: "Compact facility for local community" },
+  medium: { sqft: "12,000-18,000 SF", description: "Mid-size facility with expanded programming" },
+  large: { sqft: "18,000-30,000 SF", description: "Large facility for competitive programs" }
+};
+
 export default function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesModalProps) {
-  const [layoutChoice, setLayoutChoice] = useState<GalleryChoice | null>(null);
   const [sport, setSport] = useState<SportKey>("baseball_softball");
   const [size, setSize] = useState<SizeKey>("medium");
   const navigate = useNavigate();
-
-  useEffect(() => { setLayoutChoice(null); }, [sport, size]);
 
   const preset = useMemo(() => getPreset(sport, size), [sport, size]);
   const preview = useMemo(() => estimateQuickNumbers(preset), [preset]);
@@ -266,7 +308,10 @@ export default function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesM
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
       <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden m-4">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold">Quick Estimates</h2>
+          <div>
+            <h2 className="text-2xl font-bold">Quick Estimates</h2>
+            <p className="text-gray-600 text-sm mt-1">Get an instant, editable draft with typical layouts and budgeting—perfect for brainstorming.</p>
+          </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
             <X className="w-5 h-5" />
           </button>
@@ -274,50 +319,66 @@ export default function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesM
         
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           <div className="grid gap-6">
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-sm font-medium mb-2">Sport</label>
-                <select 
-                  value={sport} 
-                  onChange={(e) => setSport(e.target.value as SportKey)}
-                  className="w-full p-2 border rounded-lg"
-                >
-                  <option value="baseball_softball">Baseball/Softball</option>
-                  <option value="basketball">Basketball</option>
-                  <option value="volleyball">Volleyball</option>
-                  <option value="pickleball">Pickleball</option>
-                </select>
+                <h3 className="text-lg font-semibold mb-3">1) Choose sports</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { key: "baseball_softball", label: "Baseball / Softball" },
+                    { key: "basketball", label: "Basketball" },
+                    { key: "volleyball", label: "Volleyball" },
+                    { key: "pickleball", label: "Pickleball" }
+                  ].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setSport(key as SportKey)}
+                      className={`p-3 text-sm font-medium rounded-lg border-2 transition-colors ${
+                        sport === key 
+                          ? "bg-blue-600 text-white border-blue-600" 
+                          : "bg-white text-gray-700 border-gray-200 hover:border-blue-300"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Size</label>
-                <select 
-                  value={size} 
-                  onChange={(e) => setSize(e.target.value as SizeKey)}
-                  className="w-full p-2 border rounded-lg"
-                >
-                  <option value="small">Small</option>
-                  <option value="medium">Medium</option>
-                  <option value="large">Large</option>
-                </select>
-              </div>
-            </div>
 
-            <div>
-              <h3 className="text-lg font-medium mb-4">Layout Options</h3>
-              <LayoutGallery
-                grossSf={preview.grossSF}
-                counts={{
-                  basketball_courts_full: 0,
-                  volleyball_courts: 0,
-                  pickleball_courts: 0,
-                  baseball_tunnels: preset.facility.court_or_cage_counts.baseball_tunnels || 0,
-                  training_turf_zone: 0,
-                  soccer_field_small: 0,
-                  football_field: 0
-                }}
-                selectedId={layoutChoice?.id}
-                onSelect={(choice) => setLayoutChoice(choice)}
-              />
+              <div>
+                <h3 className="text-lg font-semibold mb-3">2) Choose a size</h3>
+                <div className="space-y-2">
+                  {(["small", "medium", "large"] as SizeKey[]).map((sizeKey) => (
+                    <button
+                      key={sizeKey}
+                      onClick={() => setSize(sizeKey)}
+                      className={`w-full p-3 text-left rounded-lg border-2 transition-colors ${
+                        size === sizeKey 
+                          ? "bg-blue-600 text-white border-blue-600" 
+                          : "bg-white text-gray-700 border-gray-200 hover:border-blue-300"
+                      }`}
+                    >
+                      <div className="font-medium capitalize">{sizeKey}{sizeKey === "medium" ? "+" : ""}</div>
+                      <div className="text-xs opacity-80">{FACILITY_SIZES[sizeKey].sqft}</div>
+                      <div className="text-xs opacity-70">{FACILITY_SIZES[sizeKey].description}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Recommended Equipment</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-3">Based on your selections:</p>
+                  <ul className="space-y-1">
+                    {EQUIPMENT_RECOMMENDATIONS[sport][size].map((item, index) => (
+                      <li key={index} className="text-sm flex items-center">
+                        <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -359,10 +420,9 @@ export default function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesM
           </button>
           <button
             onClick={createQuickEstimate}
-            disabled={!layoutChoice}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
           >
-            {layoutChoice ? "Create Quick Estimate →" : "Choose a layout ↑"}
+            Create Quick Estimate →
           </button>
         </div>
       </div>
