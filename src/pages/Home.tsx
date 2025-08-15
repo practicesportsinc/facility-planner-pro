@@ -16,11 +16,11 @@ const Home = () => {
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-hero bg-clip-text text-transparent">
-              Do You Have An Amazing Sports Facility Idea?
+              Have An Amazing Sports Facility Idea?
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Build your sports facility plan in minutes—FREE.<br />
-              Land. Buildings. Expenses. Revenue. Equipment. SportsFacility.ai delivers instant, research-grade estimates and a complete business plan—so you can start faster, smarter.
+              Get itemized estimates + full business plan, in minutes—FREE.<br />
+              Real Estate. Op Expenses. Revenue. Equipment. Start faster, smarter - with SportsFacility.ai
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="lg" onClick={() => navigate('/wizard')}>
