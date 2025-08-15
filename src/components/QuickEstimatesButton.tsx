@@ -694,18 +694,32 @@ function saveDraftProject(p: QuickPreset, sportKey: SportKey, choice?: GalleryCh
 export default function QuickEstimatesButton() {
   const [open, setOpen] = useState(false);
   const [layoutChoice, setLayoutChoice] = useState<GalleryChoice | null>(null);
-  const [sport, setSport] = useState<SportKey>("baseball_softball");
+  const [selectedSports, setSelectedSports] = useState<SportKey[]>([]);
   const [size, setSize] = useState<SizeKey>("medium");
   const navigate = useNavigate();
 
-  // reset selection when sport/size preset changes
-  useEffect(() => { setLayoutChoice(null); }, [sport, size]);
+  // reset selection when size changes
+  useEffect(() => { setLayoutChoice(null); }, [selectedSports, size]);
 
-  const preset = useMemo(() => QUICK_PRESETS[sport](size), [sport, size]);
-  const preview = useMemo(() => estimateQuickNumbers(preset), [preset]);
+  const preset = useMemo(() => selectedSports.length === 1 ? QUICK_PRESETS[selectedSports[0]](size) : null, [selectedSports, size]);
+  const preview = useMemo(() => preset ? estimateQuickNumbers(preset) : null, [preset]);
 
   function createQuickEstimate() {
-    const saved = saveDraftProject(preset, sport, layoutChoice); // <— pass layout
+    if (!selectedSports.length || !size) return;
+    
+    // For multiple sports, use the first sport as primary for layout
+    const primarySport = selectedSports[0];
+    const primaryPreset = QUICK_PRESETS[primarySport](size);
+    
+    const saved = saveDraftProject(primaryPreset, primarySport, layoutChoice);
+    
+    // Add all selected sports to the project
+    const combinedSports = selectedSports.flatMap(sport => getSportsForPreset(sport));
+    saved.selectedSports = combinedSports;
+    
+    // Update localStorage with combined sports
+    localStorage.setItem(`ps:project:${saved.id}`, JSON.stringify(saved));
+    
     // notify others (e.g., Analysis route) the project changed
     try {
       window.dispatchEvent(new CustomEvent("ps:project:changed", { detail: { projectId: saved.id } }));
@@ -752,14 +766,20 @@ export default function QuickEstimatesButton() {
 
             <section className="qs-grid">
               <div className="qs-card">
-                <h3>1) Choose a sport</h3>
+                <h3>1) Choose sports</h3>
                 <div className="qs-pills">
                   {sportOptions.map(opt => (
                     <button
                       key={opt.key}
-                      className={`qs-pill ${sport === opt.key ? "active" : ""}`}
-                      onClick={() => setSport(opt.key)}
-                      aria-pressed={sport === opt.key}
+                      className={`qs-pill ${selectedSports.includes(opt.key) ? "active" : ""}`}
+                      onClick={() => {
+                        setSelectedSports(prev => 
+                          prev.includes(opt.key) 
+                            ? prev.filter(s => s !== opt.key)
+                            : [...prev, opt.key]
+                        );
+                      }}
+                      aria-pressed={selectedSports.includes(opt.key)}
                     >
                       {opt.label}
                     </button>
@@ -783,39 +803,56 @@ export default function QuickEstimatesButton() {
 
               <div className="qs-card">
                 <h3>Layout & Space</h3>
-                <LayoutSummary preset={preset} />
+                {preset ? <LayoutSummary preset={preset} /> : (
+                  <p>Select sports to see layout details</p>
+                )}
               </div>
 
               <div className="qs-card">
                 <h3>Layout Options</h3>
-                <LayoutGallery
-                  grossSf={computeSpace(preset.facility, preset.per_unit_space_sf).grossSF}
-                  counts={{
-                    volleyball_courts: preset.facility.court_or_cage_counts.volleyball_courts || 0,
-                    pickleball_courts: preset.facility.court_or_cage_counts.pickleball_courts || 0,
-                    basketball_courts_full: preset.facility.court_or_cage_counts.basketball_courts_full || 0,
-                    basketball_courts_half: 0,
-                    baseball_tunnels: preset.facility.court_or_cage_counts.baseball_tunnels || 0,
-                    training_turf_zone: preset.facility.court_or_cage_counts.training_turf_zone || 0,
-                    soccer_field_small: preset.facility.court_or_cage_counts.soccer_field_small || 0,
-                    football_field: preset.facility.court_or_cage_counts.football_field || 0
-                  }}
-                  selectedId={layoutChoice?.id || undefined}
-                  onSelect={(choice) => setLayoutChoice(choice)}
-                />
+                {preset ? (
+                  <LayoutGallery
+                    grossSf={computeSpace(preset.facility, preset.per_unit_space_sf).grossSF}
+                    counts={{
+                      volleyball_courts: preset.facility.court_or_cage_counts.volleyball_courts || 0,
+                      pickleball_courts: preset.facility.court_or_cage_counts.pickleball_courts || 0,
+                      basketball_courts_full: preset.facility.court_or_cage_counts.basketball_courts_full || 0,
+                      basketball_courts_half: 0,
+                      baseball_tunnels: preset.facility.court_or_cage_counts.baseball_tunnels || 0,
+                      training_turf_zone: preset.facility.court_or_cage_counts.training_turf_zone || 0,
+                      soccer_field_small: preset.facility.court_or_cage_counts.soccer_field_small || 0,
+                      football_field: preset.facility.court_or_cage_counts.football_field || 0
+                    }}
+                    selectedId={layoutChoice?.id || undefined}
+                    onSelect={(choice) => setLayoutChoice(choice)}
+                  />
+                ) : (
+                  <p>Select sports to see layout options</p>
+                )}
               </div>
 
               <div className="qs-card">
                 <h3>Budget Preview (Omaha baseline)</h3>
-                <ul className="qs-stats">
-                  <li><span>Gross SF</span><strong>{preview.grossSF.toLocaleString()}</strong></li>
-                  <li><span>CapEx (est.)</span><strong>${preview.capexTotal.toLocaleString()}</strong></li>
-                  <li><span>Monthly OpEx (est.)</span><strong>${preview.opexMonthly.toLocaleString()}</strong></li>
-                  <li><span>Monthly Revenue (est.)</span><strong>${preview.revenueMonthly.toLocaleString()}</strong></li>
-                  <li><span>EBITDA (est.)</span><strong>${preview.ebitdaMonthly.toLocaleString()}</strong></li>
-                  <li><span>Break‑even</span><strong>{preview.breakEvenMonths ? `${preview.breakEvenMonths} mo` : "n/a"}</strong></li>
-                </ul>
-                <p className="qs-note">All inputs are editable later. Figures are planning estimates only.</p>
+                {selectedSports.length === 1 && preview ? (
+                  <>
+                    <ul className="qs-stats">
+                      <li><span>Gross SF</span><strong>{preview.grossSF.toLocaleString()}</strong></li>
+                      <li><span>CapEx (est.)</span><strong>${preview.capexTotal.toLocaleString()}</strong></li>
+                      <li><span>Monthly OpEx (est.)</span><strong>${preview.opexMonthly.toLocaleString()}</strong></li>
+                      <li><span>Monthly Revenue (est.)</span><strong>${preview.revenueMonthly.toLocaleString()}</strong></li>
+                      <li><span>EBITDA (est.)</span><strong>${preview.ebitdaMonthly.toLocaleString()}</strong></li>
+                      <li><span>Break‑even</span><strong>{preview.breakEvenMonths ? `${preview.breakEvenMonths} mo` : "n/a"}</strong></li>
+                    </ul>
+                    <p className="qs-note">All inputs are editable later. Figures are planning estimates only.</p>
+                  </>
+                ) : selectedSports.length > 1 ? (
+                  <div className="qs-multi-note">
+                    <p>📊 Multi-sport budget estimates will be calculated in the detailed calculator</p>
+                    <p>Selected: {selectedSports.map(s => sportOptions.find(opt => opt.key === s)?.label).join(', ')}</p>
+                  </div>
+                ) : (
+                  <p>Select sports to see budget preview</p>
+                )}
               </div>
             </section>
 
@@ -823,11 +860,16 @@ export default function QuickEstimatesButton() {
               <button className="qs-secondary" onClick={() => setOpen(false)}>Cancel</button>
               <button
                 className="qs-primary"
-                disabled={!layoutChoice}
-                title={!layoutChoice ? "Pick a layout to continue" : "Create Quick Estimate"}
+                disabled={selectedSports.length === 0 || (selectedSports.length === 1 && !layoutChoice)}
+                title={selectedSports.length === 0 ? "Select sports to continue" : selectedSports.length === 1 && !layoutChoice ? "Pick a layout to continue" : "Create Quick Estimate"}
                 onClick={createQuickEstimate}
               >
-                {layoutChoice ? "Create Quick Estimate →" : "Choose a layout ↑"}
+                {selectedSports.length === 0 
+                  ? "Select sports ↑" 
+                  : selectedSports.length === 1 && !layoutChoice 
+                  ? "Choose a layout ↑" 
+                  : "Create Quick Estimate →"
+                }
               </button>
             </footer>
           </div>
@@ -864,9 +906,9 @@ export default function QuickEstimatesButton() {
         }
         .qs-pill.active { background: #0B63E5; border-color: #0B63E5; color: #fff; }
         .qs-stats { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 6px; }
-        .qs-stats li { display: flex; justify-content: space-between; font-size: 14px; }
         .qs-stats strong { font-weight: 700; }
         .qs-note { color: #6B7280; font-size: 12px; margin-top: 8px; }
+        .qs-multi-note { background: #f8f9fa; padding: 12px; border-radius: 8px; text-align: center; color: #6b7280; }
         .qs-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 8px; }
         .qs-primary {
           background: #00A66A; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-weight: 700; cursor: pointer;
