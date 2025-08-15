@@ -191,43 +191,13 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     ]
   },
   {
-    id: "products_interest",
-    type: "multiple",
-    title: "What products are you interested in?",
-    description: "Select all that you need quotes for",
-    dependsOn: {
-      questionId: "experience_level",
-      values: ["expanding"]
-    },
-    options: [
-      { id: "turf", label: "Turf", description: "Artificial turf systems" },
-      { id: "nets_cages", label: "Nets/Cages", description: "Protective netting and batting cages" },
-      { id: "hoops", label: "Hoops", description: "Basketball goals and systems" },
-      { id: "volleyball", label: "Volleyball", description: "Net systems and equipment" },
-      { id: "lighting", label: "Lighting", description: "LED sports lighting systems" },
-      { id: "hvac", label: "HVAC", description: "Climate control systems" },
-      { id: "court_flooring", label: "Court Flooring", description: "Sport court and hardwood flooring" },
-      { id: "rubber_flooring", label: "Rubber Flooring", description: "Fitness and safety flooring" },
-      { id: "machines", label: "Machines", description: "Fitness and training equipment" },
-      { id: "pickleball", label: "Pickleball", description: "Pickleball courts and equipment" },
-      { id: "divider_curtains", label: "Divider Curtains", description: "Court separation systems" },
-      { id: "other", label: "Other", description: "Custom or specialty products" }
-    ],
-    textField: {
-      id: "other_products_description",
-      label: "Please specify other products",
-      placeholder: "Describe the products you're interested in...",
-      dependsOnValue: "other"
-    }
-  },
-  {
     id: "vendor_quotes_help",
     type: "single",
     title: "Need help getting discounted quotes from Vendors?",
     description: "We can connect you with vetted suppliers for competitive pricing",
     dependsOn: {
-      questionId: "products_interest",
-      values: ["turf", "nets_cages", "hoops", "volleyball", "lighting", "hvac", "court_flooring", "rubber_flooring", "machines", "pickleball", "divider_curtains", "other"]
+      questionId: "experience_level",
+      values: ["expanding"]
     },
     options: [
       { id: "yes_help", label: "Sure! Make it easy.", description: "Connect me with vetted suppliers for quotes" },
@@ -257,8 +227,8 @@ export const generateRecommendations = (responses: any) => {
   const locationType = responses.location_type;
   const revenueModel = responses.revenue_model || [];
   const budget = responses.budget_range;
-  const productsOfInterest = responses.products_interest || [];
-  const customProducts = responses.other_products_description || "";
+  const productsOfInterest: string[] = [];
+  const customProducts = "";
   const vendorQuotesHelp = responses.vendor_quotes_help || "";
 
   // Product cost estimates based on equipment data from calculator
