@@ -529,7 +529,7 @@ export default function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesM
             onClick={createQuickEstimate}
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
           >
-            {sports.length > 0 ? "Continue" : "Select sports"} →
+            Continue →
           </button>
         </div>
       </div>
