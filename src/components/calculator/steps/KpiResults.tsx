@@ -186,6 +186,18 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
     }
   };
 
+  const handleEditOpEx = () => {
+    if (onNavigateToStep) {
+      onNavigateToStep(5); // Navigate to OpEx step
+    }
+  };
+
+  const handleEditRevenue = () => {
+    if (onNavigateToStep) {
+      onNavigateToStep(6); // Navigate to Revenue step
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -238,20 +250,39 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
 
       {/* KPI Cards Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {kpiCards.map((kpi, index) => (
-          <Card key={index} className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
-              <kpi.icon className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{kpi.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {kpi.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+        {kpiCards.map((kpi, index) => {
+          // Add edit button for OpEx and Revenue cards
+          const showEdit = kpi.title === "Monthly OpEx" || kpi.title === "Monthly Revenue";
+          const editHandler = kpi.title === "Monthly OpEx" ? handleEditOpEx : 
+                            kpi.title === "Monthly Revenue" ? handleEditRevenue : undefined;
+          
+          return (
+            <Card key={index} className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <kpi.icon className="h-5 w-5 text-muted-foreground" />
+                  {showEdit && onNavigateToStep && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={editHandler}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{kpi.value}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {kpi.description}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Summary Metrics */}

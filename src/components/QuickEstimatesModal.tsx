@@ -389,9 +389,73 @@ export default function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesM
   };
 
   function createQuickEstimate() {
-    // Create project and navigate
-    const id = `quick-${Date.now()}`;
-    navigate(`/calculator?projectId=${id}&mode=quick`);
+    // Generate a timestamp-based project ID
+    const projectId = `quick-${Date.now()}`;
+    
+    // Create smart defaults based on selected sports and size
+    const primarySport = sports[0] as SportKey || 'baseball_softball';
+    const facilitySize = size as SizeKey;
+    const preset = getPreset(primarySport, facilitySize);
+    
+    // Build calculator data structure with smart defaults
+    const calculatorData = {
+      // Step 1: Project Basics
+      1: {
+        project_name: `${preset.label} Facility`,
+        project_description: `Quick estimate for ${preset.label.toLowerCase()} facility`,
+        location: '',
+        start_date: new Date().toISOString().split('T')[0]
+      },
+      
+      // Step 2: Build Mode  
+      2: {
+        build_mode: preset.facility.build_mode
+      },
+      
+      // Step 3: Facility Plan (seeded with preset data)
+      3: {
+        ...preset.facility,
+        total_sqft: preset.per_unit_space_sf ? 
+          Object.entries(preset.facility.court_or_cage_counts).reduce((acc, [unit, count]) => {
+            const sf = preset.per_unit_space_sf[unit] || 0;
+            return acc + (count * sf);
+          }, 0) * (1 + (preset.facility.admin_pct_addon + preset.facility.circulation_pct_addon) / 100) : 
+          undefined
+      },
+      
+      // Step 4: Site Costs (basic defaults)
+      4: {
+        land_cost: 0,
+        sitework_pct: 15,
+        building_cost_per_sf: 45,
+        region_multiplier: preset.region_multiplier
+      },
+      
+      // Step 5: OpEx (seeded with preset data)
+      5: preset.opex,
+      
+      // Step 6: Revenue Programs (seeded with preset data)  
+      6: preset.revenue,
+      
+      // Step 7: Financing (basic defaults for lease)
+      7: preset.lease ? {
+        financing_method: 'lease',
+        lease_terms: preset.lease
+      } : {
+        financing_method: 'cash'
+      },
+      
+      // Step 8: Equipment (basic estimate)
+      8: {
+        equipment_total: preset.equipment_lump_sum || 50000
+      }
+    };
+    
+    // Save to localStorage
+    localStorage.setItem(`calculator-data-${projectId}`, JSON.stringify(calculatorData));
+    
+    // Navigate to calculator
+    navigate(`/calculator?projectId=${projectId}&mode=quick`);
     onClose();
   }
 
