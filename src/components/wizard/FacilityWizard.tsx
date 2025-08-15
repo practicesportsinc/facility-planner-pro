@@ -156,8 +156,12 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
     const newResponses = { ...responses, [currentQuestion.id]: value };
     setResponses(newResponses);
 
-    // Auto-advance for single selection questions
-    if (currentQuestion.type === 'single' && !isLastStep) {
+    // Auto-advance for single selection questions, but not if a text field will be shown
+    const shouldAutoAdvance = currentQuestion.type === 'single' && 
+                             !isLastStep && 
+                             !(currentQuestion.textField && value === currentQuestion.textField.dependsOnValue);
+    
+    if (shouldAutoAdvance) {
       setTimeout(() => setCurrentStep(prev => prev + 1), 300);
     }
   };
