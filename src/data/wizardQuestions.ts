@@ -21,6 +21,21 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     ]
   },
   {
+    id: "sport_ratios",
+    type: "range",
+    title: "What percentage breakdown do you want for each sport?",
+    description: "Use the sliders to allocate percentages for each selected sport. Total must equal 100%.",
+    required: true,
+    dependsOn: {
+      questionId: "primary_sport",
+      values: ["baseball_softball", "basketball", "volleyball", "pickleball", "soccer", "football", "lacrosse", "tennis", "multi_sport", "fitness"]
+    },
+    min: 0,
+    max: 100,
+    step: 5,
+    unit: "%"
+  },
+  {
     id: "target_market",
     type: "multiple",
     title: "Who is your primary target market?",

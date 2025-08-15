@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { ArrowLeft, ArrowRight, Sparkles, Target, MapPin, Users, DollarSign, Calendar, Zap } from "lucide-react";
 import { WIZARD_QUESTIONS, generateRecommendations } from "@/data/wizardQuestions";
 import { WizardQuestion, WizardResponse, WizardResult } from "@/types/wizard";
@@ -26,6 +27,17 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
       if (!question.dependsOn) return true;
       
       const dependentValue = responses[question.dependsOn.questionId];
+      
+      // Special handling for sport ratios - show if multiple sports selected
+      if (question.id === 'sport_ratios') {
+        return Array.isArray(dependentValue) && dependentValue.length > 1;
+      }
+      
+      // Check if dependent value matches any of the required values
+      if (Array.isArray(dependentValue)) {
+        return question.dependsOn.values.some(value => dependentValue.includes(value));
+      }
+      
       return question.dependsOn.values.includes(dependentValue);
     });
   };
@@ -35,7 +47,7 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
   const isLastStep = currentStep === visibleQuestions.length - 1;
   const progress = ((currentStep + 1) / visibleQuestions.length) * 100;
 
-  const handleResponse = (value: string | string[] | number) => {
+  const handleResponse = (value: string | string[] | number | Record<string, number>) => {
     const newResponses = { ...responses, [currentQuestion.id]: value };
     setResponses(newResponses);
 
@@ -48,6 +60,14 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
   const canContinue = () => {
     if (!currentQuestion.required) return true;
     const response = responses[currentQuestion.id];
+    
+    // Special validation for sport ratios
+    if (currentQuestion.id === 'sport_ratios') {
+      if (!response || typeof response !== 'object') return false;
+      const total = Object.values(response).reduce((sum: number, value: any) => sum + (value || 0), 0);
+      return total === 100;
+    }
+    
     return response !== undefined && response !== '' && 
            (Array.isArray(response) ? response.length > 0 : true);
   };
@@ -217,6 +237,98 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
         );
 
       case 'range':
+        // Special handling for sport ratios
+        if (currentQuestion.id === 'sport_ratios') {
+          const selectedSports: string[] = responses.primary_sport || [];
+          const sportRatios: Record<string, number> = currentValue || {};
+          
+          // Initialize ratios if not set
+          useEffect(() => {
+            if (selectedSports.length > 0 && Object.keys(sportRatios).length === 0) {
+              const initialRatio = Math.floor(100 / selectedSports.length);
+              const newRatios: Record<string, number> = {};
+              selectedSports.forEach((sport, index) => {
+                newRatios[sport] = index === 0 ? 100 - (initialRatio * (selectedSports.length - 1)) : initialRatio;
+              });
+              handleResponse(newRatios);
+            }
+          }, [selectedSports]);
+
+          const getTotalPercentage = (): number => {
+            return Object.values(sportRatios).reduce((sum: number, value: number) => sum + (value || 0), 0);
+          };
+
+          const updateSportRatio = (sport: string, newValue: number) => {
+            const newRatios = { ...sportRatios, [sport]: newValue };
+            const currentTotal = Object.values(sportRatios).reduce((sum: number, value: number) => sum + (value || 0), 0);
+            
+            // If over 100%, proportionally reduce other sports
+            if (newValue > 0) {
+              const otherSports = selectedSports.filter(s => s !== sport);
+              const remainingTotal = 100 - newValue;
+              const otherTotal = currentTotal - (sportRatios[sport] || 0);
+              
+              if (otherTotal > 0) {
+                otherSports.forEach(otherSport => {
+                  const currentRatio = sportRatios[otherSport] || 0;
+                  const proportion = currentRatio / otherTotal;
+                  newRatios[otherSport] = Math.max(0, Math.round(remainingTotal * proportion));
+                });
+              }
+            }
+            
+            handleResponse(newRatios);
+          };
+
+          const sportLabels: Record<string, string> = {
+            baseball_softball: "Baseball/Softball",
+            basketball: "Basketball", 
+            volleyball: "Volleyball",
+            pickleball: "Pickleball",
+            soccer: "Soccer",
+            football: "Football",
+            lacrosse: "Lacrosse",
+            tennis: "Tennis",
+            multi_sport: "Multi-Sport",
+            fitness: "Fitness/Training"
+          };
+
+          return (
+            <div className="max-w-2xl space-y-6">
+              {selectedSports.map((sport) => (
+                <div key={sport} className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label>{sportLabels[sport] || sport}</Label>
+                    <span className="text-sm font-medium">{sportRatios[sport] || 0}%</span>
+                  </div>
+                  <Slider
+                    value={[sportRatios[sport] || 0]}
+                    onValueChange={(value) => updateSportRatio(sport, value[0])}
+                    max={100}
+                    min={0}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+              ))}
+              <div className="mt-4 p-3 bg-muted rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Total:</span>
+                  <span className={`text-sm font-bold ${getTotalPercentage() === 100 ? 'text-green-600' : 'text-red-600'}`}>
+                    {getTotalPercentage()}%
+                  </span>
+                </div>
+                {getTotalPercentage() !== 100 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Adjust the sliders so the total equals 100%
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        }
+        
+        // Default range handling
         return (
           <div className="max-w-md">
             <Label htmlFor={currentQuestion.id}>
