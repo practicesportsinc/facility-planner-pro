@@ -240,42 +240,42 @@ interface QuickEstimatesModalProps {
   onClose: () => void;
 }
 
-// Equipment recommendations based on sport and size
+// Equipment recommendations based on sport and size (matching wizard format)
 const EQUIPMENT_RECOMMENDATIONS: Record<SportKey, Record<SizeKey, string[]>> = {
   baseball_softball: {
-    small: ["6 Batting Cages", "3 Pitching Machines", "6 L-Screens", "2 Scoreboards", "1,200 SF Turf Area"],
-    medium: ["8 Batting Cages", "4 Pitching Machines", "8 L-Screens", "2 Scoreboards", "1,600 SF Turf Area"],
-    large: ["12 Batting Cages", "6 Pitching Machines", "12 L-Screens", "3 Scoreboards", "2,400 SF Turf Area"]
+    small: ["6 Batting Cages", "3 Pitching Machines", "6 L-Screens", "3 Ball Carts", "4 Divider Curtains", "3,500 SF Turf Area"],
+    medium: ["8 Batting Cages", "4 Pitching Machines", "8 L-Screens", "4 Ball Carts", "4 Divider Curtains", "4,200 SF Turf Area"],
+    large: ["12 Batting Cages", "6 Pitching Machines", "12 L-Screens", "6 Ball Carts", "4 Divider Curtains", "5,600 SF Turf Area"]
   },
   basketball: {
-    small: ["4 Basketball Hoops", "2 Scoreboards", "1,800 SF Hardwood Flooring", "2 Divider Curtains"],
-    medium: ["6 Basketball Hoops", "3 Scoreboards", "2,700 SF Hardwood Flooring", "3 Divider Curtains"],
-    large: ["8 Basketball Hoops", "4 Scoreboards", "3,600 SF Hardwood Flooring", "4 Divider Curtains"]
+    small: ["4 Basketball Hoops", "2 Scoreboards", "2,100 SF Hardwood Flooring", "4 Divider Curtains"],
+    medium: ["4 Basketball Hoops", "2 Scoreboards", "6,600 SF Hardwood Flooring", "4 Divider Curtains"],
+    large: ["6 Basketball Hoops", "3 Scoreboards", "7,800 SF Hardwood Flooring", "4 Divider Curtains"]
   },
   volleyball: {
-    small: ["3 Volleyball Systems", "3 Referee Stands", "1,500 SF Rubber Flooring", "2 Scoreboards"],
-    medium: ["4 Volleyball Systems", "4 Referee Stands", "2,000 SF Rubber Flooring", "2 Scoreboards"],
-    large: ["6 Volleyball Systems", "6 Referee Stands", "3,000 SF Rubber Flooring", "3 Scoreboards"]
+    small: ["3 Volleyball Systems", "3 Referee Stands", "2 Scoreboards", "1,750 SF Rubber Flooring", "4 Divider Curtains"],
+    medium: ["4 Volleyball Systems", "4 Referee Stands", "2 Scoreboards", "5,500 SF Rubber Flooring", "4 Divider Curtains"],
+    large: ["5 Volleyball Systems", "5 Referee Stands", "3 Scoreboards", "6,500 SF Rubber Flooring", "4 Divider Curtains"]
   },
   pickleball: {
-    small: ["6 Pickleball Nets", "12 Paddle Starter Sets", "1,200 SF Rubber Flooring", "2 Divider Curtains"],
-    medium: ["8 Pickleball Nets", "16 Paddle Starter Sets", "1,600 SF Rubber Flooring", "3 Divider Curtains"],
-    large: ["12 Pickleball Nets", "24 Paddle Starter Sets", "2,400 SF Rubber Flooring", "4 Divider Curtains"]
+    small: ["4 Pickleball Nets", "8 Paddle Starter Sets", "1,680 SF Rubber Flooring", "4 Divider Curtains"],
+    medium: ["6 Pickleball Nets", "12 Paddle Starter Sets", "5,500 SF Rubber Flooring", "4 Divider Curtains"],
+    large: ["8 Pickleball Nets", "16 Paddle Starter Sets", "6,500 SF Rubber Flooring", "4 Divider Curtains"]
   },
   soccer_indoor_small_sided: {
-    small: ["1 Soccer Field", "1,800 SF Turf Area", "2 Soccer Goals"],
-    medium: ["2 Soccer Fields", "2,400 SF Turf Area", "4 Soccer Goals"],
-    large: ["3 Soccer Fields", "3,600 SF Turf Area", "6 Soccer Goals"]
+    small: ["2 Soccer Goals (pair)", "3,500 SF Turf Area", "4 Divider Curtains", "1 Training Turf Zone"],
+    medium: ["2 Soccer Goals (pair)", "7,700 SF Turf Area", "4 Divider Curtains", "1 Training Turf Zone"],
+    large: ["3 Soccer Goals (pair)", "9,100 SF Turf Area", "4 Divider Curtains", "1 Training Turf Zone"]
   },
   football: {
-    small: ["1 Football Field", "3,600 SF Turf Area", "2 Goal Posts"],
-    medium: ["1 Football Field", "5,400 SF Turf Area", "2 Goal Posts"],
-    large: ["2 Football Fields", "7,200 SF Turf Area", "4 Goal Posts"]
+    small: ["3,500 SF Turf Area", "4 Divider Curtains"],
+    medium: ["7,700 SF Turf Area", "4 Divider Curtains"],
+    large: ["9,100 SF Turf Area", "4 Divider Curtains"]
   },
   multi_sport: {
-    small: ["Mixed Equipment", "2,000 SF Turf/Court Area", "4 Divider Curtains"],
-    medium: ["Mixed Equipment", "3,000 SF Turf/Court Area", "6 Divider Curtains"],
-    large: ["Mixed Equipment", "4,500 SF Turf/Court Area", "8 Divider Curtains"]
+    small: ["4 Divider Curtains", "3,500 SF Turf Area", "1,750 SF Rubber Flooring", "2 Scoreboards"],
+    medium: ["4 Divider Curtains", "7,700 SF Turf Area", "5,500 SF Rubber Flooring", "2 Scoreboards"],
+    large: ["4 Divider Curtains", "9,100 SF Turf Area", "6,500 SF Rubber Flooring", "3 Scoreboards"]
   }
 };
 
@@ -367,16 +367,19 @@ export default function QuickEstimatesModal({ isOpen, onClose }: QuickEstimatesM
 
               <div>
                 <h3 className="text-lg font-semibold mb-3">Recommended Equipment</h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 mb-3">Based on your selections:</p>
-                  <ul className="space-y-1">
+                <div className="bg-gray-50 rounded-lg p-4 max-h-80 overflow-y-auto">
+                  <p className="text-sm text-gray-600 mb-3">Based on your sport and size selections:</p>
+                  <ul className="space-y-2">
                     {EQUIPMENT_RECOMMENDATIONS[sport][size].map((item, index) => (
-                      <li key={index} className="text-sm flex items-center">
-                        <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                        {item}
+                      <li key={index} className="text-sm flex items-start">
+                        <span className="w-2 h-2 bg-blue-600 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span className="leading-relaxed">{item}</span>
                       </li>
                     ))}
                   </ul>
+                  <p className="text-xs text-gray-500 mt-3 border-t pt-3">
+                    These are typical recommendations. All equipment can be customized in the full calculator.
+                  </p>
                 </div>
               </div>
             </div>
