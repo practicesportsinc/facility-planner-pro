@@ -73,6 +73,7 @@ const WizardResults = () => {
     const targetMarket = Array.isArray(responses.target_market) ? responses.target_market : [responses.target_market];
     const buildMode = responses.build_mode || 'build';
     const budget = responses.budget || 1000000;
+    const productQuantities = responses.product_quantities || {};
 
     // Calculate detailed sport-by-sport breakdown
     const sportsBreakdown = selectedSports.filter(Boolean).map((sportId: string) => {
@@ -94,6 +95,9 @@ const WizardResults = () => {
       };
     });
 
+    // Calculate detailed equipment breakdown based on selections
+    const equipmentBreakdown = generateEquipmentBreakdown(selectedSports, productQuantities, facilitySize);
+
     // Calculate totals
     const totalSqft = sportsBreakdown.reduce((sum, sport) => sum + sport.squareFootage, 0) * 1.25; // Add 25% for circulation
     const totalConstructionCost = sportsBreakdown.reduce((sum, sport) => sum + sport.constructionCost, 0) * 1.25;
@@ -112,6 +116,7 @@ const WizardResults = () => {
     // Enhanced financial metrics with sport breakdown
     setFinancialMetrics({
       sportsBreakdown,
+      equipmentBreakdown,
       space: { 
         grossSF: totalSqft, 
         totalProgramSF: totalSqft * 0.8,
@@ -180,6 +185,93 @@ const WizardResults = () => {
     }
 
     return baseMembers * avgMembershipPrice;
+  };
+
+  // Generate detailed equipment breakdown
+  const generateEquipmentBreakdown = (sports: string[], quantities: any, facilitySize: string) => {
+    const equipmentCategories: any = {
+      'Courts & Playing Surfaces': [],
+      'Protective Equipment': [],
+      'Goals & Net Systems': [],
+      'Lighting & Infrastructure': [],
+      'Safety & Training': [],
+      'Facility Infrastructure': []
+    };
+
+    // Sport-specific equipment based on selections
+    sports.forEach(sport => {
+      switch (sport) {
+        case 'basketball':
+          equipmentCategories['Courts & Playing Surfaces'].push(
+            { item: 'Basketball Court Flooring', quantity: 2, unitCost: 8500, total: 17000, description: 'Professional hardwood flooring' }
+          );
+          equipmentCategories['Goals & Net Systems'].push(
+            { item: 'Basketball Goals (Adjustable)', quantity: 4, unitCost: 1200, total: 4800, description: 'NCAA regulation goals' }
+          );
+          break;
+        
+        case 'volleyball':
+          equipmentCategories['Courts & Playing Surfaces'].push(
+            { item: 'Volleyball Court Flooring', quantity: 2, unitCost: 6500, total: 13000, description: 'Competition-grade flooring' }
+          );
+          equipmentCategories['Goals & Net Systems'].push(
+            { item: 'Volleyball Net Systems', quantity: 4, unitCost: 450, total: 1800, description: 'Official height net systems' }
+          );
+          break;
+        
+        case 'baseball_softball':
+          equipmentCategories['Protective Equipment'].push(
+            { item: 'Batting Cage Netting', quantity: 4, unitCost: 2800, total: 11200, description: '70\' x 15\' protective netting' },
+            { item: 'Pitching Machines', quantity: 2, unitCost: 3500, total: 7000, description: 'Multi-speed pitching machines' }
+          );
+          break;
+        
+        case 'soccer':
+          equipmentCategories['Courts & Playing Surfaces'].push(
+            { item: 'Artificial Turf System', quantity: 1, unitCost: 45000, total: 45000, description: '6000 sq ft turf installation' }
+          );
+          equipmentCategories['Goals & Net Systems'].push(
+            { item: 'Soccer Goals', quantity: 4, unitCost: 800, total: 3200, description: 'Regulation size goals' }
+          );
+          break;
+        
+        case 'pickleball':
+          equipmentCategories['Courts & Playing Surfaces'].push(
+            { item: 'Pickleball Court Surface', quantity: 4, unitCost: 3500, total: 14000, description: 'Non-slip court surface' }
+          );
+          equipmentCategories['Goals & Net Systems'].push(
+            { item: 'Pickleball Net Systems', quantity: 4, unitCost: 250, total: 1000, description: 'Portable net systems' }
+          );
+          break;
+      }
+    });
+
+    // Common facility equipment based on size
+    const baseEquipment = [
+      { category: 'Lighting & Infrastructure', item: 'LED Sports Lighting', quantity: 20, unitCost: 450, total: 9000, description: 'Energy-efficient LED fixtures' },
+      { category: 'Safety & Training', item: 'First Aid Stations', quantity: 2, unitCost: 350, total: 700, description: 'Fully stocked first aid stations' },
+      { category: 'Facility Infrastructure', item: 'Sound System', quantity: 1, unitCost: 8500, total: 8500, description: 'Facility-wide audio system' },
+      { category: 'Facility Infrastructure', item: 'HVAC Equipment', quantity: 1, unitCost: 25000, total: 25000, description: 'Climate control system' },
+      { category: 'Safety & Training', item: 'Storage Systems', quantity: 1, unitCost: 4500, total: 4500, description: 'Equipment storage solutions' }
+    ];
+
+    baseEquipment.forEach(item => {
+      equipmentCategories[item.category].push({
+        item: item.item,
+        quantity: item.quantity,
+        unitCost: item.unitCost,
+        total: item.total,
+        description: item.description
+      });
+    });
+
+    // Calculate category totals
+    Object.keys(equipmentCategories).forEach(category => {
+      const categoryTotal = equipmentCategories[category].reduce((sum: number, item: any) => sum + item.total, 0);
+      equipmentCategories[category].categoryTotal = categoryTotal;
+    });
+
+    return equipmentCategories;
   };
 
   const generateLocalSummary = (financialMetrics: any, wizardData: any) => {
@@ -703,6 +795,99 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
             </div>
           </CardContent>
         </Card>
+
+        {/* Equipment Breakdown Section */}
+        {financialMetrics.equipmentBreakdown && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Target className="w-6 h-6 text-primary" />
+                Equipment Selections & Pricing
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-6">
+                Detailed breakdown of equipment selections and estimated pricing based on your facility requirements.
+              </p>
+              
+              <div className="space-y-6">
+                {Object.entries(financialMetrics.equipmentBreakdown).map(([categoryName, items]: [string, any]) => {
+                  if (!Array.isArray(items) || items.length === 0) return null;
+                  
+                  return (
+                    <div key={categoryName} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-semibold text-lg">{categoryName}</h4>
+                        <Badge variant="outline" className="text-sm">
+                          {formatCurrency((items as any).categoryTotal || items.reduce((sum: number, item: any) => sum + item.total, 0))}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {items.map((item: any, index: number) => (
+                          <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 bg-muted/30 rounded-lg border">
+                            <div className="md:col-span-2">
+                              <div className="font-medium">{item.item}</div>
+                              <div className="text-xs text-muted-foreground">{item.description}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-sm font-medium">Qty: {item.quantity}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-sm font-medium">{formatCurrency(item.unitCost)}</div>
+                              <div className="text-xs text-muted-foreground">per unit</div>
+                            </div>
+                            <div className="md:col-span-2 text-right">
+                              <div className="text-lg font-bold text-primary">{formatCurrency(item.total)}</div>
+                              <div className="text-xs text-muted-foreground">total cost</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Equipment Summary */}
+              <div className="mt-6 pt-6 border-t">
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {formatCurrency(Object.values(financialMetrics.equipmentBreakdown)
+                        .filter((category: any) => Array.isArray(category))
+                        .reduce((total: number, category: any[]) => 
+                          total + category.reduce((sum: number, item: any) => sum + (item.total || 0), 0), 0
+                        ))}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Total Equipment Investment</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {Object.values(financialMetrics.equipmentBreakdown).reduce((total: number, category: any) => 
+                        total + (Array.isArray(category) ? category.length : 0), 0
+                      ).toString()}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Equipment Items</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">
+                      {Object.keys(financialMetrics.equipmentBreakdown).length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Equipment Categories</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> Equipment pricing is estimated based on industry standards. 
+                  Final costs may vary based on vendors, quality specifications, and installation requirements.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Budget & Investment Analysis */}
         <Card className="mb-6">
