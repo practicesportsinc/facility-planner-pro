@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Package, RefreshCw, Check } from "lucide-react";
 
 interface EquipmentProps {
@@ -60,6 +61,102 @@ const PRODUCT_HELPERS = {
 // Helper function max that treats missing values as 0
 const max = (...args: number[]) => Math.max(...args.map(x => x || 0));
 
+// Custom hook for product defaults with controlled state
+function useProductDefaults({
+  selectedSports,
+  facilitySqft,
+  countsFromLayout,
+  persistedSelected,
+  persistedQuantities
+}: {
+  selectedSports: string[];
+  facilitySqft: number;
+  countsFromLayout: Record<string, number>;
+  persistedSelected?: string[] | null;
+  persistedQuantities?: Record<string, number> | null;
+}) {
+  // Derive default set from sports
+  const defaultSet = useMemo(() => {
+    const set = new Set<string>();
+    selectedSports.forEach(s => (SPORT_PRODUCT_MAP[s as keyof typeof SPORT_PRODUCT_MAP] || []).forEach(k => set.add(k)));
+    return set;
+  }, [selectedSports]);
+
+  // Local state driving the controlled checkboxes & sliders
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [qty, setQty] = useState<Record<string, number>>({});
+
+  // Guard to run init only once on first mount
+  const inited = useRef(false);
+
+  useEffect(() => {
+    if (inited.current) return;
+    inited.current = true;
+
+    // 1) Selected products: prefer persisted; otherwise use sport defaults
+    const initialSelected = (persistedSelected && persistedSelected.length > 0)
+      ? new Set(persistedSelected)
+      : defaultSet;
+
+    // 2) Quantities: hydrate persisted, otherwise compute smart defaults
+    const initialQty: Record<string, number> = { ...(persistedQuantities || {}) };
+    for (const key of Array.from(initialSelected)) {
+      if (initialQty[key] == null) initialQty[key] = defaultQtyFor(key, facilitySqft, countsFromLayout);
+    }
+    // Clamp surface areas to shell size
+    ["turf_area_sf","rubber_floor_area_sf","hardwood_floor_area_sf"].forEach(k => {
+      if (initialQty[k] != null) initialQty[k] = Math.max(0, Math.min(initialQty[k], facilitySqft));
+    });
+
+    setSelected(initialSelected);
+    setQty(initialQty);
+  }, [defaultSet, facilitySqft, countsFromLayout, persistedSelected, persistedQuantities]);
+
+  // Toggle & quantity setters
+  function toggle(key: string) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else {
+        next.add(key);
+        setQty(q => ({ ...q, [key]: q[key] ?? defaultQtyFor(key, facilitySqft, countsFromLayout) }));
+      }
+      return next;
+    });
+  }
+  function setQuantity(key: string, val: number) {
+    setQty(q => ({ ...q, [key]: val }));
+  }
+
+  return { selected, qty, toggle, setQuantity };
+}
+
+// Default quantity formulas
+function defaultQtyFor(key: string, totalSf: number, c: Record<string, number>) {
+  switch (key) {
+    case "batting_cages": return c.baseball_tunnels || 2;
+    case "pitching_machines": return Math.ceil((c.baseball_tunnels || 0) / 2);
+    case "l_screens": return c.baseball_tunnels || 2;
+    case "ball_carts": return Math.ceil((c.baseball_tunnels || 0) / 2);
+    case "volleyball_systems": return c.volleyball_courts || 0;
+    case "ref_stands": return c.volleyball_courts || 0;
+    case "basketball_hoops": return (c.basketball_courts_full || 0) * 2 + (c.basketball_courts_half || 0);
+    case "scoreboards": return Math.max(c.basketball_courts_full || 0, (c.volleyball_courts || 0) > 0 ? 1 : 0);
+    case "pickleball_nets": return c.pickleball_courts || 0;
+    case "paddle_starter_sets": return (c.pickleball_courts || 0) * 2;
+    case "soccer_goals_pair": return c.soccer_field_small || 0;
+    case "training_turf_zone": return c.training_turf_zone || 0;
+    case "turf_area_sf": return Math.round(totalSf * 0.35 / 100) * 100;
+    case "rubber_floor_area_sf": return Math.round(totalSf * 0.25 / 100) * 100;
+    case "hardwood_floor_area_sf": return (c.basketball_courts_full || 0) > 0 ? Math.round(totalSf * 0.30 / 100) * 100 : 0;
+    case "divider_curtains": {
+      const spans = (c.volleyball_courts || 0) + (c.pickleball_courts || 0) + (c.basketball_courts_full || 0) + (c.training_turf_zone || 0);
+      return Math.max(0, spans - 1);
+    }
+    default: return 0;
+  }
+}
+
 const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentProps) => {
   const selectedSports = allData[1]?.selectedSports || [];
   const facilityPlan = allData[3] || {};
@@ -75,11 +172,17 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
     training_turf_zone: 1
   };
   
-  // Map total_sqft from facility plan
-  const facility_plan = {
-    total_sqft: Number(facilityPlan.totalSquareFootage) || 0
-  };
-  
+  const facilitySqft = Number(facilityPlan.totalSquareFootage) || 0;
+
+  // Use the controlled hook instead of local state
+  const { selected, qty, toggle, setQuantity } = useProductDefaults({
+    selectedSports,
+    facilitySqft,
+    countsFromLayout: counts,
+    persistedSelected: data?.selectedProducts,
+    persistedQuantities: data?.quantities
+  });
+
   // Build allowed products set based on selected sports
   const getAllowedProducts = () => {
     const allowed = new Set<string>();
@@ -98,134 +201,27 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
     const allowed = getAllowedProducts();
     return PRODUCT_CATALOG.filter(item => allowed.has(item.key));
   };
-  
-  // Calculate default quantity using formula
-  const calculateDefaultQuantity = (item: any) => {
-    try {
-      // Use Function constructor for safe evaluation
-      const formula = item.defaultFormula;
-      const func = new Function('counts', 'facility_plan', 'Math', 'max', `return ${formula}`);
-      const result = func(counts, facility_plan, Math, max);
-      
-      // Calculate max bound
-      let maxBound = item.max;
-      if (item.maxFormula) {
-        const maxFunc = new Function('counts', 'facility_plan', 'Math', 'max', `return ${item.maxFormula}`);
-        maxBound = maxFunc(counts, facility_plan, Math, max);
-      }
-      
-      // Clamp result between min and max
-      return Math.max(item.min, Math.min(result || 0, maxBound));
-    } catch (error) {
-      console.error('Error calculating default for', item.key, error);
-      return item.min;
-    }
-  };
-  
-  // Initialize quantities and selection based on formulas
-  const initializeData = () => {
-    const catalog = getFilteredCatalog();
-    const quantities: any = {};
-    const selectedProducts: string[] = [];
-    
-    catalog.forEach(item => {
-      const defaultQty = calculateDefaultQuantity(item);
-      quantities[item.key] = defaultQty;
-      // Auto-select ALL products by default
-      selectedProducts.push(item.key);
-    });
-    
-    return {
-      quantities,
-      selectedProducts
-    };
-  };
 
-  // Initialize form data with quantities and selection  
-  const [formData, setFormData] = useState(() => {
-    const initialData = initializeData();
-    return {
-      selectedProducts: initialData.selectedProducts,
-      quantities: initialData.quantities
-    };
-  });
-
-  // Update data when dependencies change
+  // Persist on every change
   useEffect(() => {
-    const newData = initializeData();
-    setFormData({
-      selectedProducts: newData.selectedProducts,
-      quantities: newData.quantities
-    });
     onUpdate({
-      selectedProducts: newData.selectedProducts,
-      quantities: newData.quantities
+      selectedProducts: Array.from(selected),
+      quantities: qty
     });
-  }, [selectedSports, facilityPlan]);
-
-  const handleProductToggle = (productKey: string) => {
-    const isSelected = formData.selectedProducts.includes(productKey);
-    const updatedSelection = isSelected 
-      ? formData.selectedProducts.filter(key => key !== productKey)
-      : [...formData.selectedProducts, productKey];
-    
-    // If deselecting, set quantity to 0
-    const updatedQuantities = { ...formData.quantities };
-    if (isSelected) {
-      updatedQuantities[productKey] = 0;
-    } else {
-      // If selecting, set to default quantity
-      const item = PRODUCT_CATALOG.find(p => p.key === productKey);
-      if (item) {
-        updatedQuantities[productKey] = calculateDefaultQuantity(item);
-      }
-    }
-    
-    const newData = { 
-      ...formData, 
-      selectedProducts: updatedSelection,
-      quantities: updatedQuantities
-    };
-    setFormData(newData);
-    onUpdate(newData);
-  };
+  }, [selected, qty, onUpdate]);
 
   const handleQuantityChange = (key: string, newQuantity: number[]) => {
-    const updatedQuantities = { 
-      ...formData.quantities, 
-      [key]: newQuantity[0] 
-    };
-    
-    const newData = { ...formData, quantities: updatedQuantities };
-    setFormData(newData);
-    onUpdate(newData);
+    setQuantity(key, newQuantity[0]);
   };
 
   const handleInputChange = (key: string, value: string) => {
     const numValue = Math.max(0, Number(value) || 0);
-    const updatedQuantities = { 
-      ...formData.quantities, 
-      [key]: numValue 
-    };
-    
-    const newData = { ...formData, quantities: updatedQuantities };
-    setFormData(newData);
-    onUpdate(newData);
+    setQuantity(key, numValue);
   };
 
   const resetToTypical = (key: string) => {
-    const item = PRODUCT_CATALOG.find(p => p.key === key);
-    if (item) {
-      const defaultValue = calculateDefaultQuantity(item);
-      const updatedQuantities = { 
-        ...formData.quantities, 
-        [key]: defaultValue 
-      };
-      
-      const newData = { ...formData, quantities: updatedQuantities };
-      setFormData(newData);
-      onUpdate(newData);
-    }
+    const defaultValue = defaultQtyFor(key, facilitySqft, counts);
+    setQuantity(key, defaultValue);
   };
 
   const filteredCatalog = getFilteredCatalog();
@@ -242,7 +238,7 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
             {selectedSports.join(", ")} 
           </Badge>
           <Badge variant="secondary" className="text-sm">
-            {formData.selectedProducts?.length || 0} products selected
+            {selected.size} products selected
           </Badge>
         </div>
       </div>
@@ -250,15 +246,15 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {filteredCatalog.map((item) => {
-            const isSelected = formData.selectedProducts?.includes(item.key) || false;
-            const currentValue = formData.quantities[item.key] || 0;
+            const isSelected = selected.has(item.key);
+            const currentValue = qty[item.key] || 0;
             
             // Calculate max bound
             let maxBound = item.max;
             if (item.maxFormula) {
               try {
                 const maxFunc = new Function('counts', 'facility_plan', 'Math', 'max', `return ${item.maxFormula}`);
-                maxBound = maxFunc(counts, facility_plan, Math, max);
+                maxBound = maxFunc(counts, { total_sqft: facilitySqft }, Math, max);
               } catch {
                 maxBound = item.max;
               }
@@ -277,18 +273,16 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                   <div className="space-y-4">
                     {/* Product Selection Header */}
                     <div className="flex items-start justify-between">
-                      <div 
+                    <div 
                         className="flex-1 cursor-pointer"
-                        onClick={() => handleProductToggle(item.key)}
+                        onClick={() => toggle(item.key)}
                       >
                         <div className="flex items-start gap-3">
-                          <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                            isSelected 
-                              ? 'bg-primary border-primary text-primary-foreground' 
-                              : 'border-muted-foreground/30 hover:border-primary'
-                          }`}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggle(item.key)}
+                            className="mt-1"
+                          />
                           <div>
                             <h3 className="font-semibold text-lg">{item.label}</h3>
                             <p className="text-sm text-muted-foreground mt-1">
@@ -401,7 +395,7 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                   <div className="flex justify-between">
                     <span>Total Items:</span>
                     <span>
-                      {Object.values(formData.quantities).reduce((sum: number, qty: any) => sum + (Number(qty) || 0), 0).toLocaleString()}
+                      {Object.values(qty).reduce((sum: number, qty: any) => sum + (Number(qty) || 0), 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
