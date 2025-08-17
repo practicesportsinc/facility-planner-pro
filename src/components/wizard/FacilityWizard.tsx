@@ -215,9 +215,19 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
   const visibleQuestions = getVisibleQuestions();
   const currentQuestion = visibleQuestions[currentStep];
   const isLastStep = currentStep === visibleQuestions.length - 1;
-  const progress = ((currentStep + 1) / visibleQuestions.length) * 100;
+  const progress = visibleQuestions.length > 0 ? ((currentStep + 1) / visibleQuestions.length) * 100 : 0;
+
+  // Add debugging info
+  console.log('Wizard Debug:', {
+    currentStep,
+    visibleQuestionsLength: visibleQuestions.length,
+    currentQuestionId: currentQuestion?.id,
+    responses: Object.keys(responses)
+  });
 
   const handleResponse = (value: string | string[] | number | Record<string, number> | { selectedProducts: string[]; quantities: Record<string, number> }) => {
+    if (!currentQuestion) return; // Add null check
+    
     const newResponses = { ...responses, [currentQuestion.id]: value };
     setResponses(newResponses);
 
@@ -232,6 +242,7 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
   };
 
   const canContinue = () => {
+    if (!currentQuestion) return false; // Add null check first
     if (!currentQuestion.required) return true;
     const response = responses[currentQuestion.id];
     
