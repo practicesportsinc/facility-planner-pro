@@ -58,7 +58,7 @@ const EasyWizard = () => {
               name: "Small+",
               dimensions: "100' × 70'",
               sqft: 7000,
-              img: "/assets/layouts/small+_layout.png",
+              img: "/assets/layouts/small_plus_layout.png",
               description: "One basketball court plus one batting cage and viewing strip.",
               preload: {
                 shell_dims_ft: [100, 70],

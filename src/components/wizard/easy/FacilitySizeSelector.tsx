@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { TopViewLayout } from "@/components/layout/TopViewLayout";
 
 interface SizeOption {
   key: string;
@@ -43,6 +44,7 @@ export const FacilitySizeSelector = ({
   const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [hoveredHotspot, setHoveredHotspot] = useState<string | null>(null);
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   const handleSizeSelect = (sizeKey: string) => {
     setSelectedSize(sizeKey);
@@ -65,6 +67,38 @@ export const FacilitySizeSelector = ({
     navigate(primaryCta.route);
   };
 
+  const handleImageError = (optionKey: string) => {
+    setImageErrors(prev => new Set(prev).add(optionKey));
+  };
+
+  // Convert court counts to TopViewLayout units
+  const convertToUnits = (counts: Record<string, number>) => {
+    const units = [];
+    
+    if (counts.basketball_courts_full) {
+      for (let i = 0; i < counts.basketball_courts_full; i++) {
+        units.push({ kind: "basketball_court_full" as const, count: 1, rotation: 0 });
+      }
+    }
+    if (counts.volleyball_courts) {
+      for (let i = 0; i < counts.volleyball_courts; i++) {
+        units.push({ kind: "volleyball_court" as const, count: 1, rotation: 0 });
+      }
+    }
+    if (counts.baseball_tunnels) {
+      for (let i = 0; i < counts.baseball_tunnels; i++) {
+        units.push({ kind: "baseball_tunnel" as const, count: 1, rotation: 0 });
+      }
+    }
+    if (counts.pickleball_courts) {
+      for (let i = 0; i < counts.pickleball_courts; i++) {
+        units.push({ kind: "pickleball_court" as const, count: 1, rotation: 0 });
+      }
+    }
+    
+    return units;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-subtle p-6">
       <div className="max-w-7xl mx-auto">
@@ -83,16 +117,27 @@ export const FacilitySizeSelector = ({
                 className={`ps-card ${isSelected ? 'ring-2 ring-ps-blue' : ''} cursor-pointer overflow-hidden hover:scale-105 transition-smooth`}
                 onClick={() => handleSizeSelect(option.key)}
               >
-                <div className="relative">
-                  <img
-                    src={option.img}
-                    alt={`${option.name} layout`}
-                    className="w-full h-48 object-cover"
-                    onError={(e) => {
-                      // Fallback to placeholder if image doesn't exist
-                      e.currentTarget.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlmYTJhOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxheW91dCBJbWFnZTwvdGV4dD48L3N2Zz4=";
-                    }}
-                  />
+                <div className="relative bg-gray-50">
+                  {imageErrors.has(option.key) ? (
+                    // Render TopViewLayout as fallback
+                    <div className="w-full h-48 flex items-center justify-center">
+                      <TopViewLayout
+                        grossSf={option.preload.total_sqft}
+                        aspectRatio={option.preload.shell_dims_ft[0] / option.preload.shell_dims_ft[1]}
+                        units={convertToUnits(option.preload.court_or_cage_counts)}
+                        viewWidthPx={300}
+                        showLegend={false}
+                        algo="rows"
+                      />
+                    </div>
+                  ) : (
+                    <img
+                      src={option.img}
+                      alt={`${option.name} layout`}
+                      className="w-full h-48 object-cover"
+                      onError={() => handleImageError(option.key)}
+                    />
+                  )}
                   
                   {/* Hotspots */}
                   {option.hotspots?.map((hotspot) => (
