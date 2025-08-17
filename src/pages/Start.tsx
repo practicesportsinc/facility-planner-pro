@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Sparkles, Calculator, Users, Clock, Target, TrendingUp, Zap, Wrench, ArrowLeft } from "lucide-react";
+import { QuickEstimateFlow } from "@/components/QuickEstimateFlow";
 
 interface StartProps {}
 
@@ -11,6 +13,7 @@ const Start = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<'path' | 'scope'>('path');
   const [selectedPath, setSelectedPath] = useState<'quick' | 'wizard' | 'calculator' | null>(null);
+  const [isQuickOpen, setIsQuickOpen] = useState(false);
 
   // Analytics tracking
   const handlePathSelected = (path: 'quick' | 'wizard' | 'calculator') => {
@@ -20,8 +23,14 @@ const Start = () => {
         timestamp: Date.now()
       });
     }
-    setSelectedPath(path);
-    setCurrentStep('scope');
+    
+    if (path === 'quick') {
+      // Open Quick Estimate modal
+      setIsQuickOpen(true);
+    } else {
+      setSelectedPath(path);
+      setCurrentStep('scope');
+    }
   };
 
   const handleScopeSelected = (scope: 'equipment' | 'turnkey') => {
@@ -267,6 +276,13 @@ const Start = () => {
           </div>
         </div>
       </section>
+
+      {/* Quick Estimate Modal */}
+      <Dialog open={isQuickOpen} onOpenChange={setIsQuickOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto p-0 border-0">
+          <QuickEstimateFlow onClose={() => setIsQuickOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
