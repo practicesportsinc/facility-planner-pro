@@ -438,7 +438,7 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
           </Button>
           <h1 className="text-3xl font-bold">Your Financial Projections</h1>
           <Button 
-            onClick={() => navigate('/calculator')}
+            onClick={() => navigate('/calculator?mode=wizard')}
             className="flex items-center gap-2"
           >
             <Edit className="w-4 h-4" />

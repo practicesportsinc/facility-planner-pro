@@ -108,25 +108,179 @@ const Calculator = () => {
             return acc;
           }, {});
 
+          // Helper functions for data transformation
+          const getTotalSqftFromWizard = (result: any): number => {
+            if (result.recommendations?.suggestedSize) {
+              return result.recommendations.suggestedSize;
+            }
+            if (responses.facility_size === 'custom' && responses.custom_facility_size) {
+              return parseInt(responses.custom_facility_size);
+            }
+            // Size mapping fallback
+            const sizeMap = { small: 12000, medium: 22000, large: 40000, xl: 60000 };
+            return sizeMap[responses.facility_size as keyof typeof sizeMap] || 22000;
+          };
+
+          const computeCourtCounts = (selectedSports: string[], totalSqft: number) => {
+            const sportSqftMap: Record<string, number> = {
+              basketball: 6240,
+              volleyball: 2592, 
+              pickleball: 1800,
+              baseball_softball: 1050,
+              soccer: 14400
+            };
+            
+            const programSqft = totalSqft * 0.8; // 80% for program space
+            const counts: Record<string, number> = {};
+            
+            if (selectedSports.length === 1) {
+              const sport = selectedSports[0];
+              const unitSqft = sportSqftMap[sport] || 3000;
+              counts[sport] = Math.max(1, Math.floor(programSqft / unitSqft));
+            } else {
+              // Multi-sport: distribute evenly
+              const sqftPerSport = programSqft / selectedSports.length;
+              selectedSports.forEach(sport => {
+                const unitSqft = sportSqftMap[sport] || 3000;
+                counts[sport] = Math.max(1, Math.floor(sqftPerSport / unitSqft));
+              });
+            }
+            
+            return counts;
+          };
+
+          const buildOpexDefaultsBySize = (totalSqft: number) => {
+            const baseSqftMultiplier = totalSqft / 22000; // normalized to medium size
+            
+            return {
+              fixedOperating: {
+                utilities: Math.round(totalSqft * 2.5 * baseSqftMultiplier),
+                insurance: Math.round(totalSqft * 1.2 * baseSqftMultiplier),
+                property_tax: Math.round(totalSqft * 0.8 * baseSqftMultiplier),
+                maintenance: Math.round(totalSqft * 1.5 * baseSqftMultiplier),
+                marketing: Math.round(2000 * baseSqftMultiplier),
+                software: Math.round(500 * baseSqftMultiplier),
+                other: Math.round(800 * baseSqftMultiplier),
+                janitorial: Math.round(totalSqft * 0.75 * baseSqftMultiplier)
+              },
+              staffing: [
+                { role: 'GM', fte: 1, rate: 65000 },
+                { role: 'Ops Lead', fte: 1, rate: 45000 },
+                { role: 'Coach', fte: Math.round(2 * baseSqftMultiplier * 10) / 10, rate: 35000 },
+                { role: 'Front Desk', fte: Math.round(1.5 * baseSqftMultiplier * 10) / 10, rate: 30000 }
+              ]
+            };
+          };
+
+          const buildRevenueDefaultsBySport = (primarySport: string, totalSqft: number) => {
+            const baseSqftMultiplier = totalSqft / 22000;
+            const memberBase = Math.round(totalSqft / 100 * baseSqftMultiplier); // 1 member per 100 sqft
+            
+            return {
+              memberships: [
+                { 
+                  name: 'Adult Unlimited', 
+                  count: Math.round(memberBase * 0.4), 
+                  price: primarySport === 'pickleball' ? 75 : 65 
+                },
+                { 
+                  name: 'Youth Programs', 
+                  count: Math.round(memberBase * 0.35), 
+                  price: 45 
+                },
+                { 
+                  name: 'Drop-in Pass', 
+                  count: Math.round(memberBase * 0.25), 
+                  price: 25 
+                }
+              ],
+              rentals: [
+                { 
+                  name: 'Court Rental', 
+                  hours: Math.round(40 * baseSqftMultiplier), 
+                  price: primarySport === 'basketball' ? 80 : 60 
+                },
+                { 
+                  name: 'Field Rental', 
+                  hours: Math.round(20 * baseSqftMultiplier), 
+                  price: 120 
+                }
+              ],
+              lessons: [
+                { 
+                  name: 'Private Lessons', 
+                  count: Math.round(60 * baseSqftMultiplier), 
+                  price: 75 
+                },
+                { 
+                  name: 'Group Clinics', 
+                  count: Math.round(40 * baseSqftMultiplier), 
+                  price: 25 
+                }
+              ]
+            };
+          };
+
+          // Extract data
+          const selectedSports = Array.isArray(responses.primary_sport) ? responses.primary_sport : [responses.primary_sport].filter(Boolean);
+          const totalSquareFootage = getTotalSqftFromWizard(wizardResult);
+          const courtCounts = computeCourtCounts(selectedSports, totalSquareFootage);
+          const opexDefaults = buildOpexDefaultsBySize(totalSquareFootage);
+          const revenueDefaults = buildRevenueDefaultsBySport(selectedSports[0] || 'multi_sport', totalSquareFootage);
+
           // Map wizard responses to calculator format
           setCalculatorData({
             1: { // Project Basics
-              projectName: responses.facility_name || '',
+              projectName: responses.facility_name || 'My Sports Facility',
               location: responses.location_type || '',
-              selectedSports: Array.isArray(responses.primary_sport) ? responses.primary_sport : [responses.primary_sport].filter(Boolean),
+              selectedSports: selectedSports,
               stage_code: responses.project_stage || 'concept',
-              budget: responses.budget || ''
+              budget: responses.budget_range || '',
+              currency: 'USD',
+              targetOpeningDate: ''
             },
             2: { // Build Mode
-              buildMode: responses.buildType || 'lease'
+              buildMode: responses.build_mode || 'lease'
             },
             3: { // Facility Plan
-              totalSquareFootage: responses.squareFootage?.toString() || '',
-              selectedSports: Array.isArray(responses.sports) ? responses.sports : [responses.sports].filter(Boolean),
-              amenities: Array.isArray(responses.amenities) ? responses.amenities : []
+              facilityType: responses.build_mode || 'lease',
+              totalSquareFootage: totalSquareFootage.toString(),
+              admin_pct_addon: 12,
+              circulation_pct_addon: 20,
+              clearHeight: '20',
+              selectedSports: selectedSports,
+              amenities: Array.isArray(responses.amenities) ? responses.amenities : [],
+              // Court counts from computation
+              numberOfCourts: courtCounts.basketball || courtCounts.volleyball || courtCounts.pickleball || '',
+              numberOfFields: courtCounts.soccer || '',
+              numberOfCages: courtCounts.baseball_softball || '',
+              court_or_cage_counts: {
+                basketball_courts_full: courtCounts.basketball || 0,
+                volleyball_courts: courtCounts.volleyball || 0,
+                pickleball_courts: courtCounts.pickleball || 0,
+                baseball_tunnels: courtCounts.baseball_softball || 0,
+                soccer_field_small: courtCounts.soccer || 0
+              }
+            },
+            4: { // Equipment
+              selectedProducts: responses.product_quantities?.selectedProducts || [],
+              quantities: responses.product_quantities?.quantities || {}
+            },
+            5: { // Staffing & OpEx
+              ...opexDefaults
             },
             6: { // Revenue Programs
-              primaryRevenue: Array.isArray(responses.revenueModel) ? responses.revenueModel : [responses.revenueModel].filter(Boolean)
+              ...revenueDefaults
+            },
+            7: { // Financing
+              lease_terms: {
+                base_rent_per_sf_year: 15,
+                nnn_per_sf_year: 8,
+                cam_per_sf_year: 2,
+                lease_term_years: 10,
+                free_rent_months: 3,
+                tenant_improvement_allowance_per_sf: 25
+              }
             }
           });
         } catch (error) {

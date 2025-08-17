@@ -840,7 +840,7 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
                   </span>
                 </div>
               </Button>
-              <Button variant="outline" onClick={() => window.location.href = '/calculator'}>
+              <Button variant="outline" onClick={() => window.location.href = '/calculator?mode=wizard'}>
                 Customize My Plan
               </Button>
               <Button variant="ghost" onClick={onClose}>
