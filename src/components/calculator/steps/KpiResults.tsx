@@ -102,7 +102,7 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
     // Calculate derived metrics
     const monthlyProfit = monthlyRevenue - monthlyOpex;
     const breakEvenMonths = monthlyProfit > 0 ? Math.ceil(totalCapex / monthlyProfit) : null;
-    const roi = monthlyProfit > 0 ? ((monthlyProfit * 12) / totalCapex) * 100 : 0;
+    const roi = totalCapex > 0 ? ((monthlyProfit * 12) / totalCapex) * 100 : 0;
 
     return {
       totalCapex,
@@ -112,6 +112,7 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
       roi,
       paybackMonths: breakEvenMonths,
       totalSqft,
+      monthlyProfit,
       debtService: 0, // simplified
       buildingCosts: Math.round(totalCapex * 0.6),
       equipmentCosts: equipmentEstimate,
@@ -151,10 +152,11 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
     },
     {
       title: "Break-even",
-      value: metrics.breakEvenMonths ? `${metrics.breakEvenMonths} months` : "N/A",
-      description: "Time to break-even",
+      value: metrics.breakEvenMonths ? `${metrics.breakEvenMonths} months` : "Not reached",
+      description: metrics.monthlyProfit <= 0 ? "Current monthly cash flow is negative" : "Time to break-even",
       icon: Calendar,
-      variant: "warning" as const
+      variant: "warning" as const,
+      showActions: metrics.monthlyProfit <= 0
     },
     {
       title: "ROI",
@@ -165,19 +167,21 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
     },
     {
       title: "Payback Period",
-      value: metrics.paybackMonths ? `${metrics.paybackMonths} months` : "N/A",
-      description: "Investment payback time",
+      value: metrics.paybackMonths ? `${metrics.paybackMonths} months` : "Not reached",
+      description: metrics.monthlyProfit <= 0 ? "Current monthly cash flow is negative" : "Investment payback time",
       icon: Trophy,
-      variant: "accent" as const
+      variant: "accent" as const,
+      showActions: metrics.monthlyProfit <= 0
     }
   ];
 
   const advisorNotes = [
-    `Your facility shows ${metrics.roi > 15 ? 'strong' : metrics.roi > 10 ? 'moderate' : 'challenging'} ROI potential at ${metrics.roi.toFixed(1)}%.`,
-    `Break-even at ${metrics.breakEvenMonths || 'TBD'} months is ${metrics.breakEvenMonths && metrics.breakEvenMonths <= 18 ? 'competitive' : 'longer than typical'} for this market.`,
+    `Your facility shows ${metrics.roi > 15 ? 'strong' : metrics.roi > 10 ? 'moderate' : metrics.roi <= 0 ? 'negative' : 'challenging'} ROI potential at ${metrics.roi.toFixed(1)}%.`,
+    `Break-even at ${metrics.breakEvenMonths ? metrics.breakEvenMonths + ' months' : 'not reached'} is ${metrics.breakEvenMonths && metrics.breakEvenMonths <= 18 ? 'competitive' : 'longer than typical'} for this market.`,
     `Monthly cash flow after break-even: $${(metrics.monthlyRevenue - metrics.monthlyOpex).toLocaleString()}.`,
     metrics.totalCapex > 2000000 ? 'Consider phased build-out to reduce initial capital requirements.' : 'Capital requirements appear manageable for this facility size.',
-    `Recommended next steps: ${metrics.breakEvenMonths && metrics.breakEvenMonths > 24 ? 'Review revenue assumptions and market analysis' : 'Proceed with site selection and financing discussions'}.`
+    `Recommended next steps: ${metrics.breakEvenMonths && metrics.breakEvenMonths > 24 ? 'Review revenue assumptions and market analysis' : 'Proceed with site selection and financing discussions'}.`,
+    ...(metrics.monthlyProfit <= 0 ? [`Increase rentals/lessons utilization or reduce staffing by ~${Math.ceil(Math.abs(metrics.monthlyProfit) / (25 * 173))} FTE to reach break-even.`] : [])
   ];
 
   const handleEditFacility = () => {
@@ -279,6 +283,26 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
                 <p className="text-xs text-muted-foreground mt-1">
                   {kpi.description}
                 </p>
+                {(kpi as any).showActions && onNavigateToStep && (
+                  <div className="flex gap-1 mt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleEditRevenue}
+                      className="text-xs h-6 px-2"
+                    >
+                      Tune revenue
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleEditOpEx}
+                      className="text-xs h-6 px-2"
+                    >
+                      Reduce OpEx
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
@@ -322,7 +346,10 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
               <div className="flex justify-between">
                 <span>Operating Margin:</span>
                 <span className="font-medium">
-                  {((metrics.monthlyRevenue - metrics.monthlyOpex) / metrics.monthlyRevenue * 100).toFixed(1)}%
+                  {metrics.monthlyRevenue > 0 ? 
+                    ((metrics.monthlyRevenue - metrics.monthlyOpex) / metrics.monthlyRevenue * 100).toFixed(1) + '%' : 
+                    'N/A'
+                  }
                 </span>
               </div>
               <div className="flex justify-between">

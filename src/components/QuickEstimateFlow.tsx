@@ -346,40 +346,104 @@ function getCourtCounts(sport: SportKey, size: SizeKey): Record<string, number> 
 }
 
 function getOpexDefaults(size: SizeKey) {
-  const multiplier = SIZE_DATA[size].multiplier;
+  const sportData = SPORTS_DATA.basketball; // Use basketball as baseline
+  const sizeData = SIZE_DATA[size];
+  const targetRevenueMonthly = Math.round(sportData.avgRevenue * sizeData.multiplier);
+  const targetOpexMonthly = Math.round(targetRevenueMonthly * 0.65); // 65% OpEx ratio
+  
+  // Calculate fixed costs scaled by size
+  const fixedCosts = {
+    utilities_monthly: Math.round(2000 * sizeData.multiplier),
+    insurance_monthly: Math.round(1200 * sizeData.multiplier),
+    maintenance_monthly: Math.round(800 * sizeData.multiplier),
+    marketing_monthly: Math.round(1500 * sizeData.multiplier),
+    software_monthly: 400,
+    other_monthly: Math.round(600 * sizeData.multiplier)
+  };
+  
+  const totalFixedCosts = Object.values(fixedCosts).reduce((sum, cost) => sum + cost, 0);
+  const remainingForStaffing = targetOpexMonthly - totalFixedCosts;
+  
+  // Calculate staffing FTEs to hit remaining budget (allow decimals for part-time)
+  const HOURS_PER_FTE_MONTH = 173;
+  const baseFtes = [
+    { role: "General Manager", ftes: 1, loaded_wage_per_hr: 35 },
+    { role: "Operations Staff", ftes: 1.0, loaded_wage_per_hr: 25 },
+    { role: "Coaches/Instructors", ftes: 1.5, loaded_wage_per_hr: 30 },
+    { role: "Front Desk", ftes: 0.8, loaded_wage_per_hr: 18 }
+  ];
+  
+  // Calculate current staffing cost
+  const currentStaffingCost = baseFtes.reduce((sum, role) => 
+    sum + (role.ftes * role.loaded_wage_per_hr * HOURS_PER_FTE_MONTH), 0);
+  
+  // Scale FTEs proportionally to hit target
+  const scaleFactor = remainingForStaffing / currentStaffingCost;
+  const adjustedStaffing = baseFtes.map(role => ({
+    ...role,
+    ftes: parseFloat((role.ftes * scaleFactor).toFixed(1))
+  }));
   
   return {
-    staffing: [
-      { role: "General Manager", ftes: 1, loaded_wage_per_hr: 35 },
-      { role: "Operations Staff", ftes: Math.round(1.5 * multiplier), loaded_wage_per_hr: 25 },
-      { role: "Coaches/Instructors", ftes: Math.round(2 * multiplier), loaded_wage_per_hr: 30 },
-      { role: "Front Desk", ftes: Math.round(1.2 * multiplier), loaded_wage_per_hr: 18 }
-    ],
-    utilities_monthly: Math.round(2000 * multiplier),
-    insurance_monthly: Math.round(1200 * multiplier),
-    maintenance_monthly: Math.round(800 * multiplier),
-    marketing_monthly: Math.round(1500 * multiplier),
-    software_monthly: 400,
-    other_monthly: Math.round(600 * multiplier)
+    staffing: adjustedStaffing,
+    ...fixedCosts
   };
 }
 
 function getRevenueDefaults(sport: SportKey, size: SizeKey) {
-  const multiplier = SIZE_DATA[size].multiplier;
+  const sportData = SPORTS_DATA[sport];
+  const sizeData = SIZE_DATA[size];
+  const targetRevenueMonthly = Math.round(sportData.avgRevenue * sizeData.multiplier);
+  
+  // Sport-specific revenue mix percentages (memberships/rentals/lessons)
+  const revenueMix: Record<SportKey, { membership: number; rental: number; lesson: number }> = {
+    basketball: { membership: 30, rental: 40, lesson: 30 },
+    volleyball: { membership: 25, rental: 45, lesson: 30 },
+    baseball_softball: { membership: 20, rental: 30, lesson: 50 },
+    pickleball: { membership: 35, rental: 50, lesson: 15 },
+    soccer: { membership: 25, rental: 35, lesson: 40 },
+    football: { membership: 20, rental: 30, lesson: 50 },
+    lacrosse: { membership: 25, rental: 40, lesson: 35 },
+    tennis: { membership: 30, rental: 45, lesson: 25 },
+    multi_sport: { membership: 30, rental: 40, lesson: 30 },
+    fitness: { membership: 60, rental: 25, lesson: 15 }
+  };
+  
+  const mix = revenueMix[sport];
+  const membershipTarget = Math.round(targetRevenueMonthly * (mix.membership / 100));
+  const rentalTarget = Math.round(targetRevenueMonthly * (mix.rental / 100));
+  const lessonTarget = Math.round(targetRevenueMonthly * (mix.lesson / 100));
+  
+  // Calculate membership counts to hit target
+  const individualPrice = 65;
+  const familyPrice = 110;
+  const totalMembers = Math.round(membershipTarget / ((individualPrice * 0.7) + (familyPrice * 0.3)));
+  const individualMembers = Math.round(totalMembers * 0.7);
+  const familyMembers = Math.round(totalMembers * 0.3);
+  
+  // Calculate rental utilization to hit target
+  const rentalRate = 50;
+  const utilHoursPerWeek = Math.round((rentalTarget * 4) / (rentalRate * 4.345)); // 4.345 weeks/month
+  
+  // Calculate lesson parameters to hit target
+  const avgRatePerHr = 70;
+  const hoursPerCoachWeek = 15;
+  const utilizationPct = 70;
+  const coachCount = Math.max(1, Math.round(lessonTarget / (avgRatePerHr * hoursPerCoachWeek * 4.345 * (utilizationPct / 100))));
   
   return {
     memberships: [
-      { name: "Individual", price_month: 65, members: Math.round(150 * multiplier) },
-      { name: "Family", price_month: 110, members: Math.round(60 * multiplier) }
+      { name: "Individual", price_month: individualPrice, members: individualMembers },
+      { name: "Family", price_month: familyPrice, members: familyMembers }
     ],
     rentals: [
-      { unit: "hourly_rental", rate_per_hr: 50, util_hours_per_week: Math.round(25 * multiplier) }
+      { unit: "hourly_rental", rate_per_hr: rentalRate, util_hours_per_week: utilHoursPerWeek }
     ],
     lessons: [
-      { coach_count: Math.round(2 * multiplier), avg_rate_per_hr: 70, hours_per_coach_week: 15, utilization_pct: 70 }
+      { coach_count: coachCount, avg_rate_per_hr: avgRatePerHr, hours_per_coach_week: hoursPerCoachWeek, utilization_pct: utilizationPct }
     ],
     camps_clinics: [
-      { sessions_per_year: 12, avg_price: 225, capacity: Math.round(25 * multiplier), fill_rate_pct: 75 }
+      { sessions_per_year: 12, avg_price: 225, capacity: Math.round(25 * sizeData.multiplier), fill_rate_pct: 75 }
     ]
   };
 }
