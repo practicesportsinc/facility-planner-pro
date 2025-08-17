@@ -30,7 +30,7 @@ const Start = () => {
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             {/* Easy Plan Tile */}
             <Link 
-              to="/wizard/easy/start"
+              to="/wizard"
               onClick={() => handlePathSelected('easy')}
               className="ps-card group hover:shadow-custom-lg transition-smooth cursor-pointer"
             >
@@ -97,7 +97,7 @@ const Start = () => {
           <div className="text-center space-y-4">
             <div className="flex flex-wrap justify-center gap-4">
               <Link 
-                to="/wizard/easy/results" 
+                to="/wizard-results" 
                 className="ps-btn text-primary hover:text-primary/80 transition-smooth"
               >
                 See Example Plans

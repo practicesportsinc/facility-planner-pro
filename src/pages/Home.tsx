@@ -29,7 +29,7 @@ const Home = () => {
                 Start Planning
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <Link to="/wizard/easy/results">
+                <Link to="/wizard-results">
                   <Calculator className="mr-2 h-5 w-5" />
                   See Example
                 </Link>
