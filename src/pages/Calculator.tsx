@@ -316,6 +316,57 @@ const Calculator = () => {
           console.error('Error loading wizard data:', error);
         }
       }
+    } else if (!isQuickMode && !isWizardMode) {
+      // Custom mode - pre-seed steps 5 and 6 with defaults to avoid blank financials
+      setCalculatorData(prevData => ({
+        ...prevData,
+        5: { // Staffing & OpEx defaults
+          gmFte: '1',
+          gmRate: '35',
+          opsLeadFte: '1',
+          opsLeadRate: '28',
+          coachFte: '4',
+          coachRate: '25',
+          frontDeskFte: '2',
+          frontDeskRate: '20',
+          utilities: '2500',
+          insurance: '1200',
+          propertyTax: '1500',
+          maintenance: '800',
+          marketing: '1000',
+          software: '350',
+          janitorial: '600',
+          other: '500',
+          ...prevData[5] // Keep any existing data
+        },
+        6: { // Revenue Programs defaults
+          individualPrice: '59',
+          individualCount: '300',
+          familyPrice: '99',
+          familyCount: '120',
+          rentalRate: '35',
+          rentalHoursWeek: '40',
+          rentalUtilization: '70',
+          lessonCoaches: '3',
+          lessonRate: '70',
+          lessonHoursWeek: '15',
+          lessonUtilization: '70',
+          campsPerYear: '12',
+          campPrice: '199',
+          campCapacity: '30',
+          campFillRate: '70',
+          leaguesPerYear: '8',
+          teamsPerLeague: '12',
+          teamFee: '450',
+          leagueMargin: '40',
+          partiesPerMonth: '6',
+          averagePartyNet: '225',
+          jan: '85', feb: '90', mar: '100', apr: '110',
+          may: '115', jun: '120', jul: '115', aug: '105',
+          sep: '110', oct: '105', nov: '95', dec: '80',
+          ...prevData[6] // Keep any existing data
+        }
+      }));
     }
   }, [isQuickMode, projectId, mode]);
 

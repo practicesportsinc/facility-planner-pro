@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -65,6 +65,11 @@ const RevenuePrograms = ({ data, onUpdate, onNext, onPrevious }: RevenuePrograms
     
     ...data
   });
+
+  // Auto-persist default data on mount to ensure Calculator receives it
+  useEffect(() => {
+    onUpdate(formData);
+  }, []); // Only run on mount
 
   const handleInputChange = (field: string, value: string) => {
     const newData = { ...formData, [field]: value };
