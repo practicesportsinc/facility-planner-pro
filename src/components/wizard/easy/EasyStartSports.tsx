@@ -61,8 +61,12 @@ export const EasyStartSports = ({
   };
 
   const handleContinue = () => {
-    // Save selected sports to localStorage
+    // Save selected sports to localStorage and fire analytics event
     localStorage.setItem('wizard-selected-sports', JSON.stringify(selectedSports));
+    
+    // Fire analytics event
+    console.log("Path selected:", { path: "easy" });
+    
     navigate(primaryCta.route);
   };
 

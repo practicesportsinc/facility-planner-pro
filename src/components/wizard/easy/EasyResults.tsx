@@ -68,28 +68,66 @@ export const EasyResults = ({
   useEffect(() => {
     // Calculate KPIs from wizard data
     const calculateKpis = () => {
-      const facilityData = localStorage.getItem('wizard-facility-size');
-      const facility = facilityData ? JSON.parse(facilityData) : {};
+      const facilityData = JSON.parse(localStorage.getItem('wizard-facility-size') || '{}');
+      const estimateData = JSON.parse(localStorage.getItem('wizard-estimate') || '{"inputs":{}}');
       
-      const sf = facility.total_sqft || 0;
+      const sf = facilityData.total_sqft || 0;
+      const counts = facilityData.court_or_cage_counts || {};
+      const products = estimateData.inputs.selected_products || [];
+      const quantities = estimateData.inputs.quantities || {};
       
-      // Simplified calculations for demo
+      // Enhanced calculations based on selected products and facility
       const tiCostPerSf = 45; // $45/sf for tenant improvements
       const ti = tiCostPerSf * sf;
       const soft = ti * 0.15; // 15% soft costs
       const cont = (ti + soft) * 0.10; // 10% contingency
-      const fixtures = 75000; // Base fixtures allowance
+      
+      // Calculate fixtures cost based on selected products
+      let fixtures = 0;
+      if (quantities.batting_cages) fixtures += quantities.batting_cages * 8000;
+      if (quantities.pitching_machines) fixtures += quantities.pitching_machines * 3500;
+      if (quantities.basketball_hoops) fixtures += quantities.basketball_hoops * 1200;
+      if (quantities.volleyball_systems) fixtures += quantities.volleyball_systems * 800;
+      if (quantities.scoreboards) fixtures += quantities.scoreboards * 5000;
+      if (quantities.pickleball_nets) fixtures += quantities.pickleball_nets * 300;
+      fixtures = Math.max(fixtures, 25000); // Minimum fixtures
       
       const capex_total = Math.round(ti + soft + cont + fixtures);
       
-      // Revenue estimates based on facility size
-      const revenuePerSf = sf < 10000 ? 15 : sf < 20000 ? 18 : 22;
-      const monthly_revenue = Math.round(sf * revenuePerSf / 12);
+      // Revenue estimates based on facility type and size
+      let monthly_revenue = 0;
+      
+      // Membership revenue (base on facility size and sports)
+      const memberships = sf < 10000 ? 150 : sf < 20000 ? 300 : sf < 30000 ? 500 : 800;
+      const avgMembershipPrice = 89;
+      monthly_revenue += memberships * avgMembershipPrice;
+      
+      // Hourly rental revenue
+      const totalCourts = (counts.basketball_courts_full || 0) + (counts.volleyball_courts || 0) + (counts.pickleball_courts || 0);
+      if (totalCourts > 0) {
+        monthly_revenue += totalCourts * 25 * 4 * 30; // $25/hr, 4 hrs/day average
+      }
+      
+      // Batting cage revenue
+      if (counts.baseball_tunnels) {
+        monthly_revenue += counts.baseball_tunnels * 20 * 6 * 30; // $20/hr, 6 hrs/day
+      }
       
       // OpEx estimates
-      const opexPerSf = sf < 10000 ? 8 : sf < 20000 ? 10 : 12;
-      const monthly_opex = Math.round(sf * opexPerSf / 12);
+      let monthly_opex = 0;
       
+      // Base rent ($12/sf/year average)
+      monthly_opex += (sf * 12) / 12;
+      
+      // Staffing (2-4 FTE depending on size)
+      const staffCount = sf < 10000 ? 2 : sf < 20000 ? 3 : 4;
+      monthly_opex += staffCount * 3500; // $3500/month per FTE loaded
+      
+      // Utilities, insurance, maintenance (combined ~$3/sf/year)
+      monthly_opex += (sf * 3) / 12;
+      
+      monthly_revenue = Math.round(monthly_revenue);
+      monthly_opex = Math.round(monthly_opex);
       const monthly_ebitda = monthly_revenue - monthly_opex;
       const break_even_months = monthly_ebitda > 0 ? Math.ceil(capex_total / monthly_ebitda) : null;
       
@@ -109,6 +147,9 @@ export const EasyResults = ({
     const timer = setTimeout(() => {
       setShowLeadGate(true);
     }, leadGate.delayMs);
+
+    // Fire analytics event
+    console.log("Results viewed");
 
     return () => clearTimeout(timer);
   }, [leadGate.delayMs]);
@@ -140,10 +181,36 @@ export const EasyResults = ({
     }
   };
 
-  const handleLeadSubmit = () => {
-    // Submit lead data
-    console.log("Lead submitted:", leadData);
-    setShowLeadGate(false);
+  const handleLeadSubmit = async () => {
+    try {
+      // Get wizard data for payload
+      const facilityData = JSON.parse(localStorage.getItem('wizard-facility-size') || '{}');
+      const sportsData = JSON.parse(localStorage.getItem('wizard-selected-sports') || '[]');
+      const wizardData = JSON.parse(localStorage.getItem('wizard-data') || '{}');
+      const locationData = JSON.parse(localStorage.getItem('wizard-location') || '{}');
+      
+      const payload = {
+        name: leadData.name,
+        email: leadData.email,
+        phone: leadData.phone || "",
+        city: leadData.city || locationData.city,
+        state: leadData.state || locationData.state,
+        outreach_pref: leadData.outreach || "supplier_outreach",
+        projectId: Math.random().toString(36).substr(2, 9), // Generate temp ID
+        stage_code: wizardData.stage_code,
+        selected_sports: sportsData,
+        total_sqft: facilityData.total_sqft
+      };
+      
+      console.log("Lead submitted:", payload);
+      
+      // Here you would POST to /api/leads/monday
+      // await fetch('/api/leads/monday', { method: 'POST', body: JSON.stringify(payload) });
+      
+      setShowLeadGate(false);
+    } catch (error) {
+      console.error("Error submitting lead:", error);
+    }
   };
 
   const handleLeadInputChange = (key: string, value: string) => {
@@ -225,7 +292,7 @@ export const EasyResults = ({
                     {field.label} {field.required && <span className="text-red-500">*</span>}
                   </Label>
                   
-                  {field.type === "toggle" ? (
+                      {field.type === "toggle" ? (
                     <div className="flex items-center space-x-2 mt-2">
                       <Switch
                         id={field.key}
@@ -242,7 +309,7 @@ export const EasyResults = ({
                     <Input
                       id={field.key}
                       type={field.key === "email" ? "email" : field.key === "phone" ? "tel" : "text"}
-                      value={leadData[field.key] || field.default || ""}
+                      value={leadData[field.key] || field.default || (field.defaultFrom === "location.city" ? JSON.parse(localStorage.getItem('wizard-location') || '{}').city : field.defaultFrom === "location.state" ? JSON.parse(localStorage.getItem('wizard-location') || '{}').state : "")}
                       onChange={(e) => handleLeadInputChange(field.key, e.target.value)}
                       className="mt-2"
                     />

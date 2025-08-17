@@ -50,10 +50,14 @@ export const FacilitySizeSelector = ({
     // Save size data to localStorage
     const selectedOption = sizeOptions.find(opt => opt.key === sizeKey);
     if (selectedOption) {
-      localStorage.setItem('wizard-facility-size', JSON.stringify({
+      const facilityData = {
         key: sizeKey,
         ...selectedOption.preload
-      }));
+      };
+      localStorage.setItem('wizard-facility-size', JSON.stringify(facilityData));
+      
+      // Fire analytics event
+      console.log("Size card selected:", facilityData);
     }
   };
 

@@ -8,7 +8,7 @@ import EasyResults from "@/components/wizard/easy/EasyResults";
 const EasyWizard = () => {
   return (
     <Routes>
-      <Route path="/sports" element={
+      <Route path="/start" element={
         <EasyStartSports
           title="What are you building?"
           subtitle="Pick one or more sports. You can change these later."
@@ -41,6 +41,24 @@ const EasyWizard = () => {
                 shell_dims_ft: [50, 80],
                 total_sqft: 4000,
                 court_or_cage_counts: { baseball_tunnels: 2 }
+              },
+              hotspots: [
+                { id: "sm-cage1", rectPct: { x: 12, y: 58, w: 22, h: 18 }, label: "Batting cage", tooltip: "70'×15' tunnel" },
+                { id: "sm-cage2", rectPct: { x: 40, y: 58, w: 22, h: 18 }, label: "Batting cage", tooltip: "70'×15' tunnel" },
+                { id: "sm-view", rectPct: { x: 0, y: 0, w: 100, h: 12 }, label: "Viewing area", tooltip: "Lobby + office along the front" }
+              ]
+            },
+            {
+              key: "small_plus",
+              name: "Small+",
+              dimensions: "100' × 70'",
+              sqft: 7000,
+              img: "/assets/layouts/small+_layout.png",
+              description: "One basketball court plus one batting cage and viewing strip.",
+              preload: {
+                shell_dims_ft: [100, 70],
+                total_sqft: 7000,
+                court_or_cage_counts: { basketball_courts_full: 1, baseball_tunnels: 1 }
               }
             },
             {
@@ -68,6 +86,32 @@ const EasyWizard = () => {
                 total_sqft: 18000,
                 court_or_cage_counts: { basketball_courts_full: 2, baseball_tunnels: 4 }
               }
+            },
+            {
+              key: "giant",
+              name: "Giant",
+              dimensions: "200' × 150'",
+              sqft: 30000,
+              img: "/assets/layouts/giant_layout.png",
+              description: "Three basketball courts, four volleyball courts, six batting cages.",
+              preload: {
+                shell_dims_ft: [200, 150],
+                total_sqft: 30000,
+                court_or_cage_counts: { basketball_courts_full: 3, volleyball_courts: 4, baseball_tunnels: 6 }
+              }
+            },
+            {
+              key: "arena",
+              name: "Arena",
+              dimensions: "250' × 200'",
+              sqft: 50000,
+              img: "/assets/layouts/arena_layout.png",
+              description: "Four basketball, eight volleyball, eight cages, four pickleball.",
+              preload: {
+                shell_dims_ft: [250, 200],
+                total_sqft: 50000,
+                court_or_cage_counts: { basketball_courts_full: 4, volleyball_courts: 8, baseball_tunnels: 8, pickleball_courts: 4 }
+              }
             }
           ]}
           primaryCta={{ label: "Next: Typical Equipment →", route: "/wizard/easy/products" }}
@@ -80,10 +124,20 @@ const EasyWizard = () => {
           subtitle="We've pre‑selected items and quantities. Adjust; you can refine costs later."
           catalog={[
             { key: "batting_cages", label: "Batting Cages (70'×15')", unit: "ea", min: 0, max: 24 },
-            { key: "basketball_hoops", label: "Basketball Hoops/Goals", unit: "ea", min: 0, max: 12 },
+            { key: "pitching_machines", label: "Pitching Machines", unit: "ea", min: 0, max: 12 },
+            { key: "l_screens", label: "L‑Screens / Protective", unit: "ea", min: 0, max: 24 },
+            { key: "ball_carts", label: "Ball Carts / Buckets", unit: "ea", min: 0, max: 24 },
             { key: "volleyball_systems", label: "Volleyball Systems", unit: "ea", min: 0, max: 12 },
+            { key: "ref_stands", label: "Referee Stands", unit: "ea", min: 0, max: 12 },
+            { key: "basketball_hoops", label: "Basketball Hoops/Goals", unit: "ea", min: 0, max: 12 },
             { key: "scoreboards", label: "Scoreboards / Shot Clocks (set)", unit: "ea", min: 0, max: 8 },
+            { key: "pickleball_nets", label: "Pickleball Nets", unit: "ea", min: 0, max: 16 },
+            { key: "paddle_starter_sets", label: "Pickleball Starter Sets", unit: "ea", min: 0, max: 24 },
+            { key: "soccer_goals_pair", label: "Indoor Soccer Goals (pair)", unit: "ea", min: 0, max: 6 },
+            { key: "training_turf_zone", label: "Training Turf Zones", unit: "ea", min: 0, max: 4 },
             { key: "turf_area_sf", label: "Indoor Turf (area)", unit: "sf", min: 0 },
+            { key: "rubber_floor_area_sf", label: "Rubber Flooring (area)", unit: "sf", min: 0 },
+            { key: "hardwood_floor_area_sf", label: "Hardwood Flooring (area)", unit: "sf", min: 0 },
             { key: "divider_curtains", label: "Divider Curtains/Nets", unit: "ea", min: 0, max: 16 }
           ]}
           primaryCta={{ label: "Next: Location & Timeline →", route: "/wizard/easy/context" }}
@@ -97,6 +151,7 @@ const EasyWizard = () => {
           fields={[
             { key: "city", label: "City", type: "text", default: "Omaha" },
             { key: "state", label: "State", type: "text", default: "NE" },
+            { key: "country", label: "Country", type: "text", default: "United States" },
             { key: "timeline", label: "Target open date", type: "chips", options: ["<6 mo", "6–12", "12–18", ">18", "TBD"] },
             { key: "stage_code", label: "Stage", type: "chips", options: ["concept", "feasibility", "site_search", "plan_permits", "financing", "outfitting", "expansion"] }
           ]}
@@ -119,23 +174,40 @@ const EasyWizard = () => {
           showTopView={true}
           showCharts={true}
           buttons={[
-            { kind: "primary", label: "Generate Business Plan (PDF)", action: "fetch" },
-            { kind: "secondary", label: "Customize in Pro Mode", route: "/calculator" },
+            { kind: "primary", label: "Generate Business Plan (PDF)", action: "fetch", url: "/api/plan/generate", method: "POST", bodyFrom: "project", download: "PracticeSports_BusinessPlan.pdf" },
+            { kind: "secondary", label: "Customize in Pro Mode", route: "/wizard/pro" },
             { kind: "ghost", label: "Save / Download Report", action: "emit" }
           ]}
           leadGate={{
             trigger: "onLoadDelay",
-            delayMs: 3000,
+            delayMs: 1200,
             title: "Send this to your inbox + unlock pro features",
             fields: [
               { key: "name", label: "Full name", required: true },
               { key: "email", label: "Email", required: true },
               { key: "phone", label: "Phone (optional)" },
-              { key: "city", label: "City", default: "Omaha" }
+              { key: "city", label: "City", defaultFrom: "location.city" },
+              { key: "state", label: "State", defaultFrom: "location.state" },
+              { key: "outreach", label: "Supplier outreach", type: "toggle", options: ["supplier_outreach", "self_research"], default: "supplier_outreach" }
             ],
             primaryCta: { label: "Email me this plan" },
             secondaryCta: { label: "No thanks, keep exploring" },
-            webhook: { url: "/api/leads", method: "POST", payload: {} }
+            webhook: {
+              url: "/api/leads/monday",
+              method: "POST",
+              payload: {
+                name: "{{lead.name}}",
+                email: "{{lead.email}}",
+                phone: "{{lead.phone}}",
+                city: "{{lead.city}}",
+                state: "{{lead.state}}",
+                outreach_pref: "{{lead.outreach}}",
+                projectId: "{{project.id}}",
+                stage_code: "{{wizard.stage_code}}",
+                selected_sports: "{{wizard.selected_sports}}",
+                total_sqft: "{{facility_plan.total_sqft}}"
+              }
+            }
           }}
         />
       } />

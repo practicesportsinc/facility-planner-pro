@@ -49,8 +49,22 @@ export const EasyContext = ({
   };
 
   const handleContinue = () => {
-    // Save context data to localStorage
-    localStorage.setItem('wizard-context', JSON.stringify(values));
+    // Save context data to localStorage in expected format
+    const locationData = {
+      city: values.city || "Omaha",
+      state: values.state || "NE", 
+      country: values.country || "United States"
+    };
+    const wizardData = {
+      stage_code: values.stage_code
+    };
+    const signalsData = {
+      target_open_bucket: values.timeline
+    };
+    
+    localStorage.setItem('wizard-location', JSON.stringify(locationData));
+    localStorage.setItem('wizard-data', JSON.stringify(wizardData));
+    localStorage.setItem('wizard-signals', JSON.stringify(signalsData));
     navigate(primaryCta.route);
   };
 

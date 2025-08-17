@@ -34,15 +34,11 @@ export const ProductQuantities = ({
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
+  // Initialize products and quantities based on selected sports and facility data
   useEffect(() => {
-    // Load sports and facility data from localStorage
-    const sportsData = localStorage.getItem('wizard-selected-sports');
-    const facilityData = localStorage.getItem('wizard-facility-size');
+    const sports: string[] = JSON.parse(localStorage.getItem('wizard-selected-sports') || '[]');
+    const facilityData = JSON.parse(localStorage.getItem('wizard-facility-size') || '{}');
     
-    const sports = sportsData ? JSON.parse(sportsData) : [];
-    const facility = facilityData ? JSON.parse(facilityData) : {};
-
-    // Sport-to-product mapping
     const sportProductMap: Record<string, string[]> = {
       baseball_softball: ["batting_cages", "pitching_machines", "l_screens", "ball_carts", "divider_curtains", "turf_area_sf"],
       basketball: ["basketball_hoops", "scoreboards", "hardwood_floor_area_sf", "divider_curtains"],
@@ -52,51 +48,54 @@ export const ProductQuantities = ({
       multi_sport: ["divider_curtains", "turf_area_sf", "rubber_floor_area_sf", "scoreboards"]
     };
 
-    // Get default products based on selected sports
-    const defaults = Array.from(new Set([].concat(...sports.map((s: string) => sportProductMap[s] || []))));
-    
-    const totalSf = facility.total_sqft || 0;
-    const courtCounts = facility.court_or_cage_counts || {};
+    // Get products for selected sports
+    const defaultProducts = Array.from(new Set(
+      sports.flatMap(sport => sportProductMap[sport] || [])
+    ));
+
+    const totalSf = facilityData.total_sqft || 0;
+    const counts = facilityData.court_or_cage_counts || {};
 
     // Calculate default quantities
+    const defaultQuantities: Record<string, number> = {};
+    
     const getDefaultQuantity = (key: string): number => {
       switch (key) {
-        case "batting_cages": return courtCounts.baseball_tunnels || 2;
-        case "pitching_machines": return Math.ceil((courtCounts.baseball_tunnels || 0) / 2);
-        case "l_screens": return courtCounts.baseball_tunnels || 2;
-        case "ball_carts": return Math.ceil((courtCounts.baseball_tunnels || 0) / 2);
-        case "volleyball_systems": return courtCounts.volleyball_courts || 0;
-        case "ref_stands": return courtCounts.volleyball_courts || 0;
-        case "basketball_hoops": return (courtCounts.basketball_courts_full || 0) * 2 + (courtCounts.basketball_courts_half || 0);
-        case "scoreboards": return Math.max((courtCounts.basketball_courts_full || 0), (courtCounts.volleyball_courts || 0) > 0 ? 1 : 0);
-        case "pickleball_nets": return courtCounts.pickleball_courts || 0;
-        case "paddle_starter_sets": return (courtCounts.pickleball_courts || 0) * 2;
-        case "soccer_goals_pair": return courtCounts.soccer_field_small || 0;
-        case "training_turf_zone": return courtCounts.training_turf_zone || 0;
+        case "batting_cages": return counts.baseball_tunnels || 2;
+        case "pitching_machines": return Math.ceil((counts.baseball_tunnels || 0) / 2);
+        case "l_screens": return counts.baseball_tunnels || 2;
+        case "ball_carts": return Math.ceil((counts.baseball_tunnels || 0) / 2);
+        case "volleyball_systems": return counts.volleyball_courts || 0;
+        case "ref_stands": return counts.volleyball_courts || 0;
+        case "basketball_hoops": return (counts.basketball_courts_full || 0) * 2 + (counts.basketball_courts_half || 0);
+        case "scoreboards": return Math.max((counts.basketball_courts_full || 0), (counts.volleyball_courts || 0) > 0 ? 1 : 0);
+        case "pickleball_nets": return counts.pickleball_courts || 0;
+        case "paddle_starter_sets": return (counts.pickleball_courts || 0) * 2;
+        case "soccer_goals_pair": return counts.soccer_field_small || 0;
+        case "training_turf_zone": return counts.training_turf_zone || 0;
         case "turf_area_sf": return Math.round(totalSf * 0.35 / 100) * 100;
         case "rubber_floor_area_sf": return Math.round(totalSf * 0.25 / 100) * 100;
-        case "hardwood_floor_area_sf": return (courtCounts.basketball_courts_full || 0) > 0 ? Math.round(totalSf * 0.30 / 100) * 100 : 0;
-        case "divider_curtains": return Math.max(0, (courtCounts.volleyball_courts || 0) + (courtCounts.pickleball_courts || 0) + (courtCounts.basketball_courts_full || 0) + (courtCounts.training_turf_zone || 0) - 1);
+        case "hardwood_floor_area_sf": return (counts.basketball_courts_full || 0) > 0 ? Math.round(totalSf * 0.30 / 100) * 100 : 0;
+        case "divider_curtains": return Math.max(0, (counts.volleyball_courts || 0) + (counts.pickleball_courts || 0) + (counts.basketball_courts_full || 0) + (counts.training_turf_zone || 0) - 1);
         default: return 0;
       }
     };
 
-    // Initialize state
-    setSelectedProducts(defaults);
-    
-    const initialQuantities: Record<string, number> = {};
-    defaults.forEach(key => {
-      const defaultQty = getDefaultQuantity(key);
-      initialQuantities[key] = defaultQty;
+    defaultProducts.forEach(key => {
+      defaultQuantities[key] = getDefaultQuantity(key);
     });
-    
-    // Clamp square footage to total facility size
+
+    // Clamp SF quantities to total_sqft
     ["turf_area_sf", "rubber_floor_area_sf", "hardwood_floor_area_sf"].forEach(key => {
-      if (initialQuantities[key] > totalSf) initialQuantities[key] = totalSf;
-      if (initialQuantities[key] < 0) initialQuantities[key] = 0;
+      if (defaultQuantities[key] > totalSf) defaultQuantities[key] = totalSf;
+      if (defaultQuantities[key] < 0) defaultQuantities[key] = 0;
     });
-    
-    setQuantities(initialQuantities);
+
+    setSelectedProducts(defaultProducts);
+    setQuantities(defaultQuantities);
+
+    // Fire analytics event
+    console.log("Products autoselected:", { defaultProducts, defaultQuantities });
   }, []);
 
   const handleProductToggle = (productKey: string, checked: boolean) => {
