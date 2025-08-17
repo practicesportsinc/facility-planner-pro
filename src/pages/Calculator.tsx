@@ -266,11 +266,40 @@ const Calculator = () => {
               selectedProducts: responses.product_quantities?.selectedProducts || [],
               quantities: responses.product_quantities?.quantities || {}
             },
-            5: { // Staffing & OpEx
-              ...opexDefaults
+            5: { // Staffing & OpEx - Map to expected field names
+              gmFte: '1',
+              gmRate: '35',
+              opsLeadFte: '1', 
+              opsLeadRate: '28',
+              coachFte: Math.max(1, Math.round(opexDefaults.staffing.find(s => s.role === 'Coach')?.fte || 2)).toString(),
+              coachRate: '25',
+              frontDeskFte: Math.max(1, Math.round(opexDefaults.staffing.find(s => s.role === 'Front Desk')?.fte || 1.5)).toString(),
+              frontDeskRate: '20',
+              // Fixed OpEx fields
+              utilities: opexDefaults.fixedOperating.utilities.toString(),
+              insurance: opexDefaults.fixedOperating.insurance.toString(),
+              propertyTax: opexDefaults.fixedOperating.property_tax.toString(),
+              maintenance: opexDefaults.fixedOperating.maintenance.toString(),
+              marketing: opexDefaults.fixedOperating.marketing.toString(),
+              software: opexDefaults.fixedOperating.software.toString(),
+              janitorial: opexDefaults.fixedOperating.janitorial.toString(),
+              other: opexDefaults.fixedOperating.other.toString()
             },
-            6: { // Revenue Programs
-              ...revenueDefaults
+            6: { // Revenue Programs - Map to expected field names
+              membershipBasic: '89',
+              membershipBasicCount: revenueDefaults.memberships[0]?.count?.toString() || '150',
+              membershipPremium: '149', 
+              membershipPremiumCount: revenueDefaults.memberships[1]?.count?.toString() || '100',
+              membershipFamily: '199',
+              membershipFamilyCount: revenueDefaults.memberships[2]?.count?.toString() || '75',
+              courtRentalRate: revenueDefaults.rentals[0]?.price?.toString() || '60',
+              courtUtilization: '65',
+              fieldRentalRate: revenueDefaults.rentals[1]?.price?.toString() || '100',
+              fieldUtilization: '70',
+              privateLessonRate: revenueDefaults.lessons[0]?.price?.toString() || '75',
+              privateLessonsPerWeek: '40',
+              groupLessonRate: revenueDefaults.lessons[1]?.price?.toString() || '25',
+              groupLessonsPerWeek: '60'
             },
             7: { // Financing
               lease_terms: {

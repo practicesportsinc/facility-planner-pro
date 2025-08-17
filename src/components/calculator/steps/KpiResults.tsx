@@ -63,39 +63,71 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
     const equipmentEstimate = 50000; // base estimate
     const totalCapex = Math.round((totalSqft * tiCostPerSF) + equipmentEstimate + (totalSqft * 5)); // simplified
 
-    // Calculate OpEx from staffing and fixed costs
-    const staffing = opexData.staffing || [];
-    const HOURS_PER_FTE_MONTH = 173;
-    const salaryCosts = staffing.reduce((acc: number, role: any) => {
-      return acc + (role.ftes * role.loaded_wage_per_hr * HOURS_PER_FTE_MONTH);
-    }, 0);
+    // Calculate OpEx - handle both schema formats
+    const HOURS_PER_FTE_MONTH = 173.33;
+    let salaryCosts = 0;
     
-    const fixedCosts = (opexData.utilities_monthly || 0) + 
-                      (opexData.insurance_monthly || 0) + 
-                      (opexData.property_tax_monthly || 0) + 
-                      (opexData.maintenance_monthly || 0) + 
-                      (opexData.marketing_monthly || 0) + 
-                      (opexData.software_monthly || 0) + 
-                      (opexData.janitorial_monthly || 0) + 
-                      (opexData.other_monthly || 0);
+    // Handle staffing array format (quick estimate) or individual fields (step form)
+    if (opexData.staffing && Array.isArray(opexData.staffing)) {
+      salaryCosts = opexData.staffing.reduce((acc: number, role: any) => {
+        return acc + ((role.ftes || 0) * (role.loaded_wage_per_hr || 0) * HOURS_PER_FTE_MONTH);
+      }, 0);
+    } else {
+      // Handle individual field format from StaffingAndOpEx step
+      const gmCost = Number(opexData.gmFte || 0) * Number(opexData.gmRate || 0) * HOURS_PER_FTE_MONTH;
+      const opsLeadCost = Number(opexData.opsLeadFte || 0) * Number(opexData.opsLeadRate || 0) * HOURS_PER_FTE_MONTH;
+      const coachCost = Number(opexData.coachFte || 0) * Number(opexData.coachRate || 0) * HOURS_PER_FTE_MONTH;
+      const frontDeskCost = Number(opexData.frontDeskFte || 0) * Number(opexData.frontDeskRate || 0) * 86.67; // PT assumption
+      salaryCosts = gmCost + opsLeadCost + coachCost + frontDeskCost;
+    }
+    
+    // Handle fixed costs - try both schema formats
+    const fixedCosts = Number(opexData.utilities_monthly || opexData.utilities || 0) + 
+                      Number(opexData.insurance_monthly || opexData.insurance || 0) + 
+                      Number(opexData.property_tax_monthly || opexData.propertyTax || 0) + 
+                      Number(opexData.maintenance_monthly || opexData.maintenance || 0) + 
+                      Number(opexData.marketing_monthly || opexData.marketing || 0) + 
+                      Number(opexData.software_monthly || opexData.software || 0) + 
+                      Number(opexData.janitorial_monthly || opexData.janitorial || 0) + 
+                      Number(opexData.other_monthly || opexData.other || 0);
 
     const monthlyOpex = Math.round(salaryCosts + fixedCosts);
 
-    // Calculate Revenue
-    const memberships = revenueData.memberships || [];
-    const rentals = revenueData.rentals || [];
-    const lessons = revenueData.lessons || [];
+    // Calculate Revenue - handle both schema formats
+    let membershipRevenue = 0;
+    let rentalRevenue = 0; 
+    let lessonRevenue = 0;
     
     const WEEKS_PER_MONTH = 4.345;
     
-    const membershipRevenue = memberships.reduce((acc: number, m: any) => 
-      acc + (m.price_month * m.members), 0);
+    // Handle array format (quick estimate) or individual fields (step form)  
+    if (revenueData.memberships && Array.isArray(revenueData.memberships)) {
+      membershipRevenue = revenueData.memberships.reduce((acc: number, m: any) => 
+        acc + ((m.price_month || 0) * (m.members || 0)), 0);
+    } else {
+      // Handle individual field format from Revenue step
+      membershipRevenue = (Number(revenueData.membershipBasic || 0) * Number(revenueData.membershipBasicCount || 0)) +
+                         (Number(revenueData.membershipPremium || 0) * Number(revenueData.membershipPremiumCount || 0)) +
+                         (Number(revenueData.membershipFamily || 0) * Number(revenueData.membershipFamilyCount || 0));
+    }
     
-    const rentalRevenue = rentals.reduce((acc: number, r: any) => 
-      acc + (r.rate_per_hr * r.util_hours_per_week * WEEKS_PER_MONTH), 0);
+    if (revenueData.rentals && Array.isArray(revenueData.rentals)) {
+      rentalRevenue = revenueData.rentals.reduce((acc: number, r: any) => 
+        acc + ((r.rate_per_hr || 0) * (r.util_hours_per_week || 0) * WEEKS_PER_MONTH), 0);
+    } else {
+      // Handle individual field format from Revenue step
+      rentalRevenue = (Number(revenueData.courtRentalRate || 0) * Number(revenueData.courtUtilization || 0) * 30 / 100) +
+                     (Number(revenueData.fieldRentalRate || 0) * Number(revenueData.fieldUtilization || 0) * 30 / 100);
+    }
     
-    const lessonRevenue = lessons.reduce((acc: number, l: any) => 
-      acc + (l.coach_count * l.hours_per_coach_week * WEEKS_PER_MONTH * l.avg_rate_per_hr * (l.utilization_pct / 100)), 0);
+    if (revenueData.lessons && Array.isArray(revenueData.lessons)) {
+      lessonRevenue = revenueData.lessons.reduce((acc: number, l: any) => 
+        acc + ((l.coach_count || 0) * (l.hours_per_coach_week || 0) * WEEKS_PER_MONTH * (l.avg_rate_per_hr || 0) * ((l.utilization_pct || 0) / 100)), 0);
+    } else {
+      // Handle individual field format from Revenue step
+      lessonRevenue = (Number(revenueData.privateLessonRate || 0) * Number(revenueData.privateLessonsPerWeek || 0) * WEEKS_PER_MONTH) +
+                     (Number(revenueData.groupLessonRate || 0) * Number(revenueData.groupLessonsPerWeek || 0) * WEEKS_PER_MONTH);
+    }
 
     const monthlyRevenue = Math.round(membershipRevenue + rentalRevenue + lessonRevenue);
 
