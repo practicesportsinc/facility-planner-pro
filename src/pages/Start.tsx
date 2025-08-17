@@ -185,6 +185,13 @@ const Start = () => {
             </div>
           </div>
         </section>
+
+        {/* Quick Estimate Modal */}
+        <Dialog open={isQuickOpen} onOpenChange={setIsQuickOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto p-0 border-0">
+            <QuickEstimateFlow onClose={() => setIsQuickOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </Layout>
     );
   }
@@ -276,13 +283,6 @@ const Start = () => {
           </div>
         </div>
       </section>
-
-      {/* Quick Estimate Modal */}
-      <Dialog open={isQuickOpen} onOpenChange={setIsQuickOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto p-0 border-0">
-          <QuickEstimateFlow onClose={() => setIsQuickOpen(false)} />
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 };
