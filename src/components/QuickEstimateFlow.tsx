@@ -1,0 +1,399 @@
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Zap, DollarSign, TrendingUp, Calendar, ArrowRight, Building, MapPin, Edit3 } from "lucide-react";
+import { generateProjectId, saveProjectState } from "@/utils/projectState";
+import useAnalytics from "@/hooks/useAnalytics";
+
+// Quick estimate types
+type SizeKey = "small" | "small_plus" | "medium" | "large" | "giant" | "arena";
+type SportKey = 
+  | "baseball_softball"
+  | "basketball" 
+  | "volleyball"
+  | "pickleball"
+  | "soccer"
+  | "football"
+  | "lacrosse"
+  | "tennis"
+  | "multi_sport"
+  | "fitness";
+
+interface QuickEstimate {
+  sport: SportKey;
+  size: SizeKey;
+  location: string;
+  budget?: string;
+}
+
+interface EstimateResults {
+  grossSF: number;
+  capexTotal: number;
+  opexMonthly: number;
+  revenueMonthly: number;
+  ebitdaMonthly: number;
+  breakEvenMonths: number | null;
+}
+
+// Pre-populated sports data with realistic averages
+const SPORTS_DATA: Record<SportKey, { label: string; avgRevenue: number; avgCapex: number; icon: string }> = {
+  baseball_softball: { label: "Baseball/Softball", avgRevenue: 28000, avgCapex: 185000, icon: "⚾" },
+  basketball: { label: "Basketball", avgRevenue: 35000, avgCapex: 220000, icon: "🏀" },
+  volleyball: { label: "Volleyball", avgRevenue: 22000, avgCapex: 165000, icon: "🏐" },
+  pickleball: { label: "Pickleball", avgRevenue: 18000, avgCapex: 145000, icon: "🏓" },
+  soccer: { label: "Soccer", avgRevenue: 32000, avgCapex: 195000, icon: "⚽" },
+  football: { label: "Football", avgRevenue: 38000, avgCapex: 240000, icon: "🏈" },
+  lacrosse: { label: "Lacrosse", avgRevenue: 26000, avgCapex: 175000, icon: "🥍" },
+  tennis: { label: "Tennis", avgRevenue: 24000, avgCapex: 185000, icon: "🎾" },
+  multi_sport: { label: "Multi-Sport", avgRevenue: 42000, avgCapex: 280000, icon: "🏟️" },
+  fitness: { label: "Fitness/Training", avgRevenue: 35000, avgCapex: 195000, icon: "💪" }
+};
+
+const SIZE_DATA: Record<SizeKey, { label: string; sqft: string; multiplier: number }> = {
+  small: { label: "Small", sqft: "2K-5K SF", multiplier: 0.7 },
+  small_plus: { label: "Small+", sqft: "5K-8K SF", multiplier: 0.85 },
+  medium: { label: "Medium", sqft: "8K-15K SF", multiplier: 1.0 },
+  large: { label: "Large", sqft: "15K-25K SF", multiplier: 1.4 },
+  giant: { label: "Giant", sqft: "25K-40K SF", multiplier: 1.8 },
+  arena: { label: "Arena", sqft: "40K+ SF", multiplier: 2.5 }
+};
+
+const LOCATION_MULTIPLIERS: Record<string, number> = {
+  "low": 0.8,
+  "average": 1.0,
+  "high": 1.2,
+  "premium": 1.4
+};
+
+interface QuickEstimateFlowProps {
+  onClose: () => void;
+}
+
+export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
+  const navigate = useNavigate();
+  const { track } = useAnalytics();
+  
+  const [step, setStep] = useState(1);
+  const [estimate, setEstimate] = useState<QuickEstimate>({
+    sport: "basketball",
+    size: "medium", 
+    location: "average"
+  });
+  const [customizing, setCustomizing] = useState(false);
+
+  // Calculate quick estimate results
+  const results = useMemo((): EstimateResults => {
+    const sportData = SPORTS_DATA[estimate.sport];
+    const sizeData = SIZE_DATA[estimate.size];
+    const locationMultiplier = LOCATION_MULTIPLIERS[estimate.location] || 1.0;
+    
+    const grossSF = Math.round(8000 * sizeData.multiplier);
+    const capexTotal = Math.round(sportData.avgCapex * sizeData.multiplier * locationMultiplier);
+    const revenueMonthly = Math.round(sportData.avgRevenue * sizeData.multiplier * locationMultiplier);
+    const opexMonthly = Math.round(revenueMonthly * 0.65); // Typical 65% OpEx ratio
+    const ebitdaMonthly = revenueMonthly - opexMonthly;
+    const breakEvenMonths = ebitdaMonthly > 0 ? Math.ceil(capexTotal / Math.max(ebitdaMonthly, 1)) : null;
+
+    return {
+      grossSF,
+      capexTotal,
+      opexMonthly,
+      revenueMonthly,
+      ebitdaMonthly,
+      breakEvenMonths
+    };
+  }, [estimate]);
+
+  const handleQuickStart = () => {
+    track('quick_estimate_started', estimate);
+    
+    // Generate project ID and save preset data
+    const projectId = generateProjectId('quick');
+    
+    const projectData = {
+      mode: 'quick' as const,
+      scenario_name: `Quick ${SPORTS_DATA[estimate.sport].label} Estimate`,
+      location_city: estimate.location === "premium" ? "San Francisco" : 
+                    estimate.location === "high" ? "Denver" : 
+                    estimate.location === "low" ? "Phoenix" : "Atlanta",
+      location_state_province: estimate.location === "premium" ? "CA" : 
+                              estimate.location === "high" ? "CO" : 
+                              estimate.location === "low" ? "AZ" : "GA",
+      currency: "USD",
+      selectedSports: [estimate.sport],
+      facility_plan: {
+        build_mode: "lease",
+        clear_height_ft: 22,
+        total_sqft: results.grossSF,
+        admin_pct_addon: 12,
+        circulation_pct_addon: 20,
+        court_or_cage_counts: getCourtCounts(estimate.sport, estimate.size)
+      },
+      opex_inputs: getOpexDefaults(estimate.size),
+      revenue_programs: getRevenueDefaults(estimate.sport, estimate.size),
+      financing: getFinancingDefaults(),
+      estimates: results
+    };
+
+    saveProjectState(projectId, projectData);
+    track('quick_estimate_completed', { estimate, results });
+    
+    // Navigate to calculator with quick mode
+    navigate(`/calculator?projectId=${projectId}&mode=quick`);
+  };
+
+  if (step === 1) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader className="text-center pb-4">
+          <div className="flex items-center justify-center mb-2">
+            <Zap className="h-8 w-8 text-primary mr-2" />
+            <CardTitle className="text-2xl">Quick Facility Estimate</CardTitle>
+          </div>
+          <p className="text-muted-foreground">Get instant financial projections in under 30 seconds</p>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          {/* Sport Selection */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Primary Sport</Label>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.entries(SPORTS_DATA).map(([key, data]) => (
+                <Button
+                  key={key}
+                  variant={estimate.sport === key ? "default" : "outline"}
+                  className="h-16 justify-start space-x-3"
+                  onClick={() => setEstimate(prev => ({ ...prev, sport: key as SportKey }))}
+                >
+                  <span className="text-2xl">{data.icon}</span>
+                  <div className="text-left">
+                    <div className="font-medium">{data.label}</div>
+                    <div className="text-xs opacity-70">~${(data.avgRevenue/1000).toFixed(0)}K/mo</div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Size Selection */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Facility Size</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(SIZE_DATA).map(([key, data]) => (
+                <Button
+                  key={key}
+                  variant={estimate.size === key ? "default" : "outline"}
+                  className="h-14 flex flex-col"
+                  onClick={() => setEstimate(prev => ({ ...prev, size: key as SizeKey }))}
+                >
+                  <div className="font-medium">{data.label}</div>
+                  <div className="text-xs opacity-70">{data.sqft}</div>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Location Cost Level */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Market Cost Level</Label>
+            <Select 
+              value={estimate.location} 
+              onValueChange={(value) => setEstimate(prev => ({ ...prev, location: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low Cost Market (Phoenix, Atlanta)</SelectItem>
+                <SelectItem value="average">Average Market (Dallas, Chicago)</SelectItem>
+                <SelectItem value="high">High Cost Market (Denver, Boston)</SelectItem>
+                <SelectItem value="premium">Premium Market (SF, NYC)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button 
+            onClick={() => setStep(2)} 
+            size="lg" 
+            className="w-full bg-gradient-primary"
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Generate Quick Estimate
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full max-w-3xl mx-auto">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl flex items-center justify-center">
+          <span className="text-2xl mr-2">{SPORTS_DATA[estimate.sport].icon}</span>
+          Your {SPORTS_DATA[estimate.sport].label} Facility Estimate
+        </CardTitle>
+        <p className="text-muted-foreground">
+          {SIZE_DATA[estimate.size].label} facility • {SIZE_DATA[estimate.size].sqft}
+        </p>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {/* Key Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="p-4 text-center">
+            <Building className="h-6 w-6 mx-auto mb-2 text-primary" />
+            <div className="text-2xl font-bold">{results.grossSF.toLocaleString()}</div>
+            <div className="text-sm text-muted-foreground">Square Feet</div>
+          </Card>
+          
+          <Card className="p-4 text-center">
+            <DollarSign className="h-6 w-6 mx-auto mb-2 text-primary" />
+            <div className="text-2xl font-bold">${(results.capexTotal/1000).toFixed(0)}K</div>
+            <div className="text-sm text-muted-foreground">Initial Investment</div>
+          </Card>
+          
+          <Card className="p-4 text-center">
+            <TrendingUp className="h-6 w-6 mx-auto mb-2 text-primary" />
+            <div className="text-2xl font-bold">${(results.revenueMonthly/1000).toFixed(0)}K</div>
+            <div className="text-sm text-muted-foreground">Monthly Revenue</div>
+          </Card>
+          
+          <Card className="p-4 text-center">
+            <Calendar className="h-6 w-6 mx-auto mb-2 text-primary" />
+            <div className="text-2xl font-bold">
+              {results.breakEvenMonths ? `${results.breakEvenMonths}mo` : 'N/A'}
+            </div>
+            <div className="text-sm text-muted-foreground">Break Even</div>
+          </Card>
+        </div>
+
+        {/* Financial Summary */}
+        <Card className="p-6 bg-gradient-subtle">
+          <h3 className="font-semibold mb-4">Monthly Financial Overview</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span>Gross Revenue</span>
+              <span className="font-medium text-green-600">${results.revenueMonthly.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Operating Expenses</span>
+              <span className="font-medium text-red-600">-${results.opexMonthly.toLocaleString()}</span>
+            </div>
+            <div className="border-t pt-2 flex justify-between text-lg font-semibold">
+              <span>Net Operating Income</span>
+              <span className={results.ebitdaMonthly >= 0 ? "text-green-600" : "text-red-600"}>
+                ${results.ebitdaMonthly.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </Card>
+
+        {/* Actions */}
+        <div className="flex gap-4">
+          <Button
+            variant="outline"
+            onClick={() => setStep(1)}
+            className="flex-1"
+          >
+            <Edit3 className="h-4 w-4 mr-2" />
+            Adjust Parameters
+          </Button>
+          
+          <Button
+            onClick={handleQuickStart}
+            size="lg"
+            className="flex-1 bg-gradient-primary"
+          >
+            View Detailed Analysis
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
+        
+        <p className="text-center text-sm text-muted-foreground">
+          This quick estimate uses industry averages. Click "View Detailed Analysis" to customize all parameters and get precise projections.
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Helper functions for generating realistic defaults
+function getCourtCounts(sport: SportKey, size: SizeKey): Record<string, number> {
+  const multiplier = SIZE_DATA[size].multiplier;
+  
+  const baseCounts: Record<SportKey, Record<string, number>> = {
+    basketball: { basketball_courts_full: Math.round(2 * multiplier) },
+    volleyball: { volleyball_courts: Math.round(3 * multiplier) },
+    baseball_softball: { baseball_tunnels: Math.round(6 * multiplier) },
+    pickleball: { pickleball_courts: Math.round(4 * multiplier) },
+    soccer: { soccer_field_small: Math.round(1 * multiplier) },
+    football: { football_field: Math.round(1 * multiplier) },
+    lacrosse: { lacrosse_field: Math.round(1 * multiplier) },
+    tennis: { tennis_courts: Math.round(2 * multiplier) },
+    multi_sport: { 
+      basketball_courts_full: Math.round(1 * multiplier),
+      volleyball_courts: Math.round(1 * multiplier)
+    },
+    fitness: { fitness_area_sf: Math.round(3000 * multiplier) }
+  };
+  
+  return baseCounts[sport] || {};
+}
+
+function getOpexDefaults(size: SizeKey) {
+  const multiplier = SIZE_DATA[size].multiplier;
+  
+  return {
+    staffing: [
+      { role: "General Manager", ftes: 1, loaded_wage_per_hr: 35 },
+      { role: "Operations Staff", ftes: Math.round(1.5 * multiplier), loaded_wage_per_hr: 25 },
+      { role: "Coaches/Instructors", ftes: Math.round(2 * multiplier), loaded_wage_per_hr: 30 },
+      { role: "Front Desk", ftes: Math.round(1.2 * multiplier), loaded_wage_per_hr: 18 }
+    ],
+    utilities_monthly: Math.round(2000 * multiplier),
+    insurance_monthly: Math.round(1200 * multiplier),
+    maintenance_monthly: Math.round(800 * multiplier),
+    marketing_monthly: Math.round(1500 * multiplier),
+    software_monthly: 400,
+    other_monthly: Math.round(600 * multiplier)
+  };
+}
+
+function getRevenueDefaults(sport: SportKey, size: SizeKey) {
+  const multiplier = SIZE_DATA[size].multiplier;
+  
+  return {
+    memberships: [
+      { name: "Individual", price_month: 65, members: Math.round(150 * multiplier) },
+      { name: "Family", price_month: 110, members: Math.round(60 * multiplier) }
+    ],
+    rentals: [
+      { unit: "hourly_rental", rate_per_hr: 50, util_hours_per_week: Math.round(25 * multiplier) }
+    ],
+    lessons: [
+      { coach_count: Math.round(2 * multiplier), avg_rate_per_hr: 70, hours_per_coach_week: 15, utilization_pct: 70 }
+    ],
+    camps_clinics: [
+      { sessions_per_year: 12, avg_price: 225, capacity: Math.round(25 * multiplier), fill_rate_pct: 75 }
+    ]
+  };
+}
+
+function getFinancingDefaults() {
+  return {
+    lease_terms: {
+      base_rent_per_sf_year: 14,
+      nnn_per_sf_year: 4,
+      cam_per_sf_year: 2,
+      free_rent_months: 3,
+      ti_allowance_per_sf: 10,
+      lease_years: 7,
+      annual_escalation_pct: 3
+    }
+  };
+}

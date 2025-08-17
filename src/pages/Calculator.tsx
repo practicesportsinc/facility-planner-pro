@@ -191,11 +191,11 @@ const Calculator = () => {
               <div>
                 <CardTitle className="text-2xl flex items-center">
                   {(isQuickMode || isWizardMode) && <Zap className="h-6 w-6 mr-2 text-primary" />}
-                  {isQuickMode ? 'Quick Estimate Review' : isWizardMode ? 'Wizard Results Review' : 'Facility Budget Calculator'}
+                  {isQuickMode ? 'Quick Estimate Analysis' : isWizardMode ? 'Wizard Results Review' : 'Facility Budget Calculator'}
                 </CardTitle>
                 <CardDescription>
                   {isQuickMode 
-                    ? 'Review and customize your quick estimate'
+                    ? 'Your instant facility projections • Customize any section for refined estimates'
                     : isWizardMode
                     ? 'Review and refine your facility recommendations'
                     : `Step ${currentStep} of ${STEPS.length}: ${currentStepData?.title}`
@@ -209,14 +209,21 @@ const Calculator = () => {
             </div>
             {!isQuickMode && !isWizardMode && <Progress value={progress} className="h-2" />}
             {(isQuickMode || isWizardMode) && (
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mt-4">
-                <p className="text-sm text-primary">
-                  <Zap className="h-4 w-4 inline mr-1" />
-                  {isQuickMode 
-                    ? 'This is your quick estimate. You can review the financial overview below or navigate to any step to customize the details.'
-                    : 'Your facility wizard recommendations have been pre-filled. Navigate through the steps to review and customize your plan.'
-                  }
-                </p>
+              <div className="bg-gradient-subtle border border-primary/20 rounded-lg p-4 mt-4">
+                <div className="flex items-start space-x-3">
+                  <Zap className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-primary mb-1">
+                      {isQuickMode ? 'Quick Estimate Generated' : 'Wizard Recommendations Ready'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {isQuickMode 
+                        ? 'Your instant projections are ready for review. Navigate to any step to customize parameters for more accurate results.'
+                        : 'Your facility recommendations have been pre-filled. Review and customize each section to refine your plan.'
+                      }
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </CardHeader>
