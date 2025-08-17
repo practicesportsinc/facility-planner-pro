@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { ArrowLeft, ArrowRight, Sparkles, Target, MapPin, Users, DollarSign, Calendar, Zap } from "lucide-react";
 import { WIZARD_QUESTIONS, generateRecommendations } from "@/data/wizardQuestions";
 import { WizardQuestion, WizardResponse, WizardResult } from "@/types/wizard";
+import { SPORT_PRESETS } from "@/data/sportPresets";
 import { toast } from "sonner";
 
 // Coerce array function to handle different data shapes
@@ -174,6 +175,37 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
     return quantities;
   };
 
+  // Get recommended ceiling height based on selected sports
+  const getRecommendedCeilingHeight = (): string => {
+    const selectedSports: string[] = responses.primary_sport || [];
+    if (selectedSports.length === 0) return 'standard';
+    
+    let maxHeight = 0;
+    selectedSports.forEach(sportId => {
+      const preset = SPORT_PRESETS[sportId];
+      if (preset?.minClearHeight) {
+        maxHeight = Math.max(maxHeight, preset.minClearHeight.min);
+      }
+    });
+    
+    // Map heights to options
+    if (maxHeight >= 30) return 'very_high';
+    if (maxHeight >= 24) return 'high';
+    return 'standard';
+  };
+
+  // Pre-select recommended ceiling height if not already selected
+  useEffect(() => {
+    const currentCeilingResponse = responses.ceiling_height;
+    const selectedSports: string[] = responses.primary_sport || [];
+    
+    // Only pre-select if we have sports selected and no ceiling height choice yet
+    if (selectedSports.length > 0 && !currentCeilingResponse) {
+      const recommended = getRecommendedCeilingHeight();
+      setResponses(prev => ({ ...prev, ceiling_height: recommended }));
+    }
+  }, [responses.primary_sport]);
+
   const getSqftBySize = (size: string): number => {
     // If custom size, get the exact square footage from custom input
     if (size === 'custom') {
@@ -318,39 +350,45 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {currentQuestion.options?.map((option) => (
-                <Card
-                  key={option.id}
-                  className={`cursor-pointer transition-smooth hover:shadow-custom-md ${
-                    currentValue === option.id
-                      ? 'border-primary bg-primary/5 shadow-custom-sm'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => handleResponse(option.id)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start space-x-3">
-                      {option.icon && (
-                        <div className="text-2xl">{option.icon}</div>
-                      )}
-                      <div className="flex-1">
-                        <div className="font-medium">{option.label}</div>
-                        {option.description && (
-                          <div className="text-sm text-muted-foreground mt-1">
-                            {option.description}
-                          </div>
+              {currentQuestion.options?.map((option) => {
+                // Check if this option is recommended for ceiling height
+                const isRecommended = currentQuestion.id === 'ceiling_height' && 
+                                    option.id === getRecommendedCeilingHeight();
+                
+                return (
+                  <Card
+                    key={option.id}
+                    className={`cursor-pointer transition-smooth hover:shadow-custom-md ${
+                      currentValue === option.id
+                        ? 'border-primary bg-primary/5 shadow-custom-sm'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => handleResponse(option.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start space-x-3">
+                        {option.icon && (
+                          <div className="text-2xl">{option.icon}</div>
                         )}
-                        {option.recommended && (
-                          <Badge variant="secondary" className="mt-2">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            Recommended
-                          </Badge>
-                        )}
+                        <div className="flex-1">
+                          <div className="font-medium">{option.label}</div>
+                          {option.description && (
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {option.description}
+                            </div>
+                          )}
+                          {(option.recommended || isRecommended) && (
+                            <Badge variant="secondary" className="mt-2">
+                              <Sparkles className="w-3 h-3 mr-1" />
+                              Recommended
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
             
             {/* Text field for custom input */}
