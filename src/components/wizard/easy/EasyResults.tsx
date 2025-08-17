@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import LeadGate from "@/components/shared/LeadGate";
 import useAnalytics from "@/hooks/useAnalytics";
 import { getProjectState, saveProjectState } from "@/utils/projectState";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip } from "recharts";
 
 interface KpiCard {
   key: string;
@@ -231,6 +232,54 @@ export const EasyResults = ({
     }
   };
 
+  // Generate chart data from KPIs
+  const getRevenueData = () => {
+    const facilityData = JSON.parse(localStorage.getItem('wizard-facility-size') || '{}');
+    const counts = facilityData.court_or_cage_counts || {};
+    const sf = facilityData.total_sqft || 0;
+
+    const memberships = sf < 10000 ? 150 : sf < 20000 ? 300 : sf < 30000 ? 500 : 800;
+    const membershipRevenue = memberships * 89;
+    
+    const totalCourts = (counts.basketball_courts_full || 0) + (counts.volleyball_courts || 0) + (counts.pickleball_courts || 0);
+    const courtRentals = totalCourts * 25 * 4 * 30;
+    
+    const cageRentals = (counts.baseball_tunnels || 0) * 20 * 6 * 30;
+    
+    return [
+      { name: 'Memberships', value: membershipRevenue, color: '#0EA5E9' },
+      { name: 'Court Rentals', value: courtRentals, color: '#10B981' },
+      { name: 'Training/Cages', value: cageRentals, color: '#F59E0B' }
+    ].filter(item => item.value > 0);
+  };
+
+  const getCashFlowData = () => {
+    const months = Array.from({ length: 12 }, (_, i) => i + 1);
+    return months.map(month => ({
+      month: `M${month}`,
+      revenue: kpis.monthly_revenue || 0,
+      opex: -(kpis.monthly_opex || 0),
+      ebitda: (kpis.monthly_ebitda || 0)
+    }));
+  };
+
+  const getFacilityLayout = () => {
+    const facilityData = JSON.parse(localStorage.getItem('wizard-facility-size') || '{}');
+    const counts = facilityData.court_or_cage_counts || {};
+    const sf = facilityData.total_sqft || 15000;
+    
+    // Simple grid layout representation
+    const width = Math.sqrt(sf * 1.5); // Assuming 1.5:1 ratio
+    const height = sf / width;
+    
+    return { 
+      width: Math.round(width), 
+      height: Math.round(height), 
+      courts: counts,
+      totalSf: sf
+    };
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-subtle p-6">
@@ -256,27 +305,121 @@ export const EasyResults = ({
           })}
         </div>
 
-        {/* Top View Placeholder */}
+        {/* Facility Layout */}
         <Card className="ps-card p-8 mb-8">
           <h3 className="text-xl font-semibold text-ps-text mb-4 text-center">Facility Layout</h3>
-          <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
-            <span className="text-gray-500">Top-view layout visualization</span>
+          <div className="relative bg-gradient-to-br from-blue-50 to-gray-100 h-64 rounded-lg flex items-center justify-center overflow-hidden">
+            {(() => {
+              const layout = getFacilityLayout();
+              const scale = Math.min(240 / Math.max(layout.width, layout.height), 1);
+              
+              return (
+                <div className="relative" style={{ 
+                  width: `${layout.width * scale}px`, 
+                  height: `${layout.height * scale}px`,
+                  border: '2px solid #374151',
+                  borderRadius: '4px',
+                  backgroundColor: '#f9fafb'
+                }}>
+                  <div className="absolute top-2 left-2 text-xs font-medium text-gray-600">
+                    {layout.totalSf.toLocaleString()} sq ft
+                  </div>
+                  
+                  {/* Court indicators */}
+                  {Object.entries(layout.courts).map(([courtType, count], index) => {
+                    const numCount = Number(count) || 0;
+                    return numCount > 0 && (
+                      <div 
+                        key={courtType}
+                        className="absolute bg-green-200 border border-green-400 rounded"
+                        style={{
+                          width: '20px',
+                          height: '12px',
+                          left: `${10 + (index % 3) * 25}px`,
+                          top: `${20 + Math.floor(index / 3) * 15}px`
+                        }}
+                      >
+                        <div className="text-[8px] text-center leading-3">{numCount}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </Card>
 
-        {/* Charts Placeholder */}
+        {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           <Card className="ps-card p-8">
             <h3 className="text-xl font-semibold text-ps-text mb-4">Revenue Breakdown</h3>
-            <div className="bg-gray-100 h-48 rounded-lg flex items-center justify-center">
-              <span className="text-gray-500">Revenue chart</span>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={getRevenueData()}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {getRevenueData().map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `$${(value as number).toLocaleString()}`} />
+                </PieChart>
+              </ResponsiveContainer>
+              
+              {/* Legend */}
+              <div className="flex flex-wrap justify-center gap-4 mt-4">
+                {getRevenueData().map((entry) => (
+                  <div key={entry.name} className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <span className="text-sm text-gray-600">{entry.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </Card>
           
           <Card className="ps-card p-8">
             <h3 className="text-xl font-semibold text-ps-text mb-4">Cash Flow Projection</h3>
-            <div className="bg-gray-100 h-48 rounded-lg flex items-center justify-center">
-              <span className="text-gray-500">Cash flow chart</span>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={getCashFlowData()}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis tickFormatter={(value) => `$${Math.abs(value/1000)}k`} />
+                  <Tooltip formatter={(value) => `$${(value as number).toLocaleString()}`} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#10B981" 
+                    strokeWidth={2}
+                    name="Revenue"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="opex" 
+                    stroke="#EF4444" 
+                    strokeWidth={2}
+                    name="OpEx"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="ebitda" 
+                    stroke="#0EA5E9" 
+                    strokeWidth={3}
+                    name="EBITDA"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </Card>
         </div>
