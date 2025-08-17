@@ -66,15 +66,18 @@ const Header = () => {
             </Link>
           </nav>
 
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm" asChild>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild className="hidden md:flex">
               <Link to="/legal">
                 <FileText className="h-4 w-4 mr-2" />
                 Legal
               </Link>
             </Button>
             <Button variant="hero" size="sm" asChild>
-              <Link to="/start">Start Planning</Link>
+              <Link to="/start">
+                <span className="hidden sm:inline">Start Planning</span>
+                <span className="sm:hidden">Start</span>
+              </Link>
             </Button>
           </div>
         </div>

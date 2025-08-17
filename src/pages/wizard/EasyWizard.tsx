@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import Layout from "@/components/layout/Layout";
 import EasyStartSports from "@/components/wizard/easy/EasyStartSports";
 import FacilitySizeSelector from "@/components/wizard/easy/FacilitySizeSelector";
 import ProductQuantities from "@/components/wizard/easy/ProductQuantities";
@@ -7,7 +8,8 @@ import EasyResults from "@/components/wizard/easy/EasyResults";
 
 const EasyWizard = () => {
   return (
-    <Routes>
+    <Layout showWizardNav={true}>
+      <Routes>
       <Route path="/start" element={
         <EasyStartSports
           title="What are you building?"
@@ -211,7 +213,8 @@ const EasyWizard = () => {
           }}
         />
       } />
-    </Routes>
+      </Routes>
+    </Layout>
   );
 };
 
