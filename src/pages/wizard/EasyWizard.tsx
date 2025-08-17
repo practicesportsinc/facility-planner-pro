@@ -20,8 +20,11 @@ const EasyWizard = () => {
             { key: "basketball", label: "Basketball", icon: "basketball", color: "#0B63E5" },
             { key: "volleyball", label: "Volleyball", icon: "volleyball", color: "#F5A623" },
             { key: "pickleball", label: "Pickleball", icon: "tennis", color: "#F8E71C" },
-            { key: "soccer_indoor_small_sided", label: "Indoor Soccer", icon: "soccer", color: "#65A30D" },
-            { key: "multi_sport", label: "Multi‑sport", icon: "grid", color: "#111111" }
+            { key: "soccer_indoor", label: "Indoor Soccer", icon: "soccer", color: "#65A30D" },
+            { key: "football", label: "Football", icon: "football", color: "#8B4513" },
+            { key: "lacrosse", label: "Lacrosse", icon: "lacrosse", color: "#FF6B35" },
+            { key: "tennis", label: "Tennis", icon: "tennis", color: "#006400" },
+            { key: "multi_sport_turf", label: "Multi‑sport", icon: "grid", color: "#111111" }
           ]}
           primaryCta={{ label: "Next: Choose Size →", route: "/wizard/easy/size" }}
         />

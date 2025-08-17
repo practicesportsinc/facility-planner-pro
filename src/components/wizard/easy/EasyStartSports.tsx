@@ -37,6 +37,8 @@ const iconMap = {
   volleyball: Volleyball,
   tennis: Target,
   soccer: Trophy,
+  football: Activity,
+  lacrosse: Target,
   grid: Grid3X3,
 };
 
