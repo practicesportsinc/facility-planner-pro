@@ -63,16 +63,35 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
       setResponses(prev => ({ ...prev, sport_ratios: newRatios }));
     }
     
-    // Initialize product selection and quantities based on selected sports
-    if (selectedSports.length > 0 && !responses.product_quantities) {
-      const persistedSel = coerceArray(responses?.product_quantities?.selectedProducts);
-      const initialProducts = persistedSel.length ? persistedSel : getDefaultProductsBySpots(selectedSports);
-      const defaultQuantities = getDefaultQuantities(initialProducts, responses.facility_size || 'medium');
+    // Initialize and update product selection based on selected sports
+    if (selectedSports.length > 0) {
+      const currentProductData = responses.product_quantities || { selectedProducts: [], quantities: {} };
+      const currentSelectedProducts = currentProductData.selectedProducts || [];
+      const currentQuantities = currentProductData.quantities || {};
       
-      // Create combined data with selected products and their quantities
+      // Get all recommended products for the selected sports
+      const recommendedProducts = getDefaultProductsBySpots(selectedSports);
+      
+      // Merge existing selections with new recommendations
+      const allProducts = new Set([...currentSelectedProducts, ...recommendedProducts]);
+      const mergedSelectedProducts = Array.from(allProducts);
+      
+      // Calculate quantities for new products, preserve existing quantities
+      const facilitySize = responses.facility_size || 'medium';
+      const defaultQuantities = getDefaultQuantities(mergedSelectedProducts, facilitySize);
+      
+      // Merge quantities: keep existing user values, use defaults for new items
+      const mergedQuantities = { ...defaultQuantities };
+      Object.keys(currentQuantities).forEach(key => {
+        if (currentQuantities[key] !== undefined) {
+          mergedQuantities[key] = currentQuantities[key];
+        }
+      });
+      
+      // Create updated product data
       const productData = {
-        selectedProducts: initialProducts,
-        quantities: defaultQuantities
+        selectedProducts: mergedSelectedProducts,
+        quantities: mergedQuantities
       };
       
       setResponses(prev => ({ ...prev, product_quantities: productData }));
