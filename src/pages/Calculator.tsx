@@ -42,7 +42,7 @@ const Calculator = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   
   // If it's quick mode, start at the KPI Results step (step 8)
-  const [currentStep, setCurrentStep] = useState(isQuickMode ? 8 : 1);
+  const [currentStep, setCurrentStep] = useState(isQuickMode || isWizardMode ? 8 : 1);
   const [calculatorData, setCalculatorData] = useState({});
 
   // Load data from localStorage (quick estimate or wizard)

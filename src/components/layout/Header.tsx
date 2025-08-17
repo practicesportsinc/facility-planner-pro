@@ -74,7 +74,7 @@ const Header = () => {
               </Link>
             </Button>
             <Button variant="hero" size="sm" asChild>
-              <Link to="/calculator">Start Calculator</Link>
+              <Link to="/start">Start Planning</Link>
             </Button>
           </div>
         </div>

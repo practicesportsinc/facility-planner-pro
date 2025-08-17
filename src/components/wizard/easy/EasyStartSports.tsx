@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import {
   Target, 
   Grid3X3 
 } from "lucide-react";
+import useAnalytics from "@/hooks/useAnalytics";
+import { generateProjectId, saveProjectState } from "@/utils/projectState";
 
 interface SportOption {
   key: string;
@@ -47,6 +49,22 @@ export const EasyStartSports = ({
 }: EasyStartSportsProps) => {
   const navigate = useNavigate();
   const [selectedSports, setSelectedSports] = useState<string[]>([]);
+  const { trackPathSelected } = useAnalytics();
+
+  useEffect(() => {
+    // Track path selection
+    trackPathSelected('easy');
+    
+    // Load existing selections
+    const stored = localStorage.getItem('wizard-selected-sports');
+    if (stored) {
+      try {
+        setSelectedSports(JSON.parse(stored));
+      } catch (e) {
+        console.error('Failed to parse stored sports:', e);
+      }
+    }
+  }, [trackPathSelected]);
 
   const handleSportToggle = (sportKey: string) => {
     if (multi) {
@@ -61,11 +79,15 @@ export const EasyStartSports = ({
   };
 
   const handleContinue = () => {
-    // Save selected sports to localStorage and fire analytics event
-    localStorage.setItem('wizard-selected-sports', JSON.stringify(selectedSports));
+    // Save to new project state system
+    const projectId = generateProjectId('easy');
+    saveProjectState(projectId, {
+      wizard: { selected_sports: selectedSports }
+    });
     
-    // Fire analytics event
-    console.log("Path selected:", { path: "easy" });
+    // Legacy support
+    localStorage.setItem('wizard-selected-sports', JSON.stringify(selectedSports));
+    localStorage.setItem('current-project-id', projectId);
     
     navigate(primaryCta.route);
   };

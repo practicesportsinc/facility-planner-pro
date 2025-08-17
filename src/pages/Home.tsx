@@ -24,14 +24,14 @@ const Home = () => {
               Start faster, smarter - with SportsFacility.ai
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="hero" size="lg" onClick={() => navigate('/wizard')}>
+              <Button variant="hero" size="lg" onClick={() => navigate('/start')}>
                 <Sparkles className="mr-2 h-5 w-5" />
-                Facility Wizard
+                Start Planning
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <Link to="/calculator">
+                <Link to="/wizard/easy/results">
                   <Calculator className="mr-2 h-5 w-5" />
-                  Custom Calculations
+                  See Example
                 </Link>
               </Button>
               <QuickEstimatesButton />
@@ -176,9 +176,9 @@ const Home = () => {
               Start your free facility calculation today and get the insights you need to make confident decisions.
             </p>
             <Button variant="outline" size="lg" className="bg-white text-primary hover:bg-white/90" asChild>
-              <Link to="/calculator">
+              <Link to="/start">
                 <Calculator className="mr-2 h-5 w-5" />
-                Start Your Free Calculation
+                Start Your Free Plan
               </Link>
             </Button>
           </div>

@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import LeadGate from "@/components/shared/LeadGate";
+import useAnalytics from "@/hooks/useAnalytics";
+import { getProjectState, saveProjectState } from "@/utils/projectState";
 
 interface KpiCard {
   key: string;
@@ -63,7 +62,7 @@ export const EasyResults = ({
   const navigate = useNavigate();
   const [kpis, setKpis] = useState<Record<string, number>>({});
   const [showLeadGate, setShowLeadGate] = useState(false);
-  const [leadData, setLeadData] = useState<Record<string, string>>({});
+  const { trackResultsViewed, trackLeadSubmitted, trackExportClicked } = useAnalytics();
 
   useEffect(() => {
     // Calculate KPIs from wizard data
@@ -141,15 +140,16 @@ export const EasyResults = ({
       };
     };
 
-    setKpis(calculateKpis());
+    const calculatedKpis = calculateKpis();
+    setKpis(calculatedKpis);
+
+    // Track results viewed
+    trackResultsViewed(calculatedKpis);
 
     // Show lead gate after delay
     const timer = setTimeout(() => {
       setShowLeadGate(true);
     }, leadGate.delayMs);
-
-    // Fire analytics event
-    console.log("Results viewed");
 
     return () => clearTimeout(timer);
   }, [leadGate.delayMs]);
@@ -171,51 +171,66 @@ export const EasyResults = ({
 
   const handleButtonClick = (button: typeof buttons[0]) => {
     if (button.route) {
+      if (button.route === "/wizard/pro") {
+        // Upgrade to Pro Mode - preserve project state
+        const projectId = localStorage.getItem('current-project-id') || 'legacy';
+        const currentProject = getProjectState(projectId);
+        saveProjectState(projectId, { ...currentProject, mode: 'pro' });
+      }
       navigate(button.route);
     } else if (button.action === "emit") {
-      // Handle save/download action
+      trackExportClicked('report', false);
       console.log("Save report clicked");
     } else if (button.action === "fetch") {
-      // Handle business plan generation
-      console.log("Generate business plan clicked");
+      // Check if lead exists, gate if not
+      const projectId = localStorage.getItem('current-project-id') || 'legacy';
+      const project = getProjectState(projectId);
+      if (!project.lead?.email) {
+        trackExportClicked('pdf', true);
+        setShowLeadGate(true);
+      } else {
+        trackExportClicked('pdf', false);
+        console.log("Generate business plan clicked");
+        // TODO: Implement actual PDF generation
+      }
     }
   };
 
-  const handleLeadSubmit = async () => {
+  const handleLeadSubmit = async (leadData: any) => {
     try {
-      // Get wizard data for payload
-      const facilityData = JSON.parse(localStorage.getItem('wizard-facility-size') || '{}');
-      const sportsData = JSON.parse(localStorage.getItem('wizard-selected-sports') || '[]');
-      const wizardData = JSON.parse(localStorage.getItem('wizard-data') || '{}');
-      const locationData = JSON.parse(localStorage.getItem('wizard-location') || '{}');
+      const projectId = localStorage.getItem('current-project-id') || 'legacy';
+      const project = getProjectState(projectId);
+      
+      // Save lead to project state
+      saveProjectState(projectId, {
+        ...project,
+        lead: {
+          ...leadData,
+          captured_at: new Date().toISOString()
+        }
+      });
       
       const payload = {
-        name: leadData.name,
-        email: leadData.email,
-        phone: leadData.phone || "",
-        city: leadData.city || locationData.city,
-        state: leadData.state || locationData.state,
-        outreach_pref: leadData.outreach || "supplier_outreach",
-        projectId: Math.random().toString(36).substr(2, 9), // Generate temp ID
-        stage_code: wizardData.stage_code,
-        selected_sports: sportsData,
-        total_sqft: facilityData.total_sqft
+        ...leadData,
+        projectId,
+        stage_code: project.wizard?.stage_code,
+        selected_sports: project.wizard?.selected_sports,
+        total_sqft: project.facility_plan?.total_sqft
       };
+      
+      // Track lead submission
+      trackLeadSubmitted('easy_results_modal', leadData);
       
       console.log("Lead submitted:", payload);
       
-      // Here you would POST to /api/leads/monday
+      // TODO: POST to /api/leads/monday
       // await fetch('/api/leads/monday', { method: 'POST', body: JSON.stringify(payload) });
       
-      setShowLeadGate(false);
     } catch (error) {
       console.error("Error submitting lead:", error);
     }
   };
 
-  const handleLeadInputChange = (key: string, value: string) => {
-    setLeadData(prev => ({ ...prev, [key]: value }));
-  };
 
   return (
     <div className="min-h-screen bg-gradient-subtle p-6">
@@ -276,58 +291,16 @@ export const EasyResults = ({
           ))}
         </div>
 
-        {/* Lead Gate Dialog */}
-        <Dialog open={showLeadGate} onOpenChange={setShowLeadGate}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-ps-text">
-                {leadGate.title}
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              {leadGate.fields.map((field) => (
-                <div key={field.key}>
-                  <Label htmlFor={field.key} className="text-sm font-medium">
-                    {field.label} {field.required && <span className="text-red-500">*</span>}
-                  </Label>
-                  
-                      {field.type === "toggle" ? (
-                    <div className="flex items-center space-x-2 mt-2">
-                      <Switch
-                        id={field.key}
-                        checked={leadData[field.key] === field.options?.[0]}
-                        onCheckedChange={(checked) => 
-                          handleLeadInputChange(field.key, checked ? field.options?.[0] || "" : field.options?.[1] || "")
-                        }
-                      />
-                      <Label htmlFor={field.key} className="text-sm">
-                        {field.options?.[0]}
-                      </Label>
-                    </div>
-                  ) : (
-                    <Input
-                      id={field.key}
-                      type={field.key === "email" ? "email" : field.key === "phone" ? "tel" : "text"}
-                      value={leadData[field.key] || field.default || (field.defaultFrom === "location.city" ? JSON.parse(localStorage.getItem('wizard-location') || '{}').city : field.defaultFrom === "location.state" ? JSON.parse(localStorage.getItem('wizard-location') || '{}').state : "")}
-                      onChange={(e) => handleLeadInputChange(field.key, e.target.value)}
-                      className="mt-2"
-                    />
-                  )}
-                </div>
-              ))}
-              
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleLeadSubmit} className="ps-btn primary flex-1">
-                  {leadGate.primaryCta.label}
-                </Button>
-                <Button variant="ghost" onClick={() => setShowLeadGate(false)} className="flex-1">
-                  {leadGate.secondaryCta.label}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Lead Gate */}
+        <LeadGate
+          isOpen={showLeadGate}
+          onClose={() => setShowLeadGate(false)}
+          onSubmit={handleLeadSubmit}
+          title={leadGate.title}
+          mode="modal"
+          defaultCity={JSON.parse(localStorage.getItem('wizard-location') || '{}').city || ''}
+          defaultState={JSON.parse(localStorage.getItem('wizard-location') || '{}').state || ''}
+        />
       </div>
     </div>
   );
