@@ -125,18 +125,18 @@ export const EasyResults = ({
       // Utilities, insurance, maintenance (combined ~$3/sf/year)
       monthly_opex += (sf * 3) / 12;
       
-      monthly_revenue = Math.round(monthly_revenue);
-      monthly_opex = Math.round(monthly_opex);
+      monthly_revenue = Math.round(monthly_revenue) || 0;
+      monthly_opex = Math.round(monthly_opex) || 0;
       const monthly_ebitda = monthly_revenue - monthly_opex;
       const break_even_months = monthly_ebitda > 0 ? Math.ceil(capex_total / monthly_ebitda) : null;
       
       return {
-        capex_total,
-        monthly_revenue,
-        monthly_opex,
-        monthly_ebitda,
+        capex_total: capex_total || 0,
+        monthly_revenue: monthly_revenue || 0,
+        monthly_opex: monthly_opex || 0,
+        monthly_ebitda: monthly_ebitda || 0,
         break_even_months,
-        gross_sf: sf
+        gross_sf: sf || 0
       };
     };
 
@@ -154,8 +154,8 @@ export const EasyResults = ({
     return () => clearTimeout(timer);
   }, [leadGate.delayMs]);
 
-  const formatValue = (value: number | null, format: string): string => {
-    if (value === null) return "N/A";
+  const formatValue = (value: number | null | undefined, format: string): string => {
+    if (value === null || value === undefined || isNaN(value)) return "N/A";
     
     switch (format) {
       case "$":
@@ -242,14 +242,18 @@ export const EasyResults = ({
 
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
-          {kpiCards.map((kpi) => (
-            <Card key={kpi.key} className="ps-card p-6 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-ps-blue mb-2">
-                {formatValue(kpis[kpi.key], kpi.fmt)}
-              </div>
-              <div className="text-sm muted">{kpi.label}</div>
-            </Card>
-          ))}
+          {kpiCards.map((kpi) => {
+            const value = kpis[kpi.key];
+            console.log(`KPI ${kpi.key}:`, value, typeof value); // Debug logging
+            return (
+              <Card key={kpi.key} className="ps-card p-6 text-center">
+                <div className="text-2xl md:text-3xl font-bold text-ps-blue mb-2">
+                  {formatValue(value, kpi.fmt)}
+                </div>
+                <div className="text-sm muted">{kpi.label}</div>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Top View Placeholder */}
