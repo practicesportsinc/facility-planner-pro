@@ -26,15 +26,8 @@ const Home = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="lg" onClick={() => navigate('/start')}>
                 <Sparkles className="mr-2 h-5 w-5" />
-                Start Planning
+                Get Started
               </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link to="/wizard-results">
-                  <Calculator className="mr-2 h-5 w-5" />
-                  See Example
-                </Link>
-              </Button>
-              <QuickEstimatesButton />
             </div>
           </div>
         </div>

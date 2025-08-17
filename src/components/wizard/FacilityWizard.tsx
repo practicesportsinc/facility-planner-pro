@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -32,6 +33,8 @@ interface FacilityWizardProps {
 }
 
 export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => {
+  const [searchParams] = useSearchParams();
+  const scope = searchParams.get('scope'); // 'equipment' for equipment-only flow
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [result, setResult] = useState<WizardResult | null>(null);
@@ -217,9 +220,29 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
     return sizes[size as keyof typeof sizes] || 22000;
   };
 
-  // Filter questions based on dependencies
+  // Filter questions based on dependencies and scope
   const getVisibleQuestions = () => {
-    return WIZARD_QUESTIONS.filter(question => {
+    let questions = WIZARD_QUESTIONS;
+    
+    // Filter for equipment-only scope
+    if (scope === 'equipment') {
+      // Equipment-only flow: questions 1-5, 10, 12, 13, 14
+      const equipmentQuestionIds = new Set([
+        'primary_sport',       // 1
+        'facility_size',       // 2  
+        'sport_ratios',        // 3 (conditional)
+        'product_quantities',  // 4 (conditional)
+        'target_market',       // 5
+        'vendor_quotes_help',  // 10 (conditional on experience_level)
+        'timeline',            // 12
+        'budget_range',        // 13
+        'experience_level'     // 14
+      ]);
+      
+      questions = questions.filter(q => equipmentQuestionIds.has(q.id));
+    }
+    
+    return questions.filter(question => {
       if (!question.dependsOn) return true;
       
       const dependentValue = responses[question.dependsOn.questionId];
@@ -233,6 +256,11 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
       // Special handling for product quantities - show if sport ratios exist
       if (question.id === 'product_quantities') {
         return dependentValue && typeof dependentValue === 'object' && Object.keys(dependentValue).length > 0;
+      }
+      
+      // Special handling for vendor_quotes_help - depends on experience_level
+      if (question.id === 'vendor_quotes_help') {
+        return dependentValue === 'expanding';
       }
       
       // Check if dependent value matches any of the required values
