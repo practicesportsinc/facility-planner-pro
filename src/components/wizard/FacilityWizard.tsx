@@ -232,12 +232,21 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
     setResponses(newResponses);
 
     // Auto-advance for single selection questions, but not if a text field will be shown
+    // Also prevent auto-advance if we're on the last step
     const shouldAutoAdvance = currentQuestion.type === 'single' && 
                              !isLastStep && 
+                             currentStep < visibleQuestions.length - 1 && // Additional bounds check
                              !(currentQuestion.textField && value === currentQuestion.textField.dependsOnValue);
     
     if (shouldAutoAdvance) {
-      setTimeout(() => setCurrentStep(prev => prev + 1), 300);
+      setTimeout(() => setCurrentStep(prev => {
+        const nextStep = prev + 1;
+        // Double-check bounds before setting
+        if (nextStep < visibleQuestions.length) {
+          return nextStep;
+        }
+        return prev; // Stay on current step if out of bounds
+      }), 300);
     }
   };
 
@@ -285,7 +294,11 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
       onComplete?.(finalResult);
       toast.success("Facility recommendations generated!");
     } else {
-      setCurrentStep(prev => prev + 1);
+      // Ensure we don't go out of bounds
+      const nextStep = currentStep + 1;
+      if (nextStep < visibleQuestions.length) {
+        setCurrentStep(nextStep);
+      }
     }
   };
 
