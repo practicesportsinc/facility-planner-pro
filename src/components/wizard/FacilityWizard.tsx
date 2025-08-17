@@ -233,7 +233,7 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
         'sport_ratios',        // 3 (conditional)
         'product_quantities',  // 4 (conditional)
         'target_market',       // 5
-        'vendor_quotes_help',  // 10 (conditional on experience_level)
+        'vendor_quotes_help',  // 10
         'timeline',            // 12
         'budget_range',        // 13
         'experience_level'     // 14
@@ -256,11 +256,6 @@ export const FacilityWizard = ({ onComplete, onClose }: FacilityWizardProps) => 
       // Special handling for product quantities - show if sport ratios exist
       if (question.id === 'product_quantities') {
         return dependentValue && typeof dependentValue === 'object' && Object.keys(dependentValue).length > 0;
-      }
-      
-      // Special handling for vendor_quotes_help - depends on experience_level
-      if (question.id === 'vendor_quotes_help') {
-        return dependentValue === 'expanding';
       }
       
       // Check if dependent value matches any of the required values

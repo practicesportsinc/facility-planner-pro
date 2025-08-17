@@ -195,10 +195,7 @@ export const WIZARD_QUESTIONS: WizardQuestion[] = [
     type: "single",
     title: "Need help getting discounted quotes from Vendors?",
     description: "We can connect you with vetted suppliers for competitive pricing",
-    dependsOn: {
-      questionId: "experience_level",
-      values: ["expanding"]
-    },
+    required: true,
     options: [
       { id: "yes_help", label: "Sure! Make it easy.", description: "Connect me with vetted suppliers for quotes" },
       { id: "no_self_source", label: "No, I'll source myself.", description: "I prefer to handle vendor sourcing independently" }
