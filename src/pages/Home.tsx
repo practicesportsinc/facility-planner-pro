@@ -20,8 +20,13 @@ const Home = () => {
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             </p>
-            <div className="flex justify-center mt-12">
-              <Card className="max-w-lg w-full shadow-elegant hover:shadow-glow transition-smooth border-2 border-primary/20 bg-gradient-to-br from-background to-card/50 backdrop-blur-sm">
+            <div className="flex justify-center mt-12 relative">
+              {/* Hand-drawn arrow pointing to CTA */}
+              <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 rotate-12 text-primary/70 animate-fade-in hidden md:block">
+                <img src="/hand-arrow.svg" alt="" className="w-24 h-16" />
+              </div>
+              
+              <Card className="max-w-lg w-full shadow-elegant hover:shadow-glow transition-smooth border-2 border-primary/20 bg-gradient-to-br from-background to-card/50 backdrop-blur-sm relative z-10">
                 <CardContent className="p-10 text-center">
                   <Button 
                     variant="hero" 
