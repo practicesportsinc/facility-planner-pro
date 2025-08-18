@@ -19,7 +19,6 @@ const Home = () => {
               Amazing Sports Facility Idea?
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Start faster, smarter - with SportsFacility.ai
             </p>
             <div className="flex justify-center mt-12">
               <Card className="max-w-lg w-full shadow-elegant hover:shadow-glow transition-smooth border-2 border-primary/20 bg-gradient-to-br from-background to-card/50 backdrop-blur-sm">
