@@ -116,11 +116,16 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
   }, [estimate]);
 
   const handleQuickStart = () => {
+    console.log('View Detailed Analysis button clicked!');
+    console.log('Current estimate:', estimate);
+    console.log('Results:', results);
+    
     track('quick_estimate_started', estimate);
     track('equipment_package_viewed', { sport: estimate.sport, equipmentTotal: equipmentPackage.total });
     
     // Generate project ID and save preset data
     const projectId = generateProjectId('quick');
+    console.log('Generated project ID:', projectId);
     
     const projectData = {
       mode: 'quick' as const,
@@ -148,11 +153,18 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
       equipmentPackage: equipmentPackage
     };
 
+    console.log('Saving project data:', projectData);
     saveProjectState(projectId, projectData);
     track('quick_estimate_completed', { estimate, results });
     
+    console.log('Attempting to navigate to:', `/calculator?projectId=${projectId}&mode=quick`);
     // Navigate to calculator with quick mode
-    navigate(`/calculator?projectId=${projectId}&mode=quick`);
+    try {
+      navigate(`/calculator?projectId=${projectId}&mode=quick`);
+      console.log('Navigation called successfully');
+    } catch (error) {
+      console.error('Navigation failed:', error);
+    }
   };
 
   if (step === 1) {
