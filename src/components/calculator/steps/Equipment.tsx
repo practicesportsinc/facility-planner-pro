@@ -269,8 +269,8 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
 
   const filteredCatalog = getFilteredCatalog();
 
-  // Calculate total estimated cost using mid-tier pricing
-  const calculateTotalCost = () => {
+  // Calculate total estimated cost using mid-tier pricing (reactive to qty changes)
+  const totalEstimatedCost = useMemo(() => {
     let total = 0;
     
     Array.from(selected).forEach(productKey => {
@@ -311,9 +311,7 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
     });
     
     return total;
-  };
-
-  const totalEstimatedCost = calculateTotalCost();
+  }, [selected, qty]);
 
   // Format currency helper
   const formatCurrency = (amount: number) => {
