@@ -27,7 +27,7 @@ const Header = () => {
               variant="outline"
               size="sm"
               asChild
-              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-primary hover:border hover:border-primary/30"
+              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
             >
               <Link to="/">
                 Home
@@ -38,7 +38,7 @@ const Header = () => {
               variant="outline"
               size="sm"
               asChild
-              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-primary hover:border hover:border-primary/30"
+              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
             >
               <Link to="/wizard" className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4" />
@@ -50,7 +50,7 @@ const Header = () => {
               variant="outline"
               size="sm"
               asChild
-              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-primary hover:border hover:border-primary/30"
+              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
             >
               <Link to="/calculator" className="flex items-center gap-2">
                 <Calculator className="h-4 w-4" />
