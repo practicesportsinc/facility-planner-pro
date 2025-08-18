@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Zap, DollarSign, TrendingUp, Calendar, ArrowRight, Building, MapPin, Edit3 } from "lucide-react";
 import { generateProjectId, saveProjectState } from "@/utils/projectState";
 import useAnalytics from "@/hooks/useAnalytics";
+import { COST_LIBRARY, getCostByTier, calculateItemTotal, type CostItem } from "@/data/costLibrary";
 
 // Quick estimate types
 type SizeKey = "small" | "small_plus" | "medium" | "large" | "giant" | "arena";
@@ -109,8 +110,14 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
     };
   }, [estimate]);
 
+  // Calculate equipment package
+  const equipmentPackage = useMemo(() => {
+    return getEquipmentPackage(estimate.sport, estimate.size, estimate.location);
+  }, [estimate]);
+
   const handleQuickStart = () => {
     track('quick_estimate_started', estimate);
+    track('equipment_package_viewed', { sport: estimate.sport, equipmentTotal: equipmentPackage.total });
     
     // Generate project ID and save preset data
     const projectId = generateProjectId('quick');
@@ -137,7 +144,8 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
       opex_inputs: getOpexDefaults(estimate.size),
       revenue_programs: getRevenueDefaults(estimate.sport, estimate.size),
       financing: getFinancingDefaults(),
-      estimates: results
+      estimates: results,
+      equipmentPackage: equipmentPackage
     };
 
     saveProjectState(projectId, projectData);
@@ -292,6 +300,48 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
             </div>
           </div>
         </Card>
+
+        {/* Equipment Package */}
+        {equipmentPackage.items.length > 0 ? (
+          <Card className="p-6">
+            <h3 className="font-semibold mb-4 flex items-center">
+              <span className="text-2xl mr-2">{SPORTS_DATA[estimate.sport].icon}</span>
+              Standard Equipment Package
+            </h3>
+            <div className="space-y-3">
+              {equipmentPackage.items.map((item, index) => (
+                <div key={index} className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+                  <div className="flex-1">
+                    <div className="font-medium">{item.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {item.quantity} {item.unit} • {item.tier} tier
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-medium">${item.total.toLocaleString()}</div>
+                    <div className="text-sm text-muted-foreground">
+                      ${item.unitCost.toLocaleString()}/{item.unit}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="border-t pt-3 flex justify-between text-lg font-semibold">
+                <span>Equipment Subtotal</span>
+                <span>${equipmentPackage.total.toLocaleString()}</span>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mt-3">
+              Core equipment for a {SIZE_DATA[estimate.size].label.toLowerCase()} {SPORTS_DATA[estimate.sport].label.toLowerCase()} facility. Additional equipment and customization available in detailed analysis.
+            </p>
+          </Card>
+        ) : (
+          <Card className="p-6 text-center">
+            <h3 className="font-semibold mb-2">Equipment Package</h3>
+            <p className="text-muted-foreground">
+              Standard equipment package coming soon for {SPORTS_DATA[estimate.sport].label}.
+            </p>
+          </Card>
+        )}
 
         {/* Actions */}
         <div className="flex gap-4">
@@ -460,4 +510,200 @@ function getFinancingDefaults() {
       annual_escalation_pct: 3
     }
   };
+}
+
+// Equipment package calculation
+interface EquipmentItem {
+  name: string;
+  quantity: number;
+  unit: string;
+  unitCost: number;
+  total: number;
+  tier: 'low' | 'mid' | 'high';
+}
+
+interface EquipmentPackage {
+  items: EquipmentItem[];
+  total: number;
+}
+
+function getEquipmentPackage(sport: SportKey, size: SizeKey, location: string): EquipmentPackage {
+  const sizeMultiplier = SIZE_DATA[size].multiplier;
+  const courtCounts = getCourtCounts(sport, size);
+  
+  // Map location to cost tier
+  const tierMap: Record<string, 'low' | 'mid' | 'high'> = {
+    low: 'low',
+    average: 'mid', 
+    high: 'high',
+    premium: 'high'
+  };
+  const tier = tierMap[location] || 'mid';
+
+  const items: EquipmentItem[] = [];
+
+  switch (sport) {
+    case 'baseball_softball':
+      const tunnels = courtCounts.baseball_tunnels || Math.round(6 * sizeMultiplier);
+      
+      // Batting tunnel nets
+      const tunnelNet = COST_LIBRARY.tunnel_net;
+      if (tunnelNet) {
+        const unitCost = getCostByTier(tunnelNet, tier);
+        const total = calculateItemTotal(tunnelNet, tunnels, tier);
+        items.push({
+          name: tunnelNet.name,
+          quantity: tunnels,
+          unit: tunnelNet.unit,
+          unitCost,
+          total,
+          tier
+        });
+      }
+
+      // Pitching machines (1 per 2 tunnels)
+      const machines = Math.max(1, Math.round(tunnels / 2));
+      const pitchingMachine = COST_LIBRARY.pitching_machines;
+      if (pitchingMachine) {
+        const unitCost = getCostByTier(pitchingMachine, tier);
+        const total = calculateItemTotal(pitchingMachine, machines, tier);
+        items.push({
+          name: pitchingMachine.name,
+          quantity: machines,
+          unit: pitchingMachine.unit,
+          unitCost,
+          total,
+          tier
+        });
+      }
+
+      // L-screens (1 per tunnel)
+      const lScreen = COST_LIBRARY.l_screens;
+      if (lScreen) {
+        const unitCost = getCostByTier(lScreen, tier);
+        const total = calculateItemTotal(lScreen, tunnels, tier);
+        items.push({
+          name: lScreen.name,
+          quantity: tunnels,
+          unit: lScreen.unit,
+          unitCost,
+          total,
+          tier
+        });
+      }
+
+      // Portable mounds (1 per 3 tunnels)
+      const mounds = Math.max(1, Math.round(tunnels / 3));
+      const portableMound = COST_LIBRARY.portable_mounds;
+      if (portableMound) {
+        const unitCost = getCostByTier(portableMound, tier);
+        const total = calculateItemTotal(portableMound, mounds, tier);
+        items.push({
+          name: portableMound.name,
+          quantity: mounds,
+          unit: portableMound.unit,
+          unitCost,
+          total,
+          tier
+        });
+      }
+
+      // Batting tees (2 per tunnel)
+      const tees = tunnels * 2;
+      const battingTee = COST_LIBRARY.tees;
+      if (battingTee) {
+        const unitCost = getCostByTier(battingTee, tier);
+        const total = calculateItemTotal(battingTee, tees, tier);
+        items.push({
+          name: battingTee.name,
+          quantity: tees,
+          unit: battingTee.unit,
+          unitCost,
+          total,
+          tier
+        });
+      }
+      break;
+
+    case 'basketball':
+      const bbCourts = courtCounts.basketball_courts_full || Math.round(2 * sizeMultiplier);
+      
+      // Competition hoops (2 per court)
+      const hoops = bbCourts * 2;
+      const competitionHoop = COST_LIBRARY.competition_hoops;
+      if (competitionHoop) {
+        const unitCost = getCostByTier(competitionHoop, tier);
+        const total = calculateItemTotal(competitionHoop, hoops, tier);
+        items.push({
+          name: competitionHoop.name,
+          quantity: hoops,
+          unit: competitionHoop.unit,
+          unitCost,
+          total,
+          tier
+        });
+      }
+      break;
+
+    case 'volleyball':
+      const vbCourts = courtCounts.volleyball_courts || Math.round(3 * sizeMultiplier);
+      
+      // Volleyball net systems (1 per court)
+      const vbNet = COST_LIBRARY.volleyball_net_systems;
+      if (vbNet) {
+        const unitCost = getCostByTier(vbNet, tier);
+        const total = calculateItemTotal(vbNet, vbCourts, tier);
+        items.push({
+          name: vbNet.name,
+          quantity: vbCourts,
+          unit: vbNet.unit,
+          unitCost,
+          total,
+          tier
+        });
+      }
+      break;
+
+    case 'pickleball':
+      const pbCourts = courtCounts.pickleball_courts || Math.round(4 * sizeMultiplier);
+      
+      // Pickleball nets (1 per court)
+      const pbNet = COST_LIBRARY.pickleball_nets;
+      if (pbNet) {
+        const unitCost = getCostByTier(pbNet, tier);
+        const total = calculateItemTotal(pbNet, pbCourts, tier);
+        items.push({
+          name: pbNet.name,
+          quantity: pbCourts,
+          unit: pbNet.unit,
+          unitCost,
+          total,
+          tier
+        });
+      }
+      break;
+
+    case 'soccer':
+      const soccerFields = courtCounts.soccer_field_small || Math.round(1 * sizeMultiplier);
+      
+      // Soccer goals (1 pair per field)
+      const soccerGoal = COST_LIBRARY.soccer_goals;
+      if (soccerGoal) {
+        const unitCost = getCostByTier(soccerGoal, tier);
+        const total = calculateItemTotal(soccerGoal, soccerFields, tier);
+        items.push({
+          name: soccerGoal.name,
+          quantity: soccerFields,
+          unit: soccerGoal.unit,
+          unitCost,
+          total,
+          tier
+        });
+      }
+      break;
+  }
+
+  const total = items.reduce((sum, item) => sum + item.total, 0);
+
+  return { items, total };
 }
