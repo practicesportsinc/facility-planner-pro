@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Package, RefreshCw, Check } from "lucide-react";
+import { COST_LIBRARY, calculateItemTotal } from "@/data/costLibrary";
 
 interface EquipmentProps {
   data: any;
@@ -268,6 +269,62 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
 
   const filteredCatalog = getFilteredCatalog();
 
+  // Calculate total estimated cost using mid-tier pricing
+  const calculateTotalCost = () => {
+    let total = 0;
+    
+    Array.from(selected).forEach(productKey => {
+      const quantity = qty[productKey] || 0;
+      if (quantity <= 0) return;
+      
+      // Map product keys to cost library items
+      const costItemMapping: Record<string, string> = {
+        'batting_cages': 'baseball_batting_cage',
+        'pitching_machines': 'baseball_pitching_machine',
+        'l_screens': 'baseball_l_screen',
+        'ball_carts': 'baseball_ball_cart',
+        'volleyball_systems': 'volleyball_net_system',
+        'ref_stands': 'volleyball_referee_stand',
+        'basketball_hoops': 'basketball_hoop',
+        'scoreboards': 'basketball_scoreboard',
+        'pickleball_nets': 'pickleball_net',
+        'paddle_starter_sets': 'pickleball_paddle_set',
+        'soccer_goals_pair': 'soccer_goals',
+        'divider_curtains': 'divider_curtains',
+        'turf_area_sf': 'indoor_turf',
+        'rubber_floor_area_sf': 'rubber_flooring',
+        'hardwood_floor_area_sf': 'hardwood_flooring'
+      };
+      
+      const costItemId = costItemMapping[productKey];
+      if (!costItemId) return;
+      
+      const costItem = COST_LIBRARY[costItemId];
+      if (!costItem) return;
+      
+      try {
+        const itemTotal = calculateItemTotal(costItem, quantity, 'mid');
+        total += itemTotal;
+      } catch (error) {
+        console.warn(`Error calculating cost for ${productKey}:`, error);
+      }
+    });
+    
+    return total;
+  };
+
+  const totalEstimatedCost = calculateTotalCost();
+
+  // Format currency helper
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -442,10 +499,14 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                       {Object.values(qty).reduce((sum: number, qty: any) => sum + (Number(qty) || 0), 0).toLocaleString()}
                     </span>
                   </div>
+                  <div className="flex justify-between font-semibold text-primary">
+                    <span>Total Cost:</span>
+                    <span>{formatCurrency(totalEstimatedCost)}</span>
+                  </div>
                 </div>
 
                 <div className="text-xs text-muted-foreground pt-4 border-t">
-                  💡 Quantities are based on your facility layout. You'll set specific costs in the next step.
+                  💡 Estimated cost using mid-tier pricing. You'll set specific costs in the next step.
                 </div>
               </div>
             </CardContent>
