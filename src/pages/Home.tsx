@@ -182,6 +182,23 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Footer Links */}
+      <footer className="py-8 px-4 border-t bg-card">
+        <div className="container mx-auto">
+          <div className="flex justify-center gap-8 text-sm text-muted-foreground">
+            <Link to="/admin" className="hover:text-primary transition-colors">
+              Admin
+            </Link>
+            <Link to="/legal" className="hover:text-primary transition-colors">
+              Legal
+            </Link>
+            <Link to="/contact" className="hover:text-primary transition-colors">
+              Contact Us
+            </Link>
+          </div>
+        </div>
+      </footer>
     </Layout>
   );
 };

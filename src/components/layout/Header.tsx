@@ -27,11 +27,7 @@ const Header = () => {
               variant="outline"
               size="sm"
               asChild
-              className={`${
-                isActive('/') 
-                  ? 'bg-gradient-primary text-white border-0 shadow-glow' 
-                  : 'bg-gradient-primary/10 text-primary border-primary/30 hover:bg-gradient-primary hover:text-white hover:border-0'
-              }`}
+              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-primary hover:border hover:border-primary/30"
             >
               <Link to="/">
                 Home
@@ -42,11 +38,7 @@ const Header = () => {
               variant="outline"
               size="sm"
               asChild
-              className={`${
-                isActive('/wizard') 
-                  ? 'bg-gradient-primary text-white border-0 shadow-glow' 
-                  : 'bg-gradient-primary/10 text-primary border-primary/30 hover:bg-gradient-primary hover:text-white hover:border-0'
-              }`}
+              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-primary hover:border hover:border-primary/30"
             >
               <Link to="/wizard" className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4" />
@@ -58,11 +50,7 @@ const Header = () => {
               variant="outline"
               size="sm"
               asChild
-              className={`${
-                isActive('/calculator') 
-                  ? 'bg-gradient-primary text-white border-0 shadow-glow' 
-                  : 'bg-gradient-primary/10 text-primary border-primary/30 hover:bg-gradient-primary hover:text-white hover:border-0'
-              }`}
+              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-primary hover:border hover:border-primary/30"
             >
               <Link to="/calculator" className="flex items-center gap-2">
                 <Calculator className="h-4 w-4" />
@@ -71,37 +59,7 @@ const Header = () => {
             </Button>
 
             <QuickEstimatesButton />
-            
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className={`${
-                isActive('/admin') 
-                  ? 'bg-gradient-primary text-white border-0 shadow-glow' 
-                  : 'bg-gradient-primary/10 text-primary border-primary/30 hover:bg-gradient-primary hover:text-white hover:border-0'
-              }`}
-            >
-              <Link to="/admin" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Admin
-              </Link>
-            </Button>
           </nav>
-
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              asChild 
-              className="hidden md:flex bg-gradient-primary/10 text-primary border-primary/30 hover:bg-gradient-primary hover:text-white hover:border-0"
-            >
-              <Link to="/legal" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Legal
-              </Link>
-            </Button>
-          </div>
         </div>
       </header>
     </>
