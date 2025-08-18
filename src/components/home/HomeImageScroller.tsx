@@ -10,23 +10,23 @@ import {
 
 const galleryImages = [
   {
-    src: "/images/home-gallery/facility-1.png",
+    src: "/images/home-gallery/facility-1.jpg?v=2",
     alt: "Indoor batting cage facility with protective netting and practice equipment"
   },
   {
-    src: "/images/home-gallery/facility-2.png", 
+    src: "/images/home-gallery/facility-2.jpg?v=2", 
     alt: "Artificial turf field with players training and practicing"
   },
   {
-    src: "/images/home-gallery/facility-3.png",
+    src: "/images/home-gallery/facility-3.jpg?v=2",
     alt: "Baseball batting practice area with home plate and protective netting"
   },
   {
-    src: "/images/home-gallery/facility-4.png",
+    src: "/images/home-gallery/facility-4.jpg?v=2",
     alt: "Professional batting cage facility with multiple practice stations"
   },
   {
-    src: "/images/home-gallery/facility-5.png",
+    src: "/images/home-gallery/facility-5.jpg?v=2",
     alt: "Multi-purpose basketball court with professional flooring and equipment"
   }
 ];
