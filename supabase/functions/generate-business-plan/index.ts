@@ -107,26 +107,15 @@ serve(async (req) => {
     });
 
     if (format === 'pdf') {
-      // Generate PDF using Puppeteer
-      try {
-        const pdfBuffer = await generatePDF(businessPlanContent);
-        return new Response(pdfBuffer, {
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="${projectName.replace(/[^a-zA-Z0-9]/g, '_')}_Business_Plan.pdf"`
-          },
-        });
-      } catch (error) {
-        console.error('Error generating PDF:', error);
-        return new Response(JSON.stringify({ 
-          error: 'PDF generation failed. Please try HTML format.',
-          success: false 
-        }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+      // For PDF, return HTML with enhanced print styles and trigger browser print
+      const printOptimizedHTML = generatePrintOptimizedHTML(businessPlanContent);
+      return new Response(JSON.stringify({ 
+        htmlContent: printOptimizedHTML,
+        isPrintFormat: true,
+        success: true 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
     
     return new Response(JSON.stringify({ 
@@ -222,13 +211,6 @@ Focus on actionable insights for business success. Keep response under 800 words
   return data.choices[0].message.content;
 }
 
-async function generatePDF(htmlContent: string): Promise<Uint8Array> {
-  // Use Puppeteer for PDF generation
-  const puppeteerUrl = 'https://api.htmlpdf.com/v1/pdf'; // Alternative: Use a PDF generation service
-  
-  // For now, return an error as we need to implement proper PDF generation
-  throw new Error('PDF generation requires additional setup. Please use HTML format for now.');
-}
 
 function generateBusinessPlanHTML({
   projectName,
@@ -487,4 +469,50 @@ function generateBusinessPlanHTML({
     </div>
 </body>
 </html>`;
+}
+
+function generatePrintOptimizedHTML(htmlContent: string): string {
+  // Add print-specific CSS and JavaScript for PDF generation
+  return htmlContent.replace(
+    '</head>',
+    `<style>
+      @media print {
+        body { 
+          margin: 0; 
+          font-size: 12px; 
+          line-height: 1.4; 
+        }
+        .section { 
+          page-break-inside: avoid; 
+          margin-bottom: 20px; 
+        }
+        .financial-table { 
+          font-size: 11px; 
+        }
+        .metric-value { 
+          font-size: 18px; 
+        }
+        .header { 
+          border-bottom: 2px solid #2563eb; 
+          margin-bottom: 20px; 
+        }
+        .highlight {
+          background-color: #f3f4f6 !important;
+          border-left: 3px solid #f59e0b;
+        }
+        .executive-summary {
+          background-color: #f8fafc !important;
+        }
+      }
+    </style>
+    <script>
+      window.addEventListener('load', function() {
+        // Automatically trigger print dialog for PDF generation
+        setTimeout(function() {
+          window.print();
+        }, 1000);
+      });
+    </script>
+    </head>`
+  );
 }

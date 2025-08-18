@@ -63,30 +63,34 @@ export default function GenerateBusinessPlanButton({
         throw new Error(error.message || 'Failed to generate business plan');
       }
 
-      if (format === 'pdf') {
-        // Handle PDF response (binary data)
-        if (data instanceof ArrayBuffer || data instanceof Uint8Array) {
-          const blob = new Blob([data], { type: 'application/pdf' });
+      if (!data?.htmlContent) {
+        throw new Error('No business plan content received');
+      }
+
+      if (format === 'pdf' && data.isPrintFormat) {
+        // For PDF format, open in new window with print dialog
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+          newWindow.document.write(data.htmlContent);
+          newWindow.document.close();
+          toast.success("Business plan opened for PDF generation. Use Ctrl+P or Cmd+P to save as PDF.");
+        } else {
+          // Fallback: download as HTML if popup blocked
+          const blob = new Blob([data.htmlContent], { type: 'text/html' });
           const url = URL.createObjectURL(blob);
           
           const link = document.createElement('a');
           link.href = url;
-          link.download = `${project?.leadData?.business || 'business'}-plan.pdf`;
+          link.download = `${project?.leadData?.business || 'business'}-plan-print.html`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           
           URL.revokeObjectURL(url);
-          toast.success("Business plan PDF downloaded!");
-        } else {
-          throw new Error('Invalid PDF response format');
+          toast.success("Business plan downloaded with print formatting. Open the file and use Ctrl+P to generate PDF.");
         }
       } else {
-        // Handle HTML response
-        if (!data?.htmlContent) {
-          throw new Error('No business plan content received');
-        }
-
+        // Handle regular HTML download
         const blob = new Blob([data.htmlContent], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         
