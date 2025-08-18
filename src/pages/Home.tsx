@@ -23,11 +23,24 @@ const Home = () => {
               Real Estate. Op Expenses. Revenue. Equipment.<br />
               Start faster, smarter - with SportsFacility.ai
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="hero" size="lg" onClick={() => navigate('/start')}>
-                <Sparkles className="mr-2 h-5 w-5" />
-                Get Started
-              </Button>
+            <div className="flex justify-center mt-12">
+              <Card className="max-w-md w-full shadow-elegant hover:shadow-glow transition-smooth border-2 border-primary/20 bg-gradient-to-br from-background to-card">
+                <CardContent className="p-8 text-center">
+                  <Button 
+                    variant="hero" 
+                    size="lg" 
+                    onClick={() => navigate('/start')}
+                    className="w-full py-4 px-8 text-lg font-semibold"
+                  >
+                    <Sparkles className="mr-3 h-6 w-6" />
+                    Get Started Free
+                  </Button>
+                  <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
+                    Complete facility analysis in 10 minutes.<br />
+                    No credit card required.
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
