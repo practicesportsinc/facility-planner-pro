@@ -33,24 +33,32 @@ const Header = () => {
             </Link>
             
             <Button
-              variant={isActive('/wizard') ? "default" : "ghost"}
+              variant="outline"
               size="sm"
               asChild
-              className="flex items-center gap-2"
+              className={`${
+                isActive('/wizard') 
+                  ? 'bg-gradient-primary text-white border-0 shadow-glow' 
+                  : 'hover:bg-gradient-primary/90 hover:text-white hover:border-0'
+              }`}
             >
-              <Link to="/wizard">
+              <Link to="/wizard" className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4" />
                 Wizard
               </Link>
             </Button>
 
             <Button
-              variant={isActive('/calculator') ? "default" : "ghost"}
+              variant="outline"
               size="sm"
               asChild
-              className="flex items-center gap-2"
+              className={`${
+                isActive('/calculator') 
+                  ? 'bg-gradient-primary text-white border-0 shadow-glow' 
+                  : 'hover:bg-gradient-primary/90 hover:text-white hover:border-0'
+              }`}
             >
-              <Link to="/calculator">
+              <Link to="/calculator" className="flex items-center gap-2">
                 <Calculator className="h-4 w-4" />
                 Calculator
               </Link>
@@ -74,12 +82,6 @@ const Header = () => {
               <Link to="/legal">
                 <FileText className="h-4 w-4 mr-2" />
                 Legal
-              </Link>
-            </Button>
-            <Button variant="hero" size="sm" asChild>
-              <Link to="/start">
-                <span className="hidden sm:inline">Start Planning</span>
-                <span className="sm:hidden">Start</span>
               </Link>
             </Button>
           </div>
