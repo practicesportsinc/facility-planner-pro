@@ -33,8 +33,8 @@ const Home = () => {
                     <Sparkles className="mr-3 h-7 w-7" />
                     Get Started Free
                   </Button>
-                  <p className="text-muted-foreground text-base leading-relaxed font-medium">
-                    Itemized estimates + full business plan, in minutes.<br />
+                  <p className="text-muted-foreground leading-relaxed font-medium">
+                    <span className="text-lg">Itemized estimates + full business plan, in minutes.</span><br />
                     <span className="text-primary font-semibold">Real Estate. Op Expenses. Revenue. Equipment.</span>
                   </p>
                 </CardContent>
