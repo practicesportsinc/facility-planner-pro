@@ -11,23 +11,23 @@ import {
 const galleryImages = [
   {
     src: "/images/home-gallery/facility-1.jpg",
-    alt: "Modern sports facility interior with basketball court"
+    alt: "Indoor batting cage facility with protective netting and practice equipment"
   },
   {
     src: "/images/home-gallery/facility-2.jpg", 
-    alt: "Professional sports facility with multiple courts"
+    alt: "Artificial turf field with players training and practicing"
   },
   {
     src: "/images/home-gallery/facility-3.jpg",
-    alt: "State-of-the-art training facility equipment"
+    alt: "Baseball batting practice area with home plate and protective netting"
   },
   {
     src: "/images/home-gallery/facility-4.jpg",
-    alt: "Spacious indoor sports complex"
+    alt: "Professional batting cage facility with multiple practice stations"
   },
   {
     src: "/images/home-gallery/facility-5.jpg",
-    alt: "Multi-purpose athletic facility design"
+    alt: "Multi-purpose basketball court with professional flooring and equipment"
   }
 ];
 
