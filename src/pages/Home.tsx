@@ -34,7 +34,7 @@ const Home = () => {
                     Get Started Free
                   </Button>
                   <p className="text-muted-foreground text-base leading-relaxed font-medium">
-                    Get itemized estimates + full business plan, in minutes - FREE.<br />
+                    Itemized estimates + full business plan, in minutes.<br />
                     <span className="text-primary font-semibold">Real Estate. Op Expenses. Revenue. Equipment.</span>
                   </p>
                 </CardContent>
