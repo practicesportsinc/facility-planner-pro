@@ -16,7 +16,7 @@ const Header = () => {
             <img 
               src="/lovable-uploads/206e396b-a0aa-474d-bf77-f74fe8aa90fc.png" 
               alt="Sports Facility.ai" 
-              className="h-8 w-auto"
+              className="h-12 w-auto bg-transparent"
             />
           </Link>
 
