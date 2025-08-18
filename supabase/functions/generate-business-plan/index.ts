@@ -6,6 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -13,9 +15,9 @@ serve(async (req) => {
   }
 
   try {
-    const { project, includeImages = true } = await req.json();
+    const { project, includeImages = true, format = 'html' } = await req.json();
     
-    console.log('Generating business plan for project:', project?.leadData?.business);
+    console.log('Generating business plan for project:', project?.leadData?.business, 'Format:', format);
 
     // Extract project data
     const responses = project.responses?.reduce((acc: any, response: any) => {
@@ -55,6 +57,29 @@ serve(async (req) => {
       }).format(amount);
     };
 
+    // Generate AI Financial Analysis Summary
+    let aiAnalysisSummary = '';
+    if (openAIApiKey) {
+      try {
+        console.log('Generating AI Financial Analysis Summary...');
+        aiAnalysisSummary = await generateAIAnalysis({
+          projectName,
+          location,
+          selectedSports,
+          grossSqft,
+          totalInvestment,
+          monthlyRevenue,
+          monthlyOpex,
+          breakEvenMonths,
+          roi,
+          formatCurrency
+        });
+      } catch (error) {
+        console.error('Error generating AI analysis:', error);
+        aiAnalysisSummary = 'AI analysis temporarily unavailable. Please refer to the financial projections section for detailed metrics.';
+      }
+    }
+
     // Generate comprehensive business plan content
     const businessPlanContent = generateBusinessPlanHTML({
       projectName,
@@ -77,8 +102,32 @@ serve(async (req) => {
       productsOfInterest,
       customProducts,
       vendorQuotesHelp,
-      productEstimates
+      productEstimates,
+      aiAnalysisSummary
     });
+
+    if (format === 'pdf') {
+      // Generate PDF using Puppeteer
+      try {
+        const pdfBuffer = await generatePDF(businessPlanContent);
+        return new Response(pdfBuffer, {
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="${projectName.replace(/[^a-zA-Z0-9]/g, '_')}_Business_Plan.pdf"`
+          },
+        });
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        return new Response(JSON.stringify({ 
+          error: 'PDF generation failed. Please try HTML format.',
+          success: false 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
     
     return new Response(JSON.stringify({ 
       htmlContent: businessPlanContent,
@@ -98,6 +147,88 @@ serve(async (req) => {
     });
   }
 });
+
+async function generateAIAnalysis({
+  projectName,
+  location,
+  selectedSports,
+  grossSqft,
+  totalInvestment,
+  monthlyRevenue,
+  monthlyOpex,
+  breakEvenMonths,
+  roi,
+  formatCurrency
+}: any): Promise<string> {
+  const sportsNames = selectedSports.map((sport: string) => {
+    const sportMap: Record<string, string> = {
+      'baseball_softball': 'Baseball/Softball',
+      'basketball': 'Basketball',
+      'volleyball': 'Volleyball',
+      'pickleball': 'Pickleball',
+      'soccer': 'Soccer',
+      'football': 'Football',
+      'lacrosse': 'Lacrosse',
+      'tennis': 'Tennis',
+      'multi_sport': 'Multi-Sport',
+      'fitness': 'Fitness'
+    };
+    return sportMap[sport] || sport;
+  }).join(', ');
+
+  const prompt = `Analyze this sports facility business plan and provide strategic insights:
+
+Project: ${projectName}
+Location: ${location}
+Sports: ${sportsNames}
+Size: ${grossSqft.toLocaleString()} sq ft
+Total Investment: ${formatCurrency(totalInvestment)}
+Monthly Revenue: ${formatCurrency(monthlyRevenue)}
+Monthly OpEx: ${formatCurrency(monthlyOpex)}
+Break-even: ${breakEvenMonths} months
+ROI: ${roi.toFixed(1)}%
+
+Provide a comprehensive financial analysis covering:
+1. Investment viability assessment
+2. Revenue optimization opportunities
+3. Cost management strategies
+4. Market positioning insights
+5. Risk factors and mitigation strategies
+6. Growth potential and scaling opportunities
+
+Focus on actionable insights for business success. Keep response under 800 words.`;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openAIApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { 
+          role: 'system', 
+          content: 'You are a senior sports facility business consultant with expertise in financial analysis and strategic planning. Provide professional, actionable insights.' 
+        },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    }),
+  });
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+async function generatePDF(htmlContent: string): Promise<Uint8Array> {
+  // Use Puppeteer for PDF generation
+  const puppeteerUrl = 'https://api.htmlpdf.com/v1/pdf'; // Alternative: Use a PDF generation service
+  
+  // For now, return an error as we need to implement proper PDF generation
+  throw new Error('PDF generation requires additional setup. Please use HTML format for now.');
+}
 
 function generateBusinessPlanHTML({
   projectName,
@@ -120,7 +251,8 @@ function generateBusinessPlanHTML({
   productsOfInterest,
   customProducts,
   vendorQuotesHelp,
-  productEstimates
+  productEstimates,
+  aiAnalysisSummary
 }: any) {
   const currentDate = new Date().toLocaleDateString();
   const sportsNames = selectedSports.map((sport: string) => {
@@ -240,6 +372,15 @@ function generateBusinessPlanHTML({
             <tr style="font-weight: bold;"><td>Total Monthly OpEx</td><td>${formatCurrency(monthlyOpex)}</td></tr>
         </table>
     </div>
+
+    ${aiAnalysisSummary ? `
+    <div class="section">
+        <h2>AI Financial Analysis Summary</h2>
+        <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981;">
+            <div style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">${aiAnalysisSummary}</div>
+        </div>
+    </div>
+    ` : ''}
 
     <div class="section">
         <h2>Market Analysis</h2>
