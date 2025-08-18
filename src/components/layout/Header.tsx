@@ -13,13 +13,11 @@ const Header = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="bg-gradient-primary p-2 rounded-lg">
-              <Calculator className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-lg">PracticeSports</span>
-              <span className="text-xs text-muted-foreground">Facility Calculator</span>
-            </div>
+            <img 
+              src="/lovable-uploads/206e396b-a0aa-474d-bf77-f74fe8aa90fc.png" 
+              alt="Sports Facility.ai" 
+              className="h-8 w-auto"
+            />
           </Link>
 
           <nav className="hidden md:flex items-center space-x-3">
