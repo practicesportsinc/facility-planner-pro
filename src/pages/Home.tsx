@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Layout from "@/components/layout/Layout";
 import { Calculator, TrendingUp, FileText, Users, Target, Clock, Sparkles, BookOpen } from "lucide-react";
 import QuickEstimatesButton from "@/components/QuickEstimatesButton";
-import VisualDesignerHome from "@/components/home/VisualDesignerHome";
+
 
 const Home = () => {
   const navigate = useNavigate();
@@ -33,12 +33,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Visual Designer Section */}
-      <section className="py-8 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <VisualDesignerHome />
-        </div>
-      </section>
 
       {/* Features Section */}
       <section id="features" className="py-16 px-4 bg-card">
