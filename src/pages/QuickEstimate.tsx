@@ -58,7 +58,7 @@ const QuickEstimate = () => {
     const locationMultiplier = locationMultipliers[formData.location as keyof typeof locationMultipliers] || 1;
 
     const equipmentCost = Math.round(base.equipment * sizeMultiplier * locationMultiplier);
-    const installationEstimate = Math.round(equipmentCost * 0.3);
+    const installationEstimate = Math.round(equipmentCost * 1.0);
     
     const finalEstimate = {
       equipmentCost,
@@ -187,7 +187,7 @@ const QuickEstimate = () => {
                   <div className="text-center p-6 bg-gradient-primary rounded-lg">
                     <div className="text-white/80 text-sm font-medium mb-1">Equipment & Outfitting</div>
                     <div className="text-2xl font-bold text-white">{formatCurrency(estimate.equipmentCost)}</div>
-                    <div className="text-white/60 text-xs mt-1">Installation estimate (30%): {formatCurrency(estimate.installationEstimate)}</div>
+                    <div className="text-white/60 text-xs mt-1">Installation estimate: {formatCurrency(estimate.installationEstimate)}</div>
                   </div>
                   
                   <div className="text-center p-6 bg-gradient-secondary rounded-lg">

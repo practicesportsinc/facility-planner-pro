@@ -102,7 +102,7 @@ const WizardResults = () => {
     const totalSqft = sportsBreakdown.reduce((sum, sport) => sum + sport.squareFootage, 0) * 1.25; // Add 25% for circulation
     const totalConstructionCost = sportsBreakdown.reduce((sum, sport) => sum + sport.constructionCost, 0) * 1.25;
     const equipment = sportsBreakdown.reduce((sum, sport) => sum + sport.equipmentCost, 0);
-    const installation = Math.round(equipment * 0.3);
+    const installation = Math.round(equipment * 1.0);
     const totalEquipment = equipment + installation;
     const capexTotal = totalConstructionCost + totalEquipment;
     

@@ -152,8 +152,8 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
       estimates: results,
       equipmentPackage: {
         ...equipmentPackage,
-        installationEstimate: Math.round(equipmentPackage.total * 0.3),
-        totalWithInstall: equipmentPackage.total + Math.round(equipmentPackage.total * 0.3)
+        installationEstimate: Math.round(equipmentPackage.total * 1.0),
+        totalWithInstall: equipmentPackage.total + Math.round(equipmentPackage.total * 1.0)
       }
     };
 
@@ -347,12 +347,12 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
                   <span>${equipmentPackage.total.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Installation (30%)</span>
-                  <span>${Math.round(equipmentPackage.total * 0.3).toLocaleString()}</span>
+                  <span>Installation</span>
+                  <span>${Math.round(equipmentPackage.total * 1.0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-lg font-semibold border-t pt-2">
                   <span>Equipment + Installation</span>
-                  <span>${(equipmentPackage.total + Math.round(equipmentPackage.total * 0.3)).toLocaleString()}</span>
+                  <span>${(equipmentPackage.total + Math.round(equipmentPackage.total * 1.0)).toLocaleString()}</span>
                 </div>
               </div>
             </div>

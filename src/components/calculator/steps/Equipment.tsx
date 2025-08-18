@@ -292,7 +292,7 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
   // Persist on every change
   useEffect(() => {
     const baseEquipmentCost = totalEstimatedCost;
-    const installationEstimate = Math.round(baseEquipmentCost * 0.3);
+    const installationEstimate = Math.round(baseEquipmentCost * 1.0);
     const equipmentTotal = baseEquipmentCost + installationEstimate;
     
     onUpdate({
@@ -512,12 +512,12 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                     <span className="font-medium">{formatCurrency(totalEstimatedCost)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Installation estimate (30%):</span>
-                    <span className="font-medium">{formatCurrency(Math.round(totalEstimatedCost * 0.3))}</span>
+                    <span>Installation estimate:</span>
+                    <span className="font-medium">{formatCurrency(Math.round(totalEstimatedCost * 1.0))}</span>
                   </div>
                   <div className="flex justify-between text-lg font-semibold border-t pt-2">
                     <span>Total (equipment + installation):</span>
-                    <span className="text-primary">{formatCurrency(totalEstimatedCost + Math.round(totalEstimatedCost * 0.3))}</span>
+                    <span className="text-primary">{formatCurrency(totalEstimatedCost + Math.round(totalEstimatedCost * 1.0))}</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Based on mid-tier quality pricing for {selected.size} selected products

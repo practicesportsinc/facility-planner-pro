@@ -62,7 +62,7 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
     const tiCostPerSF = 18;
     const equipmentData = allData[4] || {};
     const equipmentCost = equipmentData.equipmentCost || 50000;
-    const installationEstimate = equipmentData.installationEstimate || Math.round(equipmentCost * 0.3);
+    const installationEstimate = equipmentData.installationEstimate || Math.round(equipmentCost * 1.0);
     const totalCapex = Math.round((totalSqft * tiCostPerSF) + equipmentCost + installationEstimate + (totalSqft * 5)); // simplified
 
     // Calculate OpEx - handle both schema formats
