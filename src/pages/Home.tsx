@@ -19,25 +19,23 @@ const Home = () => {
               Amazing Sports Facility Idea?
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Get itemized estimates + full business plan, in minutes - FREE.<br />
-              Real Estate. Op Expenses. Revenue. Equipment.<br />
               Start faster, smarter - with SportsFacility.ai
             </p>
             <div className="flex justify-center mt-12">
-              <Card className="max-w-md w-full shadow-elegant hover:shadow-glow transition-smooth border-2 border-primary/20 bg-gradient-to-br from-background to-card">
-                <CardContent className="p-8 text-center">
+              <Card className="max-w-lg w-full shadow-elegant hover:shadow-glow transition-smooth border-2 border-primary/20 bg-gradient-to-br from-background to-card/50 backdrop-blur-sm">
+                <CardContent className="p-10 text-center">
                   <Button 
                     variant="hero" 
                     size="lg" 
                     onClick={() => navigate('/start')}
-                    className="w-full py-4 px-8 text-lg font-semibold"
+                    className="w-full py-6 px-10 text-xl font-bold mb-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
-                    <Sparkles className="mr-3 h-6 w-6" />
+                    <Sparkles className="mr-3 h-7 w-7" />
                     Get Started Free
                   </Button>
-                  <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
-                    Complete facility analysis in 10 minutes.<br />
-                    No credit card required.
+                  <p className="text-muted-foreground text-base leading-relaxed font-medium">
+                    Get itemized estimates + full business plan, in minutes - FREE.<br />
+                    <span className="text-primary font-semibold">Real Estate. Op Expenses. Revenue. Equipment.</span>
                   </p>
                 </CardContent>
               </Card>
