@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calculator, Settings, FileText } from "lucide-react";
+import { Calculator, Settings, FileText, Sparkles, Zap } from "lucide-react";
 import { QuickEstimatesButton } from "@/components/QuickEstimatesButton";
 
 const Header = () => {
@@ -22,7 +22,7 @@ const Header = () => {
             </div>
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-3">
             <Link 
               to="/" 
               className={`text-sm font-medium transition-smooth ${
@@ -31,23 +31,33 @@ const Header = () => {
             >
               Home
             </Link>
-            <Link 
-              to="/calculator" 
-              className={`text-sm font-medium transition-smooth ${
-                isActive('/calculator') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-              }`}
+            
+            <Button
+              variant={isActive('/wizard') ? "default" : "ghost"}
+              size="sm"
+              asChild
+              className="flex items-center gap-2"
             >
-              Calculator
-            </Link>
-            <Link 
-              to="/wizard" 
-              className={`text-sm font-medium transition-smooth ${
-                isActive('/wizard') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-              }`}
+              <Link to="/wizard">
+                <Sparkles className="h-4 w-4" />
+                Wizard
+              </Link>
+            </Button>
+
+            <Button
+              variant={isActive('/calculator') ? "default" : "ghost"}
+              size="sm"
+              asChild
+              className="flex items-center gap-2"
             >
-              Wizard
-            </Link>
+              <Link to="/calculator">
+                <Calculator className="h-4 w-4" />
+                Calculator
+              </Link>
+            </Button>
+
             <QuickEstimatesButton />
+            
             <Link 
               to="/admin" 
               className={`text-sm font-medium transition-smooth ${
