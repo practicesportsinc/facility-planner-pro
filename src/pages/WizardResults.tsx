@@ -80,6 +80,7 @@ const WizardResults = () => {
       const sportSqft = getSportSquareFootage(sportId);
       const constructionCost = sportSqft * 200; // $200 per sq ft
       const equipmentCost = sportSqft * 50; // $50 per sq ft for equipment
+      const installationCost = equipmentCost; // Installation equals equipment cost
       const monthlyRevenue = sportSqft * 2; // $2 per sq ft monthly revenue
       const monthlyOpex = sportSqft * 0.8; // $0.80 per sq ft monthly operating costs
       
@@ -88,7 +89,8 @@ const WizardResults = () => {
         squareFootage: sportSqft,
         constructionCost,
         equipmentCost,
-        totalCost: constructionCost + equipmentCost,
+        installationCost,
+        totalCost: constructionCost + equipmentCost + installationCost,
         monthlyRevenue,
         monthlyOpex,
         monthlyProfit: monthlyRevenue - monthlyOpex
@@ -741,7 +743,7 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
                         </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
                         <div className="bg-blue-50 p-3 rounded-lg">
                           <div className="text-lg font-bold text-blue-600">
                             {formatCurrency(sportData.constructionCost)}
@@ -753,6 +755,12 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
                             {formatCurrency(sportData.equipmentCost)}
                           </div>
                           <div className="text-xs text-muted-foreground">Equipment</div>
+                        </div>
+                        <div className="bg-yellow-50 p-3 rounded-lg">
+                          <div className="text-lg font-bold text-yellow-600">
+                            {formatCurrency(sportData.installationCost)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Installation</div>
                         </div>
                         <div className="bg-purple-50 p-3 rounded-lg">
                           <div className="text-lg font-bold text-purple-600">
