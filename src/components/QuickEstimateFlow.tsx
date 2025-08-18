@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Zap, DollarSign, TrendingUp, Calendar, ArrowRight, Building, MapPin, Edit3 } from "lucide-react";
+import { Zap, DollarSign, TrendingUp, Calendar, ArrowRight, Building, MapPin, Edit3, Download, Printer } from "lucide-react";
 import { generateProjectId, saveProjectState } from "@/utils/projectState";
 import useAnalytics from "@/hooks/useAnalytics";
 import { COST_LIBRARY, getCostByTier, calculateItemTotal, type CostItem } from "@/data/costLibrary";
+import LeadGate from "@/components/shared/LeadGate";
 
 // Quick estimate types
 type SizeKey = "small" | "small_plus" | "medium" | "large" | "giant" | "arena";
@@ -86,6 +87,7 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
     location: "average"
   });
   const [customizing, setCustomizing] = useState(false);
+  const [showLeadGate, setShowLeadGate] = useState(false);
 
   // Calculate quick estimate results
   const results = useMemo((): EstimateResults => {
@@ -168,6 +170,114 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
       console.log('Navigation called successfully');
     } catch (error) {
       console.error('Navigation failed:', error);
+    }
+  };
+
+  const handlePdfDownload = () => {
+    track('pdf_download_clicked', estimate);
+    setShowLeadGate(true);
+  };
+
+  const handleLeadSubmit = async (leadData: any) => {
+    track('lead_captured_pdf', { ...leadData, estimate });
+    
+    // Here you would typically send the lead data to your backend
+    console.log('Lead captured:', leadData);
+    
+    // Generate and download the PDF
+    generatePdfReport();
+  };
+
+  const generatePdfReport = () => {
+    // Create a simple HTML content for PDF
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${SPORTS_DATA[estimate.sport].label} Facility Estimate</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+          .metrics { display: flex; justify-content: space-between; margin: 30px 0; }
+          .metric { text-align: center; flex: 1; }
+          .metric h3 { margin: 0; font-size: 24px; color: #333; }
+          .metric p { margin: 5px 0 0 0; color: #666; }
+          .financial { margin: 30px 0; }
+          .financial table { width: 100%; border-collapse: collapse; }
+          .financial th, .financial td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+          .equipment { margin: 30px 0; }
+          .equipment-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+          .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${SPORTS_DATA[estimate.sport].icon} ${SPORTS_DATA[estimate.sport].label} Facility Estimate</h1>
+          <p>Facility Size: ${SIZE_DATA[estimate.size].label} (${SIZE_DATA[estimate.size].sqft})</p>
+          <p>Generated: ${new Date().toLocaleDateString()}</p>
+        </div>
+        
+        <div class="metrics">
+          <div class="metric">
+            <h3>${results.grossSF.toLocaleString()}</h3>
+            <p>Square Feet</p>
+          </div>
+          <div class="metric">
+            <h3>$${(results.capexTotal/1000).toFixed(0)}K</h3>
+            <p>Initial Investment</p>
+          </div>
+          <div class="metric">
+            <h3>$${(results.revenueMonthly/1000).toFixed(0)}K</h3>
+            <p>Monthly Revenue</p>
+          </div>
+          <div class="metric">
+            <h3>${results.breakEvenMonths ? `${results.breakEvenMonths}mo` : 'N/A'}</h3>
+            <p>Break Even</p>
+          </div>
+        </div>
+        
+        <div class="financial">
+          <h2>Monthly Financial Overview</h2>
+          <table>
+            <tr><td>Gross Revenue</td><td>$${results.revenueMonthly.toLocaleString()}</td></tr>
+            <tr><td>Operating Expenses</td><td>-$${results.opexMonthly.toLocaleString()}</td></tr>
+            <tr style="font-weight: bold; border-top: 2px solid #333;"><td>Net Operating Income</td><td>$${results.ebitdaMonthly.toLocaleString()}</td></tr>
+          </table>
+        </div>
+        
+        ${equipmentPackage.items.length > 0 ? `
+        <div class="equipment">
+          <h2>Equipment Package</h2>
+          ${equipmentPackage.items.map(item => `
+            <div class="equipment-item">
+              <span>${item.name} (${item.quantity} ${item.unit})</span>
+              <span>$${item.total.toLocaleString()}</span>
+            </div>
+          `).join('')}
+          <div class="equipment-item" style="font-weight: bold; border-top: 2px solid #333; margin-top: 10px;">
+            <span>Total Equipment + Installation</span>
+            <span>$${(equipmentPackage.total + Math.round(equipmentPackage.total * 1.0)).toLocaleString()}</span>
+          </div>
+        </div>
+        ` : ''}
+        
+        <div class="footer">
+          <p>This estimate uses industry averages. For detailed projections, visit SportsFacility.ai</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    // Create a new window and write the HTML content
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      // Trigger print dialog after content loads
+      printWindow.onload = () => {
+        printWindow.print();
+      };
     }
   };
 
@@ -370,20 +480,31 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
         )}
 
         {/* Actions */}
-        <div className="flex gap-4">
-          <Button
-            variant="outline"
-            onClick={() => setStep(1)}
-            className="flex-1"
-          >
-            <Edit3 className="h-4 w-4 mr-2" />
-            Adjust Parameters
-          </Button>
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setStep(1)}
+              className="flex-1"
+            >
+              <Edit3 className="h-4 w-4 mr-2" />
+              Adjust Parameters
+            </Button>
+            
+            <Button
+              onClick={handlePdfDownload}
+              variant="outline"
+              className="flex-1"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download / Print PDF
+            </Button>
+          </div>
           
           <Button
             onClick={handleQuickStart}
             size="lg"
-            className="flex-1 bg-gradient-primary"
+            className="w-full bg-gradient-primary"
           >
             View Detailed Analysis
             <ArrowRight className="h-4 w-4 ml-2" />
@@ -393,9 +514,18 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
         <p className="text-center text-sm text-muted-foreground">
           This quick estimate uses industry averages. Click "View Detailed Analysis" to customize all parameters and get precise projections.
         </p>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+        
+        <LeadGate
+          isOpen={showLeadGate}
+          onClose={() => setShowLeadGate(false)}
+          onSubmit={handleLeadSubmit}
+          title="Download Your Facility Estimate"
+          description="Get your complete PDF report delivered to your inbox"
+          showOptionalFields={true}
+        />
+      </Card>
+    );
 };
 
 // Helper functions for generating realistic defaults
