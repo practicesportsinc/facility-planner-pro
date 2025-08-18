@@ -23,14 +23,20 @@ const Header = () => {
           </Link>
 
           <nav className="hidden md:flex items-center space-x-3">
-            <Link 
-              to="/" 
-              className={`text-sm font-medium transition-smooth ${
-                isActive('/') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className={`${
+                isActive('/') 
+                  ? 'bg-gradient-primary text-white border-0 shadow-glow' 
+                  : 'bg-gradient-primary/10 text-primary border-primary/30 hover:bg-gradient-primary hover:text-white hover:border-0'
               }`}
             >
-              Home
-            </Link>
+              <Link to="/">
+                Home
+              </Link>
+            </Button>
             
             <Button
               variant="outline"
@@ -39,7 +45,7 @@ const Header = () => {
               className={`${
                 isActive('/wizard') 
                   ? 'bg-gradient-primary text-white border-0 shadow-glow' 
-                  : 'hover:bg-gradient-primary/90 hover:text-white hover:border-0'
+                  : 'bg-gradient-primary/10 text-primary border-primary/30 hover:bg-gradient-primary hover:text-white hover:border-0'
               }`}
             >
               <Link to="/wizard" className="flex items-center gap-2">
@@ -55,7 +61,7 @@ const Header = () => {
               className={`${
                 isActive('/calculator') 
                   ? 'bg-gradient-primary text-white border-0 shadow-glow' 
-                  : 'hover:bg-gradient-primary/90 hover:text-white hover:border-0'
+                  : 'bg-gradient-primary/10 text-primary border-primary/30 hover:bg-gradient-primary hover:text-white hover:border-0'
               }`}
             >
               <Link to="/calculator" className="flex items-center gap-2">
@@ -66,21 +72,32 @@ const Header = () => {
 
             <QuickEstimatesButton />
             
-            <Link 
-              to="/admin" 
-              className={`text-sm font-medium transition-smooth ${
-                isActive('/admin') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className={`${
+                isActive('/admin') 
+                  ? 'bg-gradient-primary text-white border-0 shadow-glow' 
+                  : 'bg-gradient-primary/10 text-primary border-primary/30 hover:bg-gradient-primary hover:text-white hover:border-0'
               }`}
             >
-              <Settings className="h-4 w-4 inline mr-1" />
-              Admin
-            </Link>
+              <Link to="/admin" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Admin
+              </Link>
+            </Button>
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild className="hidden md:flex">
-              <Link to="/legal">
-                <FileText className="h-4 w-4 mr-2" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              asChild 
+              className="hidden md:flex bg-gradient-primary/10 text-primary border-primary/30 hover:bg-gradient-primary hover:text-white hover:border-0"
+            >
+              <Link to="/legal" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
                 Legal
               </Link>
             </Button>
