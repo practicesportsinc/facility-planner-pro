@@ -150,7 +150,11 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
       revenue_programs: getRevenueDefaults(estimate.sport, estimate.size),
       financing: getFinancingDefaults(),
       estimates: results,
-      equipmentPackage: equipmentPackage
+      equipmentPackage: {
+        ...equipmentPackage,
+        installationEstimate: Math.round(equipmentPackage.total * 0.3),
+        totalWithInstall: equipmentPackage.total + Math.round(equipmentPackage.total * 0.3)
+      }
     };
 
     console.log('Saving project data:', projectData);
@@ -337,9 +341,19 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
                   </div>
                 </div>
               ))}
-              <div className="border-t pt-3 flex justify-between text-lg font-semibold">
-                <span>Equipment Subtotal</span>
-                <span>${equipmentPackage.total.toLocaleString()}</span>
+              <div className="border-t pt-3 space-y-2">
+                <div className="flex justify-between">
+                  <span>Equipment Subtotal</span>
+                  <span>${equipmentPackage.total.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Installation (30%)</span>
+                  <span>${Math.round(equipmentPackage.total * 0.3).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-lg font-semibold border-t pt-2">
+                  <span>Equipment + Installation</span>
+                  <span>${(equipmentPackage.total + Math.round(equipmentPackage.total * 0.3)).toLocaleString()}</span>
+                </div>
               </div>
             </div>
             <p className="text-sm text-muted-foreground mt-3">

@@ -16,9 +16,10 @@ interface FinancingProps {
 
 const Financing = ({ data, onUpdate, onNext, onPrevious, allData }: FinancingProps) => {
   // Get total project cost from previous steps
-  const equipmentCost = allData[3]?.equipment?.reduce((sum: number, item: any) => sum + (item.cost * item.quantity), 0) || 0;
+  const equipmentData = allData[4] || {};
+  const equipmentTotal = equipmentData.equipmentTotal || 0;
   const siteCosts = 1000000; // This would come from step 4 calculations
-  const totalProjectCost = equipmentCost + siteCosts;
+  const totalProjectCost = equipmentTotal + siteCosts;
 
   const [formData, setFormData] = useState({
     // Equity
@@ -244,7 +245,7 @@ const Financing = ({ data, onUpdate, onNext, onPrevious, allData }: FinancingPro
                   <Input
                     id="equipmentFinancing"
                     type="number"
-                    placeholder={equipmentCost.toString()}
+                    placeholder={equipmentTotal.toString()}
                     value={formData.equipmentFinancing}
                     onChange={(e) => handleInputChange('equipmentFinancing', e.target.value)}
                   />
@@ -275,7 +276,7 @@ const Financing = ({ data, onUpdate, onNext, onPrevious, allData }: FinancingPro
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">
-                Equipment cost from previous step: ${equipmentCost.toLocaleString()}
+                Equipment + installation from previous step: ${equipmentTotal.toLocaleString()}
                 {Number(formData.equipmentFinancing) > 0 && (
                   <> • Monthly Payment: ${equipmentPayment.toLocaleString()}</>
                 )}

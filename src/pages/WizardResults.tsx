@@ -101,8 +101,10 @@ const WizardResults = () => {
     // Calculate totals
     const totalSqft = sportsBreakdown.reduce((sum, sport) => sum + sport.squareFootage, 0) * 1.25; // Add 25% for circulation
     const totalConstructionCost = sportsBreakdown.reduce((sum, sport) => sum + sport.constructionCost, 0) * 1.25;
-    const totalEquipmentCost = sportsBreakdown.reduce((sum, sport) => sum + sport.equipmentCost, 0) * 1.25;
-    const capexTotal = totalConstructionCost + totalEquipmentCost;
+    const equipment = sportsBreakdown.reduce((sum, sport) => sum + sport.equipmentCost, 0);
+    const installation = Math.round(equipment * 0.3);
+    const totalEquipment = equipment + installation;
+    const capexTotal = totalConstructionCost + totalEquipment;
     
     const monthlyRevenue = calculateMembershipRevenue(targetMarket, totalSqft) + 
                           (totalSqft * 0.5) + // Rental revenue
@@ -125,7 +127,9 @@ const WizardResults = () => {
       capex: { 
         total: capexTotal,
         construction: totalConstructionCost,
-        equipment: totalEquipmentCost,
+        equipment: equipment,
+        installation: installation,
+        totalEquipment: totalEquipment,
         workingCapital: capexTotal * 0.1
       },
       opex: { 

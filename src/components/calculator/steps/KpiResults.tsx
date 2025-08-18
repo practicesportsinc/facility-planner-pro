@@ -58,10 +58,12 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
     const circulationPct = facilityData.circulation_pct_addon || 20;
     const totalSqft = Math.round(totalProgramSF * (1 + (adminPct + circulationPct) / 100));
 
-    // Calculate CapEx (simplified estimate)
+    // Calculate CapEx (simplified estimate) with installation
     const tiCostPerSF = 18;
-    const equipmentEstimate = 50000; // base estimate
-    const totalCapex = Math.round((totalSqft * tiCostPerSF) + equipmentEstimate + (totalSqft * 5)); // simplified
+    const equipmentData = allData[4] || {};
+    const equipmentCost = equipmentData.equipmentCost || 50000;
+    const installationEstimate = equipmentData.installationEstimate || Math.round(equipmentCost * 0.3);
+    const totalCapex = Math.round((totalSqft * tiCostPerSF) + equipmentCost + installationEstimate + (totalSqft * 5)); // simplified
 
     // Calculate OpEx - handle both schema formats
     const HOURS_PER_FTE_MONTH = 173.33;
@@ -147,7 +149,8 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
       monthlyProfit,
       debtService: 0, // simplified
       buildingCosts: Math.round(totalCapex * 0.6),
-      equipmentCosts: equipmentEstimate,
+      equipmentCosts: equipmentCost,
+      installationCosts: installationEstimate,
       softCosts: Math.round(totalCapex * 0.2),
       salaryCosts: Math.round(salaryCosts),
       fixedCosts: Math.round(fixedCosts),

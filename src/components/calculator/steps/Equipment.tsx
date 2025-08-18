@@ -245,30 +245,6 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
     return PRODUCT_CATALOG.filter(item => allowed.has(item.key));
   };
 
-  // Persist on every change
-  useEffect(() => {
-    onUpdate({
-      selectedProducts: Array.from(selected),
-      quantities: qty
-    });
-  }, [selected, qty, onUpdate]);
-
-  const handleQuantityChange = (key: string, newQuantity: number[]) => {
-    setQuantity(key, newQuantity[0]);
-  };
-
-  const handleInputChange = (key: string, value: string) => {
-    const numValue = Math.max(0, Number(value) || 0);
-    setQuantity(key, numValue);
-  };
-
-  const resetToTypical = (key: string) => {
-    const defaultValue = defaultQtyFor(key, facilitySqft, counts);
-    setQuantity(key, defaultValue);
-  };
-
-  const filteredCatalog = getFilteredCatalog();
-
   // Calculate total estimated cost using mid-tier pricing (reactive to qty changes)
   const totalEstimatedCost = useMemo(() => {
     let total = 0;
@@ -312,6 +288,37 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
     
     return total;
   }, [selected, qty]);
+
+  // Persist on every change
+  useEffect(() => {
+    const baseEquipmentCost = totalEstimatedCost;
+    const installationEstimate = Math.round(baseEquipmentCost * 0.3);
+    const equipmentTotal = baseEquipmentCost + installationEstimate;
+    
+    onUpdate({
+      selectedProducts: Array.from(selected),
+      quantities: qty,
+      equipmentCost: baseEquipmentCost,
+      installationEstimate,
+      equipmentTotal
+    });
+  }, [selected, qty, onUpdate, totalEstimatedCost]);
+
+  const handleQuantityChange = (key: string, newQuantity: number[]) => {
+    setQuantity(key, newQuantity[0]);
+  };
+
+  const handleInputChange = (key: string, value: string) => {
+    const numValue = Math.max(0, Number(value) || 0);
+    setQuantity(key, numValue);
+  };
+
+  const resetToTypical = (key: string) => {
+    const defaultValue = defaultQtyFor(key, facilitySqft, counts);
+    setQuantity(key, defaultValue);
+  };
+
+  const filteredCatalog = getFilteredCatalog();
 
   // Format currency helper
   const formatCurrency = (amount: number) => {
@@ -497,14 +504,24 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                       {Object.values(qty).reduce((sum: number, qty: any) => sum + (Number(qty) || 0), 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="flex justify-between font-semibold text-primary">
-                    <span>Total Cost:</span>
-                    <span>{formatCurrency(totalEstimatedCost)}</span>
-                  </div>
                 </div>
 
-                <div className="text-xs text-muted-foreground pt-4 border-t">
-                  💡 Estimated cost using mid-tier pricing. You'll set specific costs in the next step.
+                <div className="border-t pt-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span>Equipment Subtotal:</span>
+                    <span className="font-medium">{formatCurrency(totalEstimatedCost)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Installation estimate (30%):</span>
+                    <span className="font-medium">{formatCurrency(Math.round(totalEstimatedCost * 0.3))}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-semibold border-t pt-2">
+                    <span>Total (equipment + installation):</span>
+                    <span className="text-primary">{formatCurrency(totalEstimatedCost + Math.round(totalEstimatedCost * 0.3))}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Based on mid-tier quality pricing for {selected.size} selected products
+                  </p>
                 </div>
               </div>
             </CardContent>

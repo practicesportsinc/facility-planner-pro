@@ -123,9 +123,15 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
     sponsorships: revenue.sponsorships || { annualRevenue: 6000 }
   });
 
+  // Add equipment and installation costs
+  const equipmentData = allData[4] || {};
+  const equipmentCost = equipmentData.equipmentCost || 0;
+  const installationEstimate = equipmentData.installationEstimate || 0;
+  const capexTotalWithEquipment = capExCalculation.total + equipmentCost + installationEstimate;
+
   // Calculate Profitability
   const profitabilityCalculation = calculateProfitability(
-    capExCalculation.total,
+    capexTotalWithEquipment,
     revenueCalculation.total,
     opExCalculation.total,
     opExCalculation.debtServiceMonthly
@@ -143,7 +149,7 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
   };
 
   const summaryData = {
-    totalInvestment: capExCalculation.total,
+    totalInvestment: capexTotalWithEquipment,
     monthlyRevenue: revenueCalculation.total,
     monthlyExpenses: opExCalculation.total,
     monthlyCashFlow: profitabilityCalculation.netIncomeMonthly,

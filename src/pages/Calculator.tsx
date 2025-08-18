@@ -83,6 +83,11 @@ const Calculator = () => {
               // Add sports data for square footage recommendations
               selectedSports: projectData.selectedSports || []
             },
+            4: { // Equipment
+              equipmentCost: projectData.equipmentPackage?.total || 0,
+              installationEstimate: projectData.equipmentPackage?.installationEstimate || 0,
+              equipmentTotal: projectData.equipmentPackage?.totalWithInstall || 0
+            },
             5: { // Staffing & OpEx
               ...projectData.opex_inputs
             },
