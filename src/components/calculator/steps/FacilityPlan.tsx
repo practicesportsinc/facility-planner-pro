@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building, Ruler, Home } from "lucide-react";
-import VisualDesignerHome from "@/components/home/VisualDesignerHome";
+
 
 interface FacilityPlanProps {
   data: any;
@@ -380,22 +380,6 @@ const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityP
         </Card>
       )}
 
-      {showLayoutSelector && (
-        <Card>
-          <CardContent className="p-0">
-            <VisualDesignerHome
-              onLayoutSelected={handleLayoutSelected}
-              onShowLayoutSelector={() => setShowLayoutSelector(false)}
-              selectedLayoutId={formData.selectedLayoutId}
-              initialData={{
-                selectedSports: selectedSports,
-                size: formData.totalSquareFootage > 20000 ? 'large' : 
-                      formData.totalSquareFootage > 15000 ? 'medium' : 'small'
-              }}
-            />
-          </CardContent>
-        </Card>
-      )}
 
       <div className="flex justify-between">
         <Button variant="outline" onClick={onPrevious}>
