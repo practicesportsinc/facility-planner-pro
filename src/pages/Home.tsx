@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Layout from "@/components/layout/Layout";
 import { Calculator, TrendingUp, FileText, Users, Target, Clock, Sparkles, BookOpen } from "lucide-react";
 import QuickEstimatesButton from "@/components/QuickEstimatesButton";
+import { HomeImageScroller } from "@/components/home/HomeImageScroller";
 
 
 const Home = () => {
@@ -39,6 +40,9 @@ const Home = () => {
                 </CardContent>
               </Card>
             </div>
+            
+            {/* Image Gallery Carousel */}
+            <HomeImageScroller />
           </div>
         </div>
       </section>
