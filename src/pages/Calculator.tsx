@@ -487,7 +487,33 @@ const Calculator = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => window.location.href = '/wizard'}
+                  onClick={() => {
+                    // Determine the last wizard step based on stored data
+                    const wizardData = localStorage.getItem('wizard-data');
+                    const locationData = localStorage.getItem('wizard-location');
+                    const signalsData = localStorage.getItem('wizard-signals');
+                    
+                    let lastStep = '/wizard/easy/start';
+                    
+                    if (wizardData && locationData && signalsData) {
+                      // User completed all steps, go to results
+                      lastStep = '/wizard/easy/results';
+                    } else if (wizardData && locationData) {
+                      // User got to context step
+                      lastStep = '/wizard/easy/context';
+                    } else if (wizardData) {
+                      // User selected sports and size, go to products
+                      lastStep = '/wizard/easy/products';
+                    } else {
+                      // Check if they at least selected a size
+                      const facilityData = localStorage.getItem('wizard-facility');
+                      if (facilityData) {
+                        lastStep = '/wizard/easy/size';
+                      }
+                    }
+                    
+                    window.location.href = lastStep;
+                  }}
                   className="shrink-0"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
