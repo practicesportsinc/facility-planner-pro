@@ -7,6 +7,9 @@ import LeadGate from "@/components/shared/LeadGate";
 import useAnalytics from "@/hooks/useAnalytics";
 import { getProjectState, saveProjectState } from "@/utils/projectState";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip } from "recharts";
+import { ValuePill } from "@/components/ui/value-pill";
+import { ValueLegend } from "@/components/ui/value-legend";
+import { formatMoney } from "@/lib/utils";
 
 interface KpiCard {
   key: string;
@@ -289,17 +292,50 @@ export const EasyResults = ({
           <p className="text-lg muted">{subtitle}</p>
         </div>
 
+        {/* Value Legend */}
+        <ValueLegend />
+
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
           {kpiCards.map((kpi) => {
             const value = kpis[kpi.key];
-            console.log(`KPI ${kpi.key}:`, value, typeof value); // Debug logging
+            let type: 'revenue' | 'cost' | 'capex' | 'net' = 'net';
+            let period: 'monthly' | 'annual' | 'one-time' | 'total' = 'total';
+            
+            // Determine type and period based on KPI key
+            if (kpi.key === 'capex_total') {
+              type = 'capex';
+              period = 'one-time';
+            } else if (kpi.key === 'monthly_revenue') {
+              type = 'revenue';
+              period = 'monthly';
+            } else if (kpi.key === 'monthly_opex') {
+              type = 'cost';
+              period = 'monthly';
+            } else if (kpi.key === 'monthly_ebitda') {
+              type = 'net';
+              period = 'monthly';
+            } else if (kpi.key === 'break_even_months') {
+              // Special formatting for break-even
+              return (
+                <Card key={kpi.key} className="ps-card p-6 text-center">
+                  <div className="text-2xl md:text-3xl font-bold text-ps-blue mb-2">
+                    {formatValue(value, kpi.fmt)}
+                  </div>
+                  <div className="text-sm muted">{kpi.label}</div>
+                </Card>
+              );
+            }
+            
             return (
               <Card key={kpi.key} className="ps-card p-6 text-center">
-                <div className="text-2xl md:text-3xl font-bold text-ps-blue mb-2">
-                  {formatValue(value, kpi.fmt)}
-                </div>
-                <div className="text-sm muted">{kpi.label}</div>
+                <ValuePill 
+                  value={value || 0} 
+                  type={type} 
+                  period={period}
+                  className="text-xl md:text-2xl font-bold mb-2"
+                />
+                <div className="text-sm muted mt-2">{kpi.label}</div>
               </Card>
             );
           })}

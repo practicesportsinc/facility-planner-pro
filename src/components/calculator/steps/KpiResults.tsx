@@ -16,6 +16,9 @@ import {
   AlertCircle,
   Edit
 } from "lucide-react";
+import { ValuePill } from "@/components/ui/value-pill";
+import { ValueLegend } from "@/components/ui/value-legend";
+import { formatMoney } from "@/lib/utils";
 // Simple metrics calculation for demo
 
 interface KpiResultsProps {
@@ -287,6 +290,9 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
         </Card>
       )}
 
+      {/* Value Legend */}
+      <ValueLegend />
+
       {/* KPI Cards Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {kpiCards.map((kpi, index) => {
@@ -294,6 +300,21 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
           const showEdit = kpi.title === "Monthly OpEx" || kpi.title === "Monthly Revenue";
           const editHandler = kpi.title === "Monthly OpEx" ? handleEditOpEx : 
                             kpi.title === "Monthly Revenue" ? handleEditRevenue : undefined;
+          
+          // Determine value type for proper styling
+          let type: 'revenue' | 'cost' | 'capex' | 'net' = 'net';
+          let period: 'monthly' | 'annual' | 'one-time' | 'total' = 'total';
+          
+          if (kpi.title === "Total CapEx") {
+            type = 'capex';
+            period = 'one-time';
+          } else if (kpi.title === "Monthly OpEx") {
+            type = 'cost';
+            period = 'monthly';
+          } else if (kpi.title === "Monthly Revenue") {
+            type = 'revenue';
+            period = 'monthly';
+          }
           
           return (
             <Card key={index} className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
@@ -314,7 +335,16 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{kpi.value}</div>
+                {kpi.title === "Break-even" || kpi.title === "ROI" || kpi.title === "Payback Period" ? (
+                  <div className="text-2xl font-bold">{kpi.value}</div>
+                ) : (
+                  <ValuePill 
+                    value={parseInt(kpi.value.replace(/[$,]/g, '')) || 0}
+                    type={type}
+                    period={period}
+                    className="text-xl font-bold"
+                  />
+                )}
                 <p className="text-xs text-muted-foreground mt-1">
                   {kpi.description}
                 </p>

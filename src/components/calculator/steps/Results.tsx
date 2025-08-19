@@ -4,6 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Download, Mail, Calendar, TrendingUp, DollarSign, Target, Clock, Calculator } from "lucide-react";
+import { ValuePill } from "@/components/ui/value-pill";
+import { ValueLegend } from "@/components/ui/value-legend";
+import { formatMoney } from "@/lib/utils";
 import { NextStepsBanner } from "@/components/ui/next-steps-banner";
 import LeadGate from "@/components/shared/LeadGate";
 import { 
@@ -219,6 +222,9 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
         onSourcingUpdate={(newData) => onUpdate({ ...sourcingData, ...newData })}
       />
 
+      {/* Value Legend */}
+      <ValueLegend />
+
       {/* Key Metrics Dashboard */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card>
@@ -226,7 +232,12 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Investment</p>
-                <p className="text-2xl font-bold">${summaryData.totalInvestment.toLocaleString()}</p>
+                <ValuePill 
+                  value={summaryData.totalInvestment}
+                  type="capex"
+                  period="one-time"
+                  className="text-xl font-bold"
+                />
               </div>
               <DollarSign className="h-8 w-8 text-primary" />
             </div>
@@ -238,9 +249,12 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Monthly Cash Flow</p>
-                <p className={`text-2xl font-bold ${summaryData.monthlyCashFlow > 0 ? 'text-success' : 'text-destructive'}`}>
-                  ${summaryData.monthlyCashFlow.toLocaleString()}
-                </p>
+                <ValuePill 
+                  value={summaryData.monthlyCashFlow}
+                  type="net"
+                  period="monthly"
+                  className="text-xl font-bold"
+                />
               </div>
               <TrendingUp className="h-8 w-8 text-success" />
             </div>
@@ -330,17 +344,15 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Projected Monthly Revenue:</span>
-                    <span className="text-sm font-medium">${summaryData.monthlyRevenue.toLocaleString()}</span>
+                    <ValuePill value={summaryData.monthlyRevenue} type="revenue" period="monthly" />
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Monthly Operating Expenses:</span>
-                    <span className="text-sm font-medium">${summaryData.monthlyExpenses.toLocaleString()}</span>
+                    <ValuePill value={summaryData.monthlyExpenses} type="cost" period="monthly" />
                   </div>
                   <div className="flex justify-between border-t pt-2">
                     <span className="text-sm text-muted-foreground">Net Monthly Cash Flow:</span>
-                    <span className={`text-sm font-bold ${summaryData.monthlyCashFlow > 0 ? 'text-success' : 'text-destructive'}`}>
-                      ${summaryData.monthlyCashFlow.toLocaleString()}
-                    </span>
+                    <ValuePill value={summaryData.monthlyCashFlow} type="net" period="monthly" />
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Break-even:</span>
