@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import Layout from "@/components/layout/Layout";
-import { ChevronLeft, ChevronRight, Save, Zap } from "lucide-react";
+import { ChevronLeft, ChevronRight, Save, Zap, ArrowLeft } from "lucide-react";
 
 // Wizard steps
 import ProjectBasics from "@/components/calculator/steps/ProjectBasics";
@@ -467,6 +467,36 @@ const Calculator = () => {
             )}
           </CardHeader>
         </Card>
+
+        {/* Back to Wizard Banner - only show in wizard mode */}
+        {isWizardMode && (
+          <Card className="mb-8 border border-primary/30 bg-primary/5">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Zap className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      Customizing your wizard recommendations
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Changed your mind? You can go back to the original wizard flow anytime
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = '/wizard'}
+                  className="shrink-0"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Wizard
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Step Navigation Sidebar */}
