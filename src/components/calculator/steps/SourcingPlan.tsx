@@ -25,7 +25,7 @@ const SUPPLIER_CATEGORIES = [
 
 const SourcingPlan = ({ data, onUpdate, onNext, onPrevious }: SourcingPlanProps) => {
   const [formData, setFormData] = useState({
-    outreach_preference: data.outreach_preference || "undecided" as Preference,
+    outreach_preference: data.outreach_preference || "supplier_outreach" as Preference,
     supplier_categories: data.supplier_categories || [],
     supplier_region_pref: data.supplier_region_pref || "no_preference",
     contact_channel_pref: data.contact_channel_pref || "email",
