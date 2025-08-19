@@ -488,28 +488,26 @@ const Calculator = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => {
-                    // Determine the last wizard step based on stored data
-                    const wizardData = localStorage.getItem('wizard-data');
+                    // Determine the last wizard step based on easy wizard stored data
+                    const sportsData = localStorage.getItem('wizard-selected-sports');
+                    const facilityData = localStorage.getItem('wizard-facility-size');
+                    const productsData = localStorage.getItem('wizard-selected-products');
                     const locationData = localStorage.getItem('wizard-location');
-                    const signalsData = localStorage.getItem('wizard-signals');
                     
                     let lastStep = '/wizard/easy/start';
                     
-                    if (wizardData && locationData && signalsData) {
+                    if (sportsData && facilityData && productsData && locationData) {
                       // User completed all steps, go to results
                       lastStep = '/wizard/easy/results';
-                    } else if (wizardData && locationData) {
+                    } else if (sportsData && facilityData && productsData) {
                       // User got to context step
                       lastStep = '/wizard/easy/context';
-                    } else if (wizardData) {
+                    } else if (sportsData && facilityData) {
                       // User selected sports and size, go to products
                       lastStep = '/wizard/easy/products';
-                    } else {
-                      // Check if they at least selected a size
-                      const facilityData = localStorage.getItem('wizard-facility');
-                      if (facilityData) {
-                        lastStep = '/wizard/easy/size';
-                      }
+                    } else if (sportsData) {
+                      // User selected sports, go to size
+                      lastStep = '/wizard/easy/size';
                     }
                     
                     window.location.href = lastStep;
