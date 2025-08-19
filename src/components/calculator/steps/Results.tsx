@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Download, Mail, Calendar, TrendingUp, DollarSign, Target, Clock, Calculator } from "lucide-react";
 import { NextStepsBanner } from "@/components/ui/next-steps-banner";
+import LeadGate from "@/components/shared/LeadGate";
 import { 
   calculateSpacePlanning, 
   calculateCapExBuild, 
@@ -26,6 +27,8 @@ interface ResultsProps {
 
 const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) => {
   const [emailSent, setEmailSent] = useState(false);
+  const [showLeadGate, setShowLeadGate] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'email' | 'pdf' | 'consultation' | null>(null);
 
   // Extract data from previous steps (updated for new step order)
   const projectBasics = allData[1] || {};
@@ -137,15 +140,57 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
     opExCalculation.debtServiceMonthly
   );
 
+  const handleButtonClick = (action: 'email' | 'pdf' | 'consultation') => {
+    // Check if lead data already exists
+    const existingLeadData = allData[10];
+    if (existingLeadData?.email) {
+      // User already submitted contact info, proceed with action
+      executeAction(action);
+    } else {
+      // Show lead gate first
+      setPendingAction(action);
+      setShowLeadGate(true);
+    }
+  };
+
+  const executeAction = (action: 'email' | 'pdf' | 'consultation') => {
+    switch (action) {
+      case 'email':
+        handleEmailReport();
+        break;
+      case 'pdf':
+        handlePrintPDF();
+        break;
+      case 'consultation':
+        handleScheduleConsultation();
+        break;
+    }
+  };
+
   const handleEmailReport = () => {
     // Here we would send the report via email
     setEmailSent(true);
     setTimeout(() => setEmailSent(false), 3000);
   };
 
+  const handlePrintPDF = () => {
+    window.print();
+  };
+
   const handleScheduleConsultation = () => {
     // Here we would open scheduling system
     window.open('https://calendly.com/practicesports', '_blank');
+  };
+
+  const handleLeadSubmit = async (leadData: any) => {
+    // Save lead data
+    onUpdate({ ...leadData });
+    
+    // Execute the pending action
+    if (pendingAction) {
+      executeAction(pendingAction);
+      setPendingAction(null);
+    }
   };
 
   const summaryData = {
@@ -610,19 +655,19 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
           <div className="grid md:grid-cols-3 gap-4">
             <Button 
               variant="hero" 
-              onClick={handleEmailReport}
+              onClick={() => handleButtonClick('email')}
               disabled={emailSent}
             >
               <Mail className="h-4 w-4 mr-2" />
               {emailSent ? 'Report Sent!' : 'Email Full Report'}
             </Button>
 
-            <Button variant="outline" onClick={() => window.print()}>
+            <Button variant="outline" onClick={() => handleButtonClick('pdf')}>
               <Download className="h-4 w-4 mr-2" />
-              Print/Save PDF
+              Download / Print PDF
             </Button>
 
-            <Button variant="success" onClick={handleScheduleConsultation}>
+            <Button variant="success" onClick={() => handleButtonClick('consultation')}>
               <Calendar className="h-4 w-4 mr-2" />
               Schedule Consultation
             </Button>
@@ -638,6 +683,19 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
           Start New Calculation
         </Button>
       </div>
+
+      {/* Lead Gate Modal */}
+      <LeadGate
+        isOpen={showLeadGate}
+        onClose={() => {
+          setShowLeadGate(false);
+          setPendingAction(null);
+        }}
+        onSubmit={handleLeadSubmit}
+        title={`Get Your ${pendingAction === 'email' ? 'Email Report' : pendingAction === 'pdf' ? 'PDF Report' : 'Consultation'}`}
+        description="Enter your contact information to receive your detailed analysis report"
+        showOptionalFields={false}
+      />
     </div>
   );
 };
