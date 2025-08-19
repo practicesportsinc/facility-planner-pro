@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Zap, DollarSign, TrendingUp, Calendar, ArrowRight, Building, MapPin, Edit3, Download, Printer } from "lucide-react";
+import { ValuePill } from "@/components/ui/value-pill";
 import { generateProjectId, saveProjectState } from "@/utils/projectState";
 import useAnalytics from "@/hooks/useAnalytics";
 import { COST_LIBRARY, getCostByTier, calculateItemTotal, type CostItem } from "@/data/costLibrary";
@@ -295,7 +296,10 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
         <CardContent className="space-y-6">
           {/* Sport Selection */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Primary Sport</Label>
+            <div className="flex items-center gap-2">
+              <Label className="text-base font-medium">Primary Sport</Label>
+              <span className="text-sm text-muted-foreground">(Showing potential monthly revenue)</span>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               {Object.entries(SPORTS_DATA).map(([key, data]) => (
                 <Button
@@ -307,11 +311,19 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
                   <span className="text-2xl">{data.icon}</span>
                   <div className="text-left">
                     <div className="font-medium">{data.label}</div>
-                    <div className="text-xs opacity-70">~${(data.avgRevenue/1000).toFixed(0)}K/mo</div>
+                    <ValuePill 
+                      value={data.avgRevenue} 
+                      type="revenue" 
+                      period="monthly"
+                      className="text-xs mt-1"
+                    />
                   </div>
                 </Button>
               ))}
             </div>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              These figures represent potential gross revenue — we'll estimate costs and net profit next.
+            </p>
           </div>
 
           {/* Size Selection */}
