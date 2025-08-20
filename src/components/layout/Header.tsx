@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calculator, Settings, FileText, Sparkles, Zap } from "lucide-react";
@@ -18,7 +19,7 @@ const Header = () => {
               alt="Sports Facility.ai" 
               width="240"
               height="80"
-              className={`w-auto bg-transparent ${location.pathname === '/' ? 'h-12 md:h-14 lg:h-16' : 'h-10 md:h-12 lg:h-14'}`}
+              className={`w-auto bg-transparent ${location.pathname === '/' ? 'h-14 md:h-16 lg:h-20' : 'h-12 md:h-14 lg:h-16'}`}
             />
           </Link>
 
