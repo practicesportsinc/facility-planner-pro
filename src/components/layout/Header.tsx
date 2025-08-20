@@ -16,7 +16,9 @@ const Header = () => {
             <img 
               src="/lovable-uploads/206e396b-a0aa-474d-bf77-f74fe8aa90fc.png" 
               alt="Sports Facility.ai" 
-              className="h-12 w-auto bg-transparent"
+              width="240"
+              height="80"
+              className={`w-auto bg-transparent ${location.pathname === '/' ? 'h-12 md:h-14 lg:h-16' : 'h-10 md:h-12 lg:h-14'}`}
             />
           </Link>
 
