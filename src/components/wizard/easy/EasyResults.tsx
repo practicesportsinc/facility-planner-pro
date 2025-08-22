@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import LeadGate from "@/components/shared/LeadGate";
 import useAnalytics from "@/hooks/useAnalytics";
 import { getProjectState, saveProjectState } from "@/utils/projectState";
+import { dispatchLead } from "@/services/leadDispatch";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip } from "recharts";
 import { ValuePill } from "@/components/ui/value-pill";
 import { ValueLegend } from "@/components/ui/value-legend";
@@ -204,6 +205,24 @@ export const EasyResults = ({
     try {
       const projectId = localStorage.getItem('current-project-id') || 'legacy';
       const project = getProjectState(projectId);
+      
+      // Dispatch to Make.com
+      try {
+        await dispatchLead({
+          ...leadData,
+          projectType: `${project.selectedSports?.join(', ') || 'Multi-Sport'} Facility`,
+          facilitySize: project.facilitySize,
+          sports: project.selectedSports || [],
+          totalInvestment: project.totalInvestment,
+          annualRevenue: project.annualRevenue,
+          roi: project.roi,
+          paybackPeriod: project.paybackPeriod,
+          source: 'easy-wizard',
+          timestamp: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error('Error dispatching lead:', error);
+      }
       
       // Save lead to project state
       saveProjectState(projectId, {

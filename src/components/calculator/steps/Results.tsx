@@ -9,6 +9,7 @@ import { ValueLegend } from "@/components/ui/value-legend";
 import { formatMoney } from "@/lib/utils";
 import { NextStepsBanner } from "@/components/ui/next-steps-banner";
 import LeadGate from "@/components/shared/LeadGate";
+import { dispatchLead } from "@/services/leadDispatch";
 import { 
   calculateSpacePlanning, 
   calculateCapExBuild, 
@@ -188,6 +189,25 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
   const handleLeadSubmit = async (leadData: any) => {
     // Save lead data
     onUpdate({ ...leadData });
+    
+    // Dispatch to Make.com
+    try {
+      await dispatchLead({
+        ...leadData,
+        projectType: allData?.projectBasics?.projectName || 'Sports Facility',
+        facilitySize: allData?.facilityPlan?.totalSquareFootage ? `${allData.facilityPlan.totalSquareFootage} sq ft` : undefined,
+        sports: allData?.projectBasics?.selectedSports || [],
+        buildMode: allData?.buildMode?.buildType,
+        totalInvestment: data?.totalInvestment,
+        annualRevenue: data?.projectedRevenue,
+        roi: data?.roi,
+        paybackPeriod: data?.paybackPeriod,
+        source: 'full-calculator',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error dispatching lead:', error);
+    }
     
     // Execute the pending action
     if (pendingAction) {

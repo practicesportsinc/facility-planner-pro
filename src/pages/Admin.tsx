@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Layout from "@/components/layout/Layout";
 import { Settings, Database, Users, Download, Mail } from "lucide-react";
+import { MakeWebhookSettings } from "@/components/admin/MakeWebhookSettings";
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -114,6 +115,8 @@ const Admin = () => {
                 <Button variant="default">Save Settings</Button>
               </CardContent>
             </Card>
+
+            <MakeWebhookSettings />
           </TabsContent>
 
           <TabsContent value="costs" className="space-y-6">

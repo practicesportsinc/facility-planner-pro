@@ -12,6 +12,7 @@ import { generateProjectId, saveProjectState } from "@/utils/projectState";
 import useAnalytics from "@/hooks/useAnalytics";
 import { COST_LIBRARY, getCostByTier, calculateItemTotal, type CostItem } from "@/data/costLibrary";
 import LeadGate from "@/components/shared/LeadGate";
+import { dispatchLead } from "@/services/leadDispatch";
 
 // Quick estimate types
 type SizeKey = "small" | "small_plus" | "medium" | "large" | "giant" | "arena";
@@ -182,8 +183,22 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
   const handleLeadSubmit = async (leadData: any) => {
     track('lead_captured_pdf', { ...leadData, estimate });
     
-    // Here you would typically send the lead data to your backend
-    console.log('Lead captured:', leadData);
+    // Dispatch to Make.com
+    try {
+      await dispatchLead({
+        ...leadData,
+        projectType: `${SPORTS_DATA[estimate.sport].label} Facility`,
+        facilitySize: `${results.grossSF} sq ft`,
+        totalInvestment: results.capexTotal,
+        annualRevenue: results.revenueMonthly * 12,
+        roi: results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0,
+        paybackPeriod: results.breakEvenMonths,
+        source: 'quick-estimate',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error dispatching lead:', error);
+    }
     
     // Generate and download the PDF
     generatePdfReport();
