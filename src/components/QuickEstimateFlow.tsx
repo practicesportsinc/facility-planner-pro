@@ -13,6 +13,7 @@ import useAnalytics from "@/hooks/useAnalytics";
 import { COST_LIBRARY, getCostByTier, calculateItemTotal, type CostItem } from "@/data/costLibrary";
 import LeadGate from "@/components/shared/LeadGate";
 import { dispatchLead } from "@/services/leadDispatch";
+import { supabase } from "@/integrations/supabase/client";
 
 // Quick estimate types
 type SizeKey = "small" | "small_plus" | "medium" | "large" | "giant" | "arena";
@@ -201,6 +202,43 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
       });
     } catch (error) {
       console.error('Error dispatching lead:', error);
+    }
+    
+    // Send lead emails
+    try {
+      const roi = results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0;
+      await supabase.functions.invoke('send-lead-emails', {
+        body: {
+          customerEmail: leadData.email,
+          customerName: leadData.name,
+          leadData: {
+            name: leadData.name,
+            email: leadData.email,
+            phone: leadData.phone,
+            city: leadData.city,
+            state: leadData.state,
+            location: leadData.location,
+            allowOutreach: leadData.allowOutreach,
+          },
+          facilityDetails: {
+            sport: SPORTS_DATA[estimate.sport].label,
+            projectType: `${SPORTS_DATA[estimate.sport].label} Facility`,
+            size: `${results.grossSF} sq ft`,
+          },
+          estimates: {
+            totalInvestment: results.capexTotal,
+            monthlyRevenue: results.revenueMonthly,
+            annualRevenue: results.revenueMonthly * 12,
+            roi: roi,
+            breakEven: results.breakEvenMonths,
+          },
+          source: 'quick-estimate',
+        },
+      });
+      console.log('Lead emails sent successfully');
+    } catch (error) {
+      console.error('Error sending lead emails:', error);
+      // Don't block the user flow if email fails
     }
     
     // Generate and download the PDF

@@ -11,3 +11,6 @@ shadow_database_url = "postgresql://postgres:postgres@localhost:54322/postgres"
 
 [functions.generate-financial-summary]
 verify_jwt = false
+
+[functions.send-lead-emails]
+verify_jwt = false

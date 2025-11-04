@@ -27,6 +27,7 @@ import { WizardResult } from "@/types/wizard";
 import { WIZARD_QUESTIONS } from "@/data/wizardQuestions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { dispatchLead } from "@/services/leadDispatch";
 import { 
   calculateSpacePlanning,
   calculateCapExBuild,
@@ -406,6 +407,61 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
           .insert(submissionData);
         
         if (error) throw error;
+
+        // Dispatch to Make.com
+        try {
+          await dispatchLead({
+            firstName: leadData.name.split(' ')[0] || leadData.name,
+            lastName: leadData.name.split(' ').slice(1).join(' ') || '',
+            email: leadData.email,
+            phone: leadData.phone,
+            projectType: wizardResult.recommendations.facilityType,
+            facilitySize: `${Math.round(financialMetrics.space.grossSF)} sq ft`,
+            sports: Array.isArray(responses.primary_sport) ? responses.primary_sport : [responses.primary_sport],
+            totalInvestment: financialMetrics.capex.total,
+            annualRevenue: financialMetrics.revenue.total * 12,
+            roi: financialMetrics.profitability.roi,
+            paybackPeriod: financialMetrics.profitability.breakEvenMonths,
+            source: 'full-calculator',
+            timestamp: new Date().toISOString(),
+          });
+        } catch (error) {
+          console.error('Error dispatching lead:', error);
+        }
+
+        // Send lead emails
+        try {
+          await supabase.functions.invoke('send-lead-emails', {
+            body: {
+              customerEmail: leadData.email,
+              customerName: leadData.name,
+              leadData: {
+                name: leadData.name,
+                email: leadData.email,
+                phone: leadData.phone,
+                allowOutreach: true,
+              },
+              facilityDetails: {
+                projectType: wizardResult.recommendations.facilityType,
+                size: `${Math.round(financialMetrics.space.grossSF)} sq ft`,
+                sports: Array.isArray(responses.primary_sport) ? responses.primary_sport : [responses.primary_sport],
+                buildMode: wizardResult.recommendations.businessModel,
+              },
+              estimates: {
+                totalInvestment: financialMetrics.capex.total,
+                monthlyRevenue: financialMetrics.revenue.total,
+                annualRevenue: financialMetrics.revenue.total * 12,
+                roi: financialMetrics.profitability.roi,
+                paybackPeriod: financialMetrics.profitability.breakEvenMonths,
+              },
+              source: 'full-calculator',
+            },
+          });
+          console.log('Lead emails sent successfully');
+        } catch (error) {
+          console.error('Error sending lead emails:', error);
+          // Don't block the user flow if email fails
+        }
         
         setIsUnlocked(true);
         toast.success("Thank you! Your comprehensive facility analysis has been saved and unlocked.");

@@ -10,6 +10,7 @@ import { formatMoney } from "@/lib/utils";
 import { NextStepsBanner } from "@/components/ui/next-steps-banner";
 import LeadGate from "@/components/shared/LeadGate";
 import { dispatchLead } from "@/services/leadDispatch";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   calculateSpacePlanning, 
   calculateCapExBuild, 
@@ -207,6 +208,42 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
       });
     } catch (error) {
       console.error('Error dispatching lead:', error);
+    }
+
+    // Send lead emails
+    try {
+      await supabase.functions.invoke('send-lead-emails', {
+        body: {
+          customerEmail: leadData.email,
+          customerName: leadData.name,
+          leadData: {
+            name: leadData.name,
+            email: leadData.email,
+            phone: leadData.phone,
+            city: leadData.city,
+            state: leadData.state,
+            location: leadData.location,
+            allowOutreach: leadData.allowOutreach,
+          },
+          facilityDetails: {
+            projectType: allData?.projectBasics?.projectName || 'Sports Facility',
+            sports: allData?.projectBasics?.selectedSports || [],
+            size: allData?.facilityPlan?.totalSquareFootage ? `${allData.facilityPlan.totalSquareFootage} sq ft` : undefined,
+            buildMode: allData?.buildMode?.buildType,
+          },
+          estimates: {
+            totalInvestment: data?.totalInvestment,
+            annualRevenue: data?.projectedRevenue,
+            roi: data?.roi,
+            paybackPeriod: data?.paybackPeriod,
+          },
+          source: 'full-calculator',
+        },
+      });
+      console.log('Lead emails sent successfully');
+    } catch (error) {
+      console.error('Error sending lead emails:', error);
+      // Don't block the user flow if email fails
     }
     
     // Execute the pending action

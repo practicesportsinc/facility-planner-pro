@@ -7,6 +7,7 @@ import LeadGate from "@/components/shared/LeadGate";
 import useAnalytics from "@/hooks/useAnalytics";
 import { getProjectState, saveProjectState } from "@/utils/projectState";
 import { dispatchLead } from "@/services/leadDispatch";
+import { supabase } from "@/integrations/supabase/client";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip } from "recharts";
 import { ValuePill } from "@/components/ui/value-pill";
 import { ValueLegend } from "@/components/ui/value-legend";
@@ -222,6 +223,41 @@ export const EasyResults = ({
         });
       } catch (error) {
         console.error('Error dispatching lead:', error);
+      }
+
+      // Send lead emails
+      try {
+        await supabase.functions.invoke('send-lead-emails', {
+          body: {
+            customerEmail: leadData.email,
+            customerName: leadData.name,
+            leadData: {
+              name: leadData.name,
+              email: leadData.email,
+              phone: leadData.phone,
+              city: leadData.city,
+              state: leadData.state,
+              location: leadData.location,
+              allowOutreach: leadData.allowOutreach,
+            },
+            facilityDetails: {
+              projectType: `${project.selectedSports?.join(', ') || 'Multi-Sport'} Facility`,
+              sports: project.selectedSports || [],
+              size: project.facilitySize,
+            },
+            estimates: {
+              totalInvestment: project.totalInvestment,
+              annualRevenue: project.annualRevenue,
+              roi: project.roi,
+              paybackPeriod: project.paybackPeriod,
+            },
+            source: 'easy-wizard',
+          },
+        });
+        console.log('Lead emails sent successfully');
+      } catch (error) {
+        console.error('Error sending lead emails:', error);
+        // Don't block the user flow if email fails
       }
       
       // Save lead to project state
