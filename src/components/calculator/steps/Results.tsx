@@ -11,6 +11,7 @@ import { NextStepsBanner } from "@/components/ui/next-steps-banner";
 import LeadGate from "@/components/shared/LeadGate";
 import { dispatchLead } from "@/services/leadDispatch";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { 
   calculateSpacePlanning, 
   calculateCapExBuild, 
@@ -31,6 +32,7 @@ interface ResultsProps {
 }
 
 const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) => {
+  const { toast } = useToast();
   const [emailSent, setEmailSent] = useState(false);
   const [showLeadGate, setShowLeadGate] = useState(false);
   const [pendingAction, setPendingAction] = useState<'email' | 'pdf' | 'consultation' | null>(null);
@@ -172,10 +174,77 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
     }
   };
 
-  const handleEmailReport = () => {
-    // Here we would send the report via email
-    setEmailSent(true);
-    setTimeout(() => setEmailSent(false), 3000);
+  const handleEmailReport = async () => {
+    // Get lead data from allData
+    const leadInfo = allData[10] || {};
+    
+    if (!leadInfo.email || !leadInfo.name) {
+      console.error('No lead data available');
+      toast({
+        title: "Error",
+        description: "Contact information not found. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Build email payload with all available data
+      const emailPayload = {
+        customerEmail: leadInfo.email,
+        customerName: leadInfo.name,
+        leadData: {
+          name: leadInfo.name,
+          email: leadInfo.email,
+          phone: leadInfo.phone || '',
+          city: leadInfo.city || '',
+          state: leadInfo.state || '',
+          location: leadInfo.location || `${leadInfo.city || ''}, ${leadInfo.state || ''}`.trim(),
+          allowOutreach: leadInfo.outreach === 'supplier_outreach',
+        },
+        facilityDetails: {
+          projectType: projectBasics.projectName || 'Sports Facility',
+          sports: projectBasics.selectedSports || [],
+          size: facilityPlan.totalSqft ? `${facilityPlan.totalSqft} sq ft` : undefined,
+          buildMode: facilityPlan.facilityType || 'build',
+        },
+        estimates: {
+          totalInvestment: summaryData.totalInvestment,
+          annualRevenue: summaryData.annualCashFlow,
+          monthlyRevenue: summaryData.monthlyRevenue,
+          roi: summaryData.roi,
+          paybackPeriod: summaryData.paybackYears,
+          breakEven: summaryData.breakEvenMonths,
+        },
+        source: 'full-calculator-email-action',
+      };
+
+      // Call the edge function
+      const { data, error } = await supabase.functions.invoke('send-lead-emails', {
+        body: emailPayload,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Show success feedback
+      setEmailSent(true);
+      toast({
+        title: "Email Sent! ✓",
+        description: `Full report sent to ${leadInfo.email}`,
+      });
+      
+      setTimeout(() => setEmailSent(false), 3000);
+      
+    } catch (error) {
+      console.error('Error sending email report:', error);
+      toast({
+        title: "Email Failed",
+        description: "We couldn't send the email. Please try again or contact support.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePrintPDF = () => {
