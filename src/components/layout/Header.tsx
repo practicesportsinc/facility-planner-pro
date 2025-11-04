@@ -19,7 +19,7 @@ const Header = () => {
               alt="Sports Facility.ai" 
               width="240"
               height="80"
-              className={`w-auto bg-transparent ${location.pathname === '/' ? 'h-14 md:h-16 lg:h-20' : 'h-12 md:h-14 lg:h-16'}`}
+              className={`w-auto bg-transparent ${location.pathname === '/' ? 'h-21 md:h-24 lg:h-30' : 'h-18 md:h-21 lg:h-24'}`}
             />
           </Link>
 
