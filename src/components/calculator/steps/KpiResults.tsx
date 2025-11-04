@@ -19,6 +19,10 @@ import {
 import { ValuePill } from "@/components/ui/value-pill";
 import { ValueLegend } from "@/components/ui/value-legend";
 import { formatMoney } from "@/lib/utils";
+import LeadGate from "@/components/shared/LeadGate";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { dispatchLead } from "@/services/leadDispatch";
 // Simple metrics calculation for demo
 
 interface KpiResultsProps {
@@ -31,7 +35,11 @@ interface KpiResultsProps {
 }
 
 const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: KpiResultsProps) => {
+  const { toast } = useToast();
   const [gatingMode] = useState('soft'); // soft gate by default
+  const [emailSent, setEmailSent] = useState(false);
+  const [showLeadGate, setShowLeadGate] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'email' | 'pdf' | null>(null);
 
   // Calculate metrics from actual data
   const calculateMetrics = () => {
@@ -237,6 +245,112 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
   const handleEditRevenue = () => {
     if (onNavigateToStep) {
       onNavigateToStep(6); // Navigate to Revenue step
+    }
+  };
+
+  const handleButtonClick = (action: 'email' | 'pdf') => {
+    setPendingAction(action);
+    setShowLeadGate(true);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleLeadSubmit = async (leadData: any) => {
+    try {
+      // Get project basics data
+      const projectBasics = allData[1] || {};
+      
+      // Build email payload with all available data
+      const emailPayload = {
+        customerEmail: leadData.email,
+        customerName: leadData.name,
+        leadData: {
+          name: leadData.name,
+          email: leadData.email,
+          phone: leadData.phone || '',
+          city: leadData.city || '',
+          state: leadData.state || '',
+          location: `${leadData.city || ''}, ${leadData.state || ''}`.trim(),
+          allowOutreach: leadData.outreach === 'supplier_outreach',
+        },
+        facilityDetails: {
+          projectType: projectBasics.projectName || 'Sports Facility',
+          sports: projectBasics.selectedSports || [],
+          size: metrics.totalSqft ? `${metrics.totalSqft.toLocaleString()} sq ft` : undefined,
+          buildMode: allData[2]?.buildMode || 'lease',
+        },
+        estimates: {
+          totalInvestment: metrics.totalCapex,
+          annualRevenue: metrics.monthlyRevenue * 12,
+          monthlyRevenue: metrics.monthlyRevenue,
+          roi: metrics.roi,
+          paybackPeriod: metrics.paybackMonths,
+          breakEven: metrics.breakEvenMonths,
+        },
+        source: 'kpi-results-email-action',
+      };
+
+      // Call the edge function
+      const { data: emailData, error } = await supabase.functions.invoke('send-lead-emails', {
+        body: emailPayload,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Optional: Dispatch to Make.com webhook (non-blocking)
+      try {
+        const nameParts = leadData.name.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        await dispatchLead({
+          firstName,
+          lastName,
+          email: leadData.email,
+          phone: leadData.phone || '',
+          city: leadData.city,
+          state: leadData.state,
+          projectType: projectBasics.projectName,
+          sports: projectBasics.selectedSports,
+          buildMode: allData[2]?.buildMode,
+          totalInvestment: metrics.totalCapex,
+          annualRevenue: metrics.monthlyRevenue * 12,
+          roi: metrics.roi,
+          paybackPeriod: metrics.paybackMonths,
+          source: 'quick-estimate',
+          timestamp: new Date().toISOString(),
+        });
+      } catch (webhookError) {
+        console.log('Webhook dispatch failed (non-critical):', webhookError);
+      }
+
+      // Show success feedback
+      if (pendingAction === 'email') {
+        setEmailSent(true);
+        toast({
+          title: "Email Sent! ✓",
+          description: `Summary sent to ${leadData.email}`,
+        });
+        setTimeout(() => setEmailSent(false), 3000);
+      } else if (pendingAction === 'pdf') {
+        toast({
+          title: "Generating PDF...",
+          description: "Your browser's print dialog will open",
+        });
+        setTimeout(handlePrint, 500);
+      }
+      
+    } catch (error) {
+      console.error('Error in lead submission:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again or contact support.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -577,13 +691,22 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
         </Button>
         
         <div className="flex gap-2 flex-1">
-          <Button variant="outline" className="flex-1">
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={() => handleButtonClick('pdf')}
+          >
             <Download className="h-4 w-4 mr-2" />
             Quick PDF
           </Button>
-          <Button variant="outline" className="flex-1">
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={() => handleButtonClick('email')}
+            disabled={emailSent}
+          >
             <Mail className="h-4 w-4 mr-2" />
-            Email Summary
+            {emailSent ? 'Email Sent! ✓' : 'Email Summary'}
           </Button>
         </div>
         
@@ -591,6 +714,21 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
           Get Complete Analysis
         </Button>
       </div>
+
+      {/* Lead Gate Modal */}
+      <LeadGate
+        isOpen={showLeadGate}
+        onClose={() => {
+          setShowLeadGate(false);
+          setPendingAction(null);
+        }}
+        onSubmit={handleLeadSubmit}
+        title={pendingAction === 'email' ? "Email Your Summary" : "Get Your PDF"}
+        description={pendingAction === 'email' 
+          ? "Enter your contact info to receive this financial summary" 
+          : "Enter your contact info to generate and download the PDF"}
+        showOptionalFields={false}
+      />
     </div>
   );
 };
