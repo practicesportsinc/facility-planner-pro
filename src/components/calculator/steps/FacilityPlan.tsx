@@ -44,7 +44,6 @@ const CLEAR_HEIGHTS = [
 ];
 
 const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityPlanProps) => {
-  const [showLayoutSelector, setShowLayoutSelector] = useState(false);
   const [formData, setFormData] = useState({
     facilityType: data.facilityType || '',
     clearHeight: data.clearHeight || '20',
@@ -54,8 +53,6 @@ const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityP
     numberOfFields: data.numberOfFields || '',
     numberOfCages: data.numberOfCages || '',
     amenities: data.amenities || [],
-    selectedLayoutId: data.selectedLayoutId || '',
-    layoutChoice: data.layoutChoice || null,
     ...data
   });
 
@@ -73,19 +70,6 @@ const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityP
       : [...formData.amenities, amenity];
     
     handleInputChange('amenities', newAmenities);
-  };
-
-  const handleLayoutSelected = (layoutData: any) => {
-    console.log("Layout selected:", layoutData);
-    const newData = {
-      ...formData,
-      ...layoutData,
-      selectedLayoutId: layoutData.layoutChoice?.id,
-      layoutChoice: layoutData.layoutChoice
-    };
-    setFormData(newData);
-    onUpdate(newData);
-    setShowLayoutSelector(false);
   };
 
   const getRecommendedSize = () => {
@@ -334,52 +318,6 @@ const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityP
           </div>
         </CardContent>
       </Card>
-
-      {/* Visual Layout Designer */}
-      {!showLayoutSelector && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Visual Layout Designer</CardTitle>
-            <CardDescription>
-              {formData.selectedLayoutId 
-                ? `Selected Layout: ${formData.layoutChoice?.name || 'Custom Layout'}` 
-                : 'Design your facility layout visually'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {formData.selectedLayoutId ? (
-              <div className="text-center space-y-4">
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground">
-                    Layout selected: <strong>{formData.layoutChoice?.name}</strong>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Total Square Footage: {formData.totalSquareFootage} sq ft
-                  </p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowLayoutSelector(true)}
-                  className="w-full"
-                >
-                  Change Layout Design
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <Button 
-                  onClick={() => setShowLayoutSelector(true)}
-                  className="w-full"
-                >
-                  Design Layout Visually
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
 
       <div className="flex justify-between">
         <Button variant="outline" onClick={onPrevious}>
