@@ -165,6 +165,9 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
     saveProjectState(projectId, projectData);
     track('quick_estimate_completed', { estimate, results });
     
+    // Close the dialog before navigating
+    onClose();
+    
     console.log('Attempting to navigate to:', `/calculator?projectId=${projectId}&mode=quick`);
     // Navigate to calculator with quick mode
     try {
