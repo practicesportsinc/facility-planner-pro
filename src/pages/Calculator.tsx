@@ -420,6 +420,13 @@ const Calculator = () => {
     }));
   };
 
+  // Allow saving data for any specific step (useful when a step needs to persist data to another step)
+  const setDataForStep = (stepId: number, stepData: any) => {
+    setCalculatorData(prev => ({
+      ...prev,
+      [stepId]: stepData,
+    }));
+  };
   return (
     <Layout className="py-8">
       <div className="container mx-auto px-4">
@@ -567,6 +574,16 @@ const Calculator = () => {
                       onPrevious={handlePrevious}
                       allData={calculatorData}
                       onNavigateToStep={handleNavigateToStep}
+                      setDataForStep={setDataForStep}
+                    />
+                  ) : currentStep === 11 ? (
+                    <Results
+                      data={calculatorData[currentStep] || {}}
+                      onUpdate={updateData}
+                      onNext={handleNext}
+                      onPrevious={handlePrevious}
+                      allData={calculatorData}
+                      setDataForStep={setDataForStep}
                     />
                   ) : (
                     <StepComponent

@@ -29,9 +29,10 @@ interface ResultsProps {
   onNext: () => void;
   onPrevious: () => void;
   allData: any;
+  setDataForStep?: (stepId: number, data: any) => void;
 }
 
-const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) => {
+const Results = ({ data, onUpdate, onNext, onPrevious, allData, setDataForStep }: ResultsProps) => {
   const { toast } = useToast();
   const [emailSent, setEmailSent] = useState(false);
   const [showLeadGate, setShowLeadGate] = useState(false);
@@ -179,12 +180,9 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
     const leadInfo = allData[10] || {};
     
     if (!leadInfo.email || !leadInfo.name) {
-      console.error('No lead data available');
-      toast({
-        title: "Error",
-        description: "Contact information not found. Please try again.",
-        variant: "destructive",
-      });
+      // If no lead info, open the lead gate and set pending action to email
+      setPendingAction('email');
+      setShowLeadGate(true);
       return;
     }
 
@@ -257,8 +255,12 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
   };
 
   const handleLeadSubmit = async (leadData: any) => {
-    // Save lead data
+  // Save lead data under step 10 so email flow can reference it
+  if (setDataForStep) {
+    setDataForStep(10, { ...leadData });
+  } else {
     onUpdate({ ...leadData });
+  }
     
     // Dispatch to Make.com
     try {
@@ -315,9 +317,20 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData }: ResultsProps) 
       // Don't block the user flow if email fails
     }
     
-    // Execute the pending action
-    if (pendingAction) {
-      executeAction(pendingAction);
+    // Execute the pending action without double-sending emails
+    if (pendingAction === 'email') {
+      setEmailSent(true);
+      toast({
+        title: "Email Sent! ✓",
+        description: `Full report sent to ${leadData.email}`,
+      });
+      setTimeout(() => setEmailSent(false), 3000);
+      setPendingAction(null);
+    } else if (pendingAction === 'pdf') {
+      handlePrintPDF();
+      setPendingAction(null);
+    } else if (pendingAction === 'consultation') {
+      handleScheduleConsultation();
       setPendingAction(null);
     }
   };
