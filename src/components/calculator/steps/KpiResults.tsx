@@ -34,7 +34,7 @@ interface KpiResultsProps {
   onNavigateToStep?: (stepId: number) => void;
 }
 
-const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: KpiResultsProps) => {
+const KpiResults = ({ data, onUpdate, onNext, onPrevious, allData, onNavigateToStep }: KpiResultsProps) => {
   const { toast } = useToast();
   const [gatingMode] = useState('soft'); // soft gate by default
   const [emailSent, setEmailSent] = useState(false);
@@ -258,6 +258,9 @@ const KpiResults = ({ data, onNext, onPrevious, allData, onNavigateToStep }: Kpi
   };
 
   const handleLeadSubmit = async (leadData: any) => {
+    // Save lead data to allData[10] so it's available in Results step
+    onUpdate({ ...leadData });
+    
     try {
       // Get project basics data
       const projectBasics = allData[1] || {};
