@@ -250,8 +250,31 @@ const KpiResults = ({ data, onUpdate, onNext, onPrevious, allData, onNavigateToS
   };
 
   const handleButtonClick = (action: 'email' | 'pdf') => {
-    setPendingAction(action);
-    setShowLeadGate(true);
+    // Check if lead data already exists in step 10
+    const existingLeadData = allData[10];
+    
+    if (existingLeadData?.email) {
+      // User already submitted contact info, proceed directly with action
+      executeAction(action, existingLeadData);
+    } else {
+      // No lead data yet, show lead gate first
+      setPendingAction(action);
+      setShowLeadGate(true);
+    }
+  };
+
+  const executeAction = (action: 'email' | 'pdf', leadData: any) => {
+    if (action === 'pdf') {
+      // Trigger browser print dialog
+      toast({
+        title: "Generating PDF...",
+        description: "Your browser's print dialog will open",
+      });
+      setTimeout(handlePrint, 500);
+    } else if (action === 'email') {
+      // Send email using existing lead data
+      handleLeadSubmit(leadData);
+    }
   };
 
   const handlePrint = () => {
