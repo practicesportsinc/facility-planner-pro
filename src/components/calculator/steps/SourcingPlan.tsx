@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Download, Users, FileText } from "lucide-react";
+import { Download, Users, FileText, AlertCircle, Check } from "lucide-react";
 
 interface SourcingPlanProps {
   data: any;
@@ -117,28 +117,67 @@ const SourcingPlan = ({ data, onUpdate, onNext, onPrevious }: SourcingPlanProps)
 
       {formData.outreach_preference === "supplier_outreach" && (
         <div className="space-y-6">
-          <Card>
+          <Card className={formData.supplier_categories.length === 0 ? "border-amber-300 dark:border-amber-700 shadow-md" : ""}>
             <CardHeader>
-              <CardTitle>Supplier Categories</CardTitle>
-              <CardDescription>Select the categories you need help with</CardDescription>
+              <CardTitle className="flex items-center">
+                Supplier Categories
+                <span className="text-destructive ml-1">*</span>
+              </CardTitle>
+              <CardDescription>
+                <strong>Required:</strong> Select at least one category you need help with
+              </CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-sm font-medium">
+                  {formData.supplier_categories.length === 0 
+                    ? "Select at least one category" 
+                    : `${formData.supplier_categories.length} selected`}
+                </span>
+                {formData.supplier_categories.length > 0 && (
+                  <button 
+                    type="button"
+                    onClick={() => handleChange('supplier_categories', [])}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {SUPPLIER_CATEGORIES.map((category) => (
                   <button
                     key={category}
                     type="button"
-                    className={`p-3 text-sm rounded-lg border transition-smooth text-left ${
+                    className={`p-3 text-sm rounded-lg border transition-all duration-200 text-left ${
                       formData.supplier_categories.includes(category)
-                        ? "bg-primary text-primary-foreground border-primary shadow-custom-sm"
-                        : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-primary/5"
+                        ? "bg-primary text-primary-foreground border-primary shadow-md ring-2 ring-primary/20"
+                        : "bg-muted/30 text-foreground border-border hover:border-primary hover:bg-primary/10 hover:shadow-sm"
                     }`}
                     onClick={() => toggleCategory(category)}
                   >
-                    {category}
+                    <span className="flex items-center justify-between">
+                      {category}
+                      {formData.supplier_categories.includes(category) && (
+                        <Check className="h-4 w-4 ml-2" />
+                      )}
+                    </span>
                   </button>
                 ))}
               </div>
+              {formData.supplier_categories.length === 0 && (
+                <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-sm text-amber-800 dark:text-amber-200 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    Please select at least one category to continue
+                  </p>
+                </div>
+              )}
+              {formData.supplier_categories.length > 0 && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  ✓ {formData.supplier_categories.length} {formData.supplier_categories.length === 1 ? 'category' : 'categories'} selected
+                </p>
+              )}
             </CardContent>
           </Card>
 
