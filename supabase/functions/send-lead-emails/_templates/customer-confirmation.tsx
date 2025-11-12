@@ -105,7 +105,7 @@ export const CustomerConfirmationEmail = ({
 
         <Section style={ctaSection}>
           <Button
-            href="https://calendly.com/practicesports"
+            href="https://practicesportsinc.setmore.com/"
             style={button}
           >
             Schedule a Consultation

@@ -250,8 +250,7 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData, setDataForStep }
   };
 
   const handleScheduleConsultation = () => {
-    // Here we would open scheduling system
-    window.open('https://calendly.com/practicesports', '_blank');
+    window.open('https://practicesportsinc.setmore.com/', '_blank');
   };
 
   const handleLeadSubmit = async (leadData: any) => {
