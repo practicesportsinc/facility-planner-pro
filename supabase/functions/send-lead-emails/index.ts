@@ -107,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Sending company notification to:', COMPANY_EMAIL);
     const companyEmailResult = await resend.emails.send({
       from: 'Practice Sports Leads <leads@sportsfacility.ai>',
-      to: [COMPANY_EMAIL],
+      to: [COMPANY_EMAIL, 'info@practicesports.com'],
       replyTo: 'info@practicesports.com',
       subject: `New Lead: ${payload.customerName} - ${payload.facilityDetails?.projectType || 'Sports Facility'}`,
       html: companyHtml,
