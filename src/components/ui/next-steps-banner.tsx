@@ -9,6 +9,7 @@ import LeadGate from "@/components/shared/LeadGate";
 import { toast } from "sonner";
 import { dispatchLead } from "@/services/leadDispatch";
 import useAnalytics from "@/hooks/useAnalytics";
+import { generateResearchKitPDF } from "@/utils/researchKitGenerator";
 
 interface NextStepsBannerProps {
   sourcingData?: {
@@ -57,6 +58,11 @@ export const NextStepsBanner = ({ sourcingData, onSourcingUpdate }: NextStepsBan
       leadData
     });
     
+    // Generate and download the PDF
+    generateResearchKitPDF({
+      supplierCategories: sourcingData?.supplier_categories
+    });
+    
     toast.success("Research kit downloading...");
     setShowLeadGate(false);
   };
@@ -73,7 +79,11 @@ export const NextStepsBanner = ({ sourcingData, onSourcingUpdate }: NextStepsBan
 
     trackExportClicked('next_steps_kit', false);
     
-    // Proceed with download
+    // Generate and download the PDF
+    generateResearchKitPDF({
+      supplierCategories: sourcingData?.supplier_categories
+    });
+    
     toast.success("DIY Research Kit downloaded!");
     onSourcingUpdate?.({
       ...sourcingData,

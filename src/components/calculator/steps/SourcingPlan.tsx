@@ -11,6 +11,7 @@ import LeadGate from "@/components/shared/LeadGate";
 import { toast } from "sonner";
 import { dispatchLead } from "@/services/leadDispatch";
 import useAnalytics from "@/hooks/useAnalytics";
+import { generateResearchKitPDF } from "@/utils/researchKitGenerator";
 
 interface SourcingPlanProps {
   data: any;
@@ -99,7 +100,11 @@ const SourcingPlan = ({ data, onUpdate, onNext, onPrevious }: SourcingPlanProps)
   };
 
   const proceedWithKitDownload = () => {
-    // Simulate download
+    // Generate and download the PDF
+    generateResearchKitPDF({
+      supplierCategories: formData.supplier_categories
+    });
+    
     toast.success("DIY Research Kit downloaded!");
     handleChange('research_kit_sent', true);
   };
