@@ -13,7 +13,7 @@ const corsHeaders = {
 };
 
 // Configure your company email here
-const COMPANY_EMAIL = 'info@practicesports.com';
+const COMPANY_EMAIL = 'chad@sportsfacility.ai';
 
 interface EmailPayload {
   customerEmail: string;
@@ -89,7 +89,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send customer confirmation email
     console.log('Sending customer confirmation to:', payload.customerEmail);
     const customerEmailResult = await resend.emails.send({
-      from: 'Practice Sports <onboarding@resend.dev>',
+      from: 'Practice Sports <noreply@sportsfacility.ai>',
       to: [payload.customerEmail],
       subject: 'Thank you for your facility planning request',
       html: customerHtml,
@@ -105,7 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send company notification email
     console.log('Sending company notification to:', COMPANY_EMAIL);
     const companyEmailResult = await resend.emails.send({
-      from: 'Practice Sports Leads <onboarding@resend.dev>',
+      from: 'Practice Sports Leads <leads@sportsfacility.ai>',
       to: [COMPANY_EMAIL],
       replyTo: payload.customerEmail,
       subject: `New Lead: ${payload.customerName} - ${payload.facilityDetails?.projectType || 'Sports Facility'}`,
