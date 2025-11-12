@@ -4,6 +4,7 @@ import {
   Head,
   Heading,
   Html,
+  Link,
   Preview,
   Section,
   Text,
@@ -204,7 +205,23 @@ export const CompanyNotificationEmail = ({
           </Section>
 
           <Text style={footer}>
-            This lead was automatically captured from your Practice Sports facility calculator.
+            <strong>SportsFacility.ai</strong>
+            <br />
+            Practice Sports, Inc.
+            <br />
+            Building the future of modern sports facilities
+            <br />
+            <Link href="https://practicesports.com" style={link}>
+              practicesports.com
+            </Link>
+            {' | '}
+            <Link href="mailto:info@practicesports.com" style={link}>
+              info@practicesports.com
+            </Link>
+            {' | '}
+            <Link href="tel:402-592-2000" style={link}>
+              402-592-2000
+            </Link>
           </Text>
         </Container>
       </Body>

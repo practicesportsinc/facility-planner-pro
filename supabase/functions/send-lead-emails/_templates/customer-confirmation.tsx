@@ -113,12 +113,22 @@ export const CustomerConfirmationEmail = ({
         </Section>
 
         <Text style={footer}>
-          <strong>Practice Sports</strong>
+          <strong>SportsFacility.ai</strong>
           <br />
-          Building the future of sports facilities
+          Practice Sports, Inc.
           <br />
+          Building the future of modern sports facilities
+          <br />
+          <Link href="https://practicesports.com" style={link}>
+            practicesports.com
+          </Link>
+          {' | '}
           <Link href="mailto:info@practicesports.com" style={link}>
             info@practicesports.com
+          </Link>
+          <br />
+          <Link href="tel:402-592-2000" style={link}>
+            402-592-2000
           </Link>
         </Text>
       </Container>
