@@ -96,7 +96,15 @@ const Calculator = () => {
             },
             7: { // Financing
               ...projectData.financing
-            }
+            },
+            10: projectData.lead ? { // Lead Capture data
+              name: projectData.lead.name,
+              email: projectData.lead.email,
+              phone: projectData.lead.phone,
+              city: projectData.lead.city,
+              state: projectData.lead.state,
+              outreach: projectData.lead.outreach
+            } : undefined
           });
         } catch (error) {
           console.error('Error loading quick estimate data:', error);

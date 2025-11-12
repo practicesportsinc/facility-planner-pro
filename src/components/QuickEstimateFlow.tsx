@@ -241,6 +241,21 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
       // Don't block the user flow if email fails
     }
     
+    // Save lead data to project state for Calculator to access later
+    const projectId = generateProjectId('quick');
+    saveProjectState(projectId, {
+      mode: 'quick',
+      lead: {
+        name: leadData.name,
+        email: leadData.email,
+        phone: leadData.phone,
+        city: leadData.city,
+        state: leadData.state,
+        outreach: leadData.outreach,
+        captured_at: new Date().toISOString()
+      }
+    });
+    
     // Generate and download the PDF
     generatePdfReport();
   };
