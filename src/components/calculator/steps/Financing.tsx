@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PiggyBank, CreditCard, Gift } from "lucide-react";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 interface FinancingProps {
   data: any;
@@ -424,6 +425,11 @@ const Financing = ({ data, onUpdate, onNext, onPrevious, allData }: FinancingPro
 
                 <div className="text-xs text-muted-foreground pt-4 border-t">
                   💡 Lenders typically require 20-30% equity investment
+                </div>
+                
+                {/* Pricing Disclaimer */}
+                <div className="pt-4 border-t">
+                  <PricingDisclaimer />
                 </div>
               </div>
             </CardContent>

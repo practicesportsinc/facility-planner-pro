@@ -6,6 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Download, Mail, Calendar, TrendingUp, DollarSign, Target, Clock, Calculator } from "lucide-react";
 import { ValuePill } from "@/components/ui/value-pill";
 import { ValueLegend } from "@/components/ui/value-legend";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 import { formatMoney } from "@/lib/utils";
 import { NextStepsBanner } from "@/components/ui/next-steps-banner";
 import LeadGate from "@/components/shared/LeadGate";
@@ -426,6 +427,9 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData, setDataForStep }
         </Card>
       </div>
 
+      {/* Pricing Disclaimer */}
+      <PricingDisclaimer className="mb-6" />
+
       <Tabs defaultValue="summary" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="summary">Executive Summary</TabsTrigger>
@@ -824,6 +828,9 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData, setDataForStep }
           </div>
         </CardContent>
       </Card>
+
+      {/* Final Pricing Disclaimer */}
+      <PricingDisclaimer />
 
       <div className="flex justify-between">
         <Button variant="outline" onClick={onPrevious}>

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { ValuePill } from "@/components/ui/value-pill";
 import { ValueLegend } from "@/components/ui/value-legend";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 import { formatMoney } from "@/lib/utils";
 import LeadGate from "@/components/shared/LeadGate";
 import { supabase } from "@/integrations/supabase/client";
@@ -576,6 +577,9 @@ const KpiResults = ({ data, onUpdate, onNext, onPrevious, allData, onNavigateToS
         </CardContent>
       </Card>
 
+      {/* Pricing Disclaimer */}
+      <PricingDisclaimer className="mb-6" />
+
       {/* Advisor Notes */}
       <Card>
         <CardHeader>
@@ -677,6 +681,11 @@ const KpiResults = ({ data, onUpdate, onNext, onPrevious, allData, onNavigateToS
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+          
+          {/* Pricing Disclaimer in Accordion */}
+          <div className="p-4 pt-0">
+            <PricingDisclaimer />
+          </div>
         </CardContent>
       </Card>
 

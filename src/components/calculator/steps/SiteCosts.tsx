@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Building2, Wrench, AlertTriangle } from "lucide-react";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 interface SiteCostsProps {
   data: any;
@@ -361,6 +362,11 @@ const SiteCosts = ({ data, onUpdate, onNext, onPrevious, allData }: SiteCostsPro
                     Plus monthly lease: ${Number(formData.leaseRate || 0).toLocaleString()}
                   </div>
                 )}
+                
+                {/* Pricing Disclaimer */}
+                <div className="pt-4 border-t">
+                  <PricingDisclaimer />
+                </div>
               </div>
             </CardContent>
           </Card>

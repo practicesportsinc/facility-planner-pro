@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Users, Calculator, TrendingUp } from "lucide-react";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 interface StaffingAndOpExProps {
   data: any;
@@ -325,6 +326,11 @@ const StaffingAndOpEx = ({ data, onUpdate, onNext, onPrevious }: StaffingAndOpEx
 
                 <div className="text-xs text-muted-foreground mt-4 p-3 bg-muted/30 rounded">
                   <strong>Note:</strong> All figures are planning estimates. Actual costs vary by market, vendor, and design. Validate with professional quotes.
+                </div>
+                
+                {/* Pricing Disclaimer */}
+                <div className="pt-4 border-t">
+                  <PricingDisclaimer />
                 </div>
               </div>
             </CardContent>

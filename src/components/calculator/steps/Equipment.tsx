@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Package, RefreshCw, Check } from "lucide-react";
 import { COST_LIBRARY, calculateItemTotal } from "@/data/costLibrary";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 interface EquipmentProps {
   data: any;
@@ -522,6 +523,11 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
                   <p className="text-sm text-muted-foreground">
                     Based on mid-tier quality pricing for {selected.size} selected products
                   </p>
+                </div>
+                
+                {/* Pricing Disclaimer */}
+                <div className="pt-4 border-t">
+                  <PricingDisclaimer />
                 </div>
               </div>
             </CardContent>

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DollarSign, Users, Trophy, Calendar } from "lucide-react";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 interface RevenueProps {
   data: any;
@@ -578,6 +579,11 @@ const Revenue = ({ data, onUpdate, onNext, onPrevious, allData }: RevenueProps) 
 
                 <div className="text-xs text-muted-foreground pt-4 border-t">
                   💡 Consider seasonal variations and ramp-up time in your first year
+                </div>
+                
+                {/* Pricing Disclaimer */}
+                <div className="pt-4 border-t">
+                  <PricingDisclaimer />
                 </div>
               </div>
             </CardContent>

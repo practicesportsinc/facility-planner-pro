@@ -12,6 +12,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, 
 import { ValuePill } from "@/components/ui/value-pill";
 import { ValueLegend } from "@/components/ui/value-legend";
 import { formatMoney } from "@/lib/utils";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 interface KpiCard {
   key: string;
@@ -395,6 +396,9 @@ export const EasyResults = ({
             );
           })}
         </div>
+
+        {/* Pricing Disclaimer */}
+        <PricingDisclaimer className="mb-8" />
 
         {/* Facility Layout */}
         <Card className="ps-card p-8 mb-8">

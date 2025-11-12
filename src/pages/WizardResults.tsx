@@ -36,6 +36,7 @@ import {
   calculateProfitability
 } from "@/utils/calculations";
 import { formatCurrency } from "@/lib/utils";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 const WizardResults = () => {
   const navigate = useNavigate();
@@ -952,6 +953,11 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
                   <strong>Note:</strong> Equipment pricing is estimated based on industry standards. 
                   Final costs may vary based on vendors, quality specifications, and installation requirements.
                 </p>
+              </div>
+              
+              {/* Pricing Disclaimer */}
+              <div className="mt-4">
+                <PricingDisclaimer />
               </div>
             </CardContent>
           </Card>
