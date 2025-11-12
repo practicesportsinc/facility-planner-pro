@@ -91,6 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
     const customerEmailResult = await resend.emails.send({
       from: 'Practice Sports <noreply@sportsfacility.ai>',
       to: [payload.customerEmail],
+      replyTo: 'info@practicesports.com',
       subject: 'Thank you for your facility planning request',
       html: customerHtml,
     });
@@ -107,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
     const companyEmailResult = await resend.emails.send({
       from: 'Practice Sports Leads <leads@sportsfacility.ai>',
       to: [COMPANY_EMAIL],
-      replyTo: payload.customerEmail,
+      replyTo: 'info@practicesports.com',
       subject: `New Lead: ${payload.customerName} - ${payload.facilityDetails?.projectType || 'Sports Facility'}`,
       html: companyHtml,
     });
