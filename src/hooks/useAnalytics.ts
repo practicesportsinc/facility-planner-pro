@@ -50,6 +50,14 @@ const useAnalytics = () => {
     track('export_clicked', { type, gated });
   }, [track]);
 
+  const trackLeadGateShown = useCallback((gateType: string) => {
+    track('lead_gate_shown', { gateType });
+  }, [track]);
+
+  const trackLeadGateCompleted = useCallback((gateType: string, leadData: any) => {
+    track('lead_gate_completed', { gateType, ...leadData });
+  }, [track]);
+
   return {
     track,
     trackPathSelected,
@@ -59,6 +67,8 @@ const useAnalytics = () => {
     trackResultsViewed,
     trackLeadSubmitted,
     trackExportClicked,
+    trackLeadGateShown,
+    trackLeadGateCompleted,
   };
 };
 

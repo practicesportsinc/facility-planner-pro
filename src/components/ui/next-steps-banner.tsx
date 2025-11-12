@@ -5,12 +5,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge";
 import { X, Users, Download, Edit, CheckCircle } from "lucide-react";
 import SourcingPlan from "@/components/calculator/steps/SourcingPlan";
+import LeadGate from "@/components/shared/LeadGate";
+import { toast } from "sonner";
+import { dispatchLead } from "@/services/leadDispatch";
+import useAnalytics from "@/hooks/useAnalytics";
 
 interface NextStepsBannerProps {
   sourcingData?: {
     outreach_preference?: "supplier_outreach" | "self_research" | "undecided";
     supplier_categories?: string[];
     research_kit_sent?: boolean;
+    leadData?: any;
   };
   onSourcingUpdate?: (data: any) => void;
 }
@@ -18,6 +23,8 @@ interface NextStepsBannerProps {
 export const NextStepsBanner = ({ sourcingData, onSourcingUpdate }: NextStepsBannerProps) => {
   const [isDismissed, setIsDismissed] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showLeadGate, setShowLeadGate] = useState(false);
+  const { trackExportClicked, trackLeadSubmitted } = useAnalytics();
 
   if (isDismissed) return null;
 
@@ -28,8 +35,46 @@ export const NextStepsBanner = ({ sourcingData, onSourcingUpdate }: NextStepsBan
     setIsModalOpen(false);
   };
 
+  const handleLeadSubmit = async (leadData: any) => {
+    // Dispatch to Make.com
+    await dispatchLead({
+      firstName: leadData.name.split(' ')[0] || leadData.name,
+      lastName: leadData.name.split(' ').slice(1).join(' ') || '',
+      name: leadData.name,
+      email: leadData.email,
+      phone: leadData.phone,
+      city: leadData.city,
+      state: leadData.state,
+      source: 'next_steps_research_kit',
+    });
+
+    trackLeadSubmitted('next_steps_kit_gated', leadData);
+    
+    onSourcingUpdate?.({
+      ...sourcingData,
+      outreach_preference: "self_research",
+      research_kit_sent: true,
+      leadData
+    });
+    
+    toast.success("Research kit downloading...");
+    setShowLeadGate(false);
+  };
+
   const handleDownloadKit = () => {
-    // Simulate download
+    // Check if lead data exists
+    const hasLeadData = sourcingData?.leadData?.email && sourcingData?.leadData?.name;
+    
+    if (!hasLeadData) {
+      trackExportClicked('next_steps_kit', true);
+      setShowLeadGate(true);
+      return;
+    }
+
+    trackExportClicked('next_steps_kit', false);
+    
+    // Proceed with download
+    toast.success("DIY Research Kit downloaded!");
     onSourcingUpdate?.({
       ...sourcingData,
       outreach_preference: "self_research",
@@ -154,6 +199,15 @@ export const NextStepsBanner = ({ sourcingData, onSourcingUpdate }: NextStepsBan
           </div>
         )}
       </CardContent>
+
+      <LeadGate
+        isOpen={showLeadGate}
+        onClose={() => setShowLeadGate(false)}
+        onSubmit={handleLeadSubmit}
+        title="Unlock Research Kit"
+        description="Get your comprehensive DIY supplier research toolkit"
+        showOptionalFields={true}
+      />
     </Card>
   );
 };

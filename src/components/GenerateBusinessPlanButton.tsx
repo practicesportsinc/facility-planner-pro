@@ -4,6 +4,10 @@ import { Building, FileText, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import LeadGate from "@/components/shared/LeadGate";
+import { saveProjectState, getProjectState } from "@/utils/projectState";
+import { dispatchLead } from "@/services/leadDispatch";
+import useAnalytics from "@/hooks/useAnalytics";
 
 type Props = {
   /** Return the current project JSON (from localStorage, wizard data, etc.) */
@@ -31,6 +35,50 @@ export default function GenerateBusinessPlanButton({
   onDone,
 }: Props) {
   const [busy, setBusy] = useState(false);
+  const [showLeadGate, setShowLeadGate] = useState(false);
+  const [pendingFormat, setPendingFormat] = useState<'html' | 'pdf' | null>(null);
+  const { trackExportClicked, trackLeadSubmitted } = useAnalytics();
+
+  const handleLeadSubmit = async (leadData: any) => {
+    const project = getProject();
+    const projectId = project?.projectId || 'default';
+    
+    // Save lead data to project state
+    const projectState = getProjectState(projectId);
+    saveProjectState(projectId, {
+      ...projectState,
+      leadData: {
+        name: leadData.name,
+        email: leadData.email,
+        phone: leadData.phone || '',
+        city: leadData.city || '',
+        state: leadData.state || '',
+        business: project?.leadData?.business || '',
+        ...project?.leadData,
+      }
+    });
+
+    // Dispatch to Make.com
+    await dispatchLead({
+      firstName: leadData.name.split(' ')[0] || leadData.name,
+      lastName: leadData.name.split(' ').slice(1).join(' ') || '',
+      name: leadData.name,
+      email: leadData.email,
+      phone: leadData.phone,
+      city: leadData.city,
+      state: leadData.state,
+      source: 'business_plan_download',
+    });
+
+    trackLeadSubmitted('business_plan_gated', leadData);
+    toast.success("Contact info saved! Generating business plan...");
+    
+    setShowLeadGate(false);
+    if (pendingFormat) {
+      await proceedWithDownload(pendingFormat);
+      setPendingFormat(null);
+    }
+  };
 
   async function handleDownload(format: 'html' | 'pdf') {
     if (busy) return;
@@ -46,6 +94,23 @@ export default function GenerateBusinessPlanButton({
       toast.error(`Please complete ${missing.join(", ")} before generating the business plan.`);
       return;
     }
+
+    // Check if lead data exists
+    const hasLeadData = project?.leadData?.email && project?.leadData?.name;
+    
+    if (!hasLeadData) {
+      trackExportClicked('business_plan', true);
+      setPendingFormat(format);
+      setShowLeadGate(true);
+      return;
+    }
+
+    trackExportClicked('business_plan', false);
+    await proceedWithDownload(format);
+  }
+
+  async function proceedWithDownload(format: 'html' | 'pdf') {
+    const project = getProject();
 
     setBusy(true);
     onStart?.();
@@ -116,30 +181,44 @@ export default function GenerateBusinessPlanButton({
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          disabled={busy}
-          variant={variant}
-          size={size}
-          className={`flex items-center gap-2 ${className}`}
-          title="Generate comprehensive business plan with AI analysis"
-        >
-          <Building className="w-5 h-5" />
-          {busy ? "Generating…" : "Generate Business Plan"}
-          <Download className="w-4 h-4 ml-1" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => handleDownload('html')} disabled={busy}>
-          <FileText className="w-4 h-4 mr-2" />
-          Download as HTML
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleDownload('pdf')} disabled={busy}>
-          <Download className="w-4 h-4 mr-2" />
-          Download as PDF
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            disabled={busy}
+            variant={variant}
+            size={size}
+            className={`flex items-center gap-2 ${className}`}
+            title="Generate comprehensive business plan with AI analysis"
+          >
+            <Building className="w-5 h-5" />
+            {busy ? "Generating…" : "Generate Business Plan"}
+            <Download className="w-4 h-4 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => handleDownload('html')} disabled={busy}>
+            <FileText className="w-4 h-4 mr-2" />
+            Download as HTML
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleDownload('pdf')} disabled={busy}>
+            <Download className="w-4 h-4 mr-2" />
+            Download as PDF
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <LeadGate
+        isOpen={showLeadGate}
+        onClose={() => {
+          setShowLeadGate(false);
+          setPendingFormat(null);
+        }}
+        onSubmit={handleLeadSubmit}
+        title="Unlock Business Plan Download"
+        description="Get your comprehensive business plan and unlock advanced features"
+        showOptionalFields={true}
+      />
+    </>
   );
 }

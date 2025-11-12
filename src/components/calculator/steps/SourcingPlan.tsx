@@ -7,6 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Download, Users, FileText, AlertCircle, Check } from "lucide-react";
+import LeadGate from "@/components/shared/LeadGate";
+import { toast } from "sonner";
+import { dispatchLead } from "@/services/leadDispatch";
+import useAnalytics from "@/hooks/useAnalytics";
 
 interface SourcingPlanProps {
   data: any;
@@ -34,6 +38,8 @@ const SourcingPlan = ({ data, onUpdate, onNext, onPrevious }: SourcingPlanProps)
     research_kit_sent: data.research_kit_sent || false,
     ...data
   });
+  const [showLeadGate, setShowLeadGate] = useState(false);
+  const { trackExportClicked, trackLeadSubmitted } = useAnalytics();
 
   const handleChange = (field: string, value: any) => {
     const newData = { ...formData, [field]: value };
@@ -49,11 +55,53 @@ const SourcingPlan = ({ data, onUpdate, onNext, onPrevious }: SourcingPlanProps)
     handleChange('supplier_categories', updated);
   };
 
-  const handleDownloadKit = () => {
-    // Simulate download and mark as sent
+  const handleLeadSubmit = async (leadData: any) => {
+    // Dispatch to Make.com
+    await dispatchLead({
+      firstName: leadData.name.split(' ')[0] || leadData.name,
+      lastName: leadData.name.split(' ').slice(1).join(' ') || '',
+      email: leadData.email,
+      phone: leadData.phone || '',
+      city: leadData.city,
+      state: leadData.state,
+      source: 'full-calculator',
+    } as any);
+
+    trackLeadSubmitted('research_kit_gated', leadData);
+    
+    // Update sourcing data with lead info and mark kit as sent
     handleChange('research_kit_sent', true);
-    // In real implementation, trigger download here
-    console.log('Downloading DIY Research Kit...');
+    onUpdate({ 
+      ...formData, 
+      research_kit_sent: true,
+      leadData 
+    });
+    
+    toast.success("Research kit downloading...");
+    setShowLeadGate(false);
+    
+    // Trigger actual download
+    proceedWithKitDownload();
+  };
+
+  const handleDownloadKit = () => {
+    // Check if lead data exists
+    const hasLeadData = data?.leadData?.email && data?.leadData?.name;
+    
+    if (!hasLeadData) {
+      trackExportClicked('research_kit', true);
+      setShowLeadGate(true);
+      return;
+    }
+
+    trackExportClicked('research_kit', false);
+    proceedWithKitDownload();
+  };
+
+  const proceedWithKitDownload = () => {
+    // Simulate download
+    toast.success("DIY Research Kit downloaded!");
+    handleChange('research_kit_sent', true);
   };
 
   const handleEmailKit = () => {
@@ -308,6 +356,15 @@ const SourcingPlan = ({ data, onUpdate, onNext, onPrevious }: SourcingPlanProps)
           Continue to Contact Info
         </Button>
       </div>
+
+      <LeadGate
+        isOpen={showLeadGate}
+        onClose={() => setShowLeadGate(false)}
+        onSubmit={handleLeadSubmit}
+        title="Unlock Research Kit"
+        description="Get your comprehensive DIY supplier research toolkit"
+        showOptionalFields={true}
+      />
     </div>
   );
 };

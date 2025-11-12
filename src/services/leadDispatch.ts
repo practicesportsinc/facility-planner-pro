@@ -1,9 +1,10 @@
 export interface LeadData {
   // Personal Information
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
   email: string;
-  phone: string;
+  phone?: string;
   
   // Location
   city?: string;
@@ -25,8 +26,8 @@ export interface LeadData {
   paybackPeriod?: number;
   
   // Metadata
-  source: 'quick-estimate' | 'full-calculator' | 'easy-wizard';
-  timestamp: string;
+  source: 'quick-estimate' | 'full-calculator' | 'easy-wizard' | string;
+  timestamp?: string;
   userAgent?: string;
   referrer?: string;
 }

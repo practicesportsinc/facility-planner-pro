@@ -119,3 +119,11 @@ export const getWizardData = (projectId: string) => {
     ...state,
   };
 };
+
+/**
+ * Check if project has lead data (name and email at minimum)
+ */
+export function hasLeadData(projectId: string): boolean {
+  const state = getProjectState(projectId);
+  return !!(state.lead?.name && state.lead?.email);
+}
