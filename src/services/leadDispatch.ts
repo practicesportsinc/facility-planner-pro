@@ -60,42 +60,55 @@ export const saveWebhookSettings = (settings: WebhookSettings): void => {
   }
 };
 
-// Dispatch lead data to Make.com webhook
+// Dispatch lead data to Supabase Edge Function (syncs to Google Sheets)
 export const dispatchLead = async (leadData: LeadData): Promise<boolean> => {
-  const settings = getWebhookSettings();
-  
-  if (!settings.enabled || !settings.makeWebhookUrl) {
-    console.log('Make.com webhook not configured or disabled');
-    return false;
-  }
-
   try {
-    console.log('Dispatching lead to Make.com:', leadData);
+    console.log('Dispatching lead to Google Sheets via Edge Function:', leadData);
 
+    // Prepare payload with consistent field names
     const payload = {
-      ...leadData,
-      timestamp: new Date().toISOString(),
+      name: leadData.name || `${leadData.firstName || ''} ${leadData.lastName || ''}`.trim(),
+      email: leadData.email,
+      phone: leadData.phone,
+      business: leadData.projectType,
+      city: leadData.city,
+      state: leadData.state,
+      facilityType: leadData.projectType,
+      facilitySize: leadData.facilitySize,
+      sports: Array.isArray(leadData.sports) ? leadData.sports.join(', ') : leadData.sports,
+      estimatedSquareFootage: undefined, // Not directly available in LeadData
+      estimatedBudget: leadData.totalInvestment,
+      estimatedMonthlyRevenue: leadData.annualRevenue ? leadData.annualRevenue / 12 : undefined,
+      estimatedROI: leadData.roi,
+      source: leadData.source,
       userAgent: navigator.userAgent,
-      referrer: document.referrer || 'Direct',
-      url: window.location.href,
+      referrer: document.referrer || 'direct',
     };
 
-    const response = await fetch(settings.makeWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      mode: 'no-cors', // Handle CORS for webhook
-      body: JSON.stringify(payload),
-    });
+    const response = await fetch(
+      'https://apdxtdarwacdcuhvtaag.supabase.co/functions/v1/sync-lead-to-sheets',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwZHh0ZGFyd2FjZGN1aHZ0YWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyMDI1NjksImV4cCI6MjA3MDc3ODU2OX0.flGfUtz-B-RXJdPX4fnbUil8I23khgtyK29h3AnF0n0',
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
-    // Since we're using no-cors, we can't read the response status
-    // We'll assume success if no error was thrown
-    console.log('Lead dispatched successfully to Make.com');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Lead sync failed:', errorData);
+      return false;
+    }
+
+    const result = await response.json();
+    console.log('Lead dispatched successfully:', result);
     return true;
 
   } catch (error) {
-    console.error('Error dispatching lead to Make.com:', error);
+    console.error('Error dispatching lead to Google Sheets:', error);
     return false;
   }
 };

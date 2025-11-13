@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.send-lead-emails]
 verify_jwt = false
+
+[functions.sync-lead-to-sheets]
+verify_jwt = false
