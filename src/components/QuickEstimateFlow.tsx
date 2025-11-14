@@ -12,7 +12,6 @@ import { generateProjectId, saveProjectState } from "@/utils/projectState";
 import useAnalytics from "@/hooks/useAnalytics";
 import { COST_LIBRARY, getCostByTier, calculateItemTotal, type CostItem } from "@/data/costLibrary";
 import LeadGate from "@/components/shared/LeadGate";
-import { dispatchLead } from "@/services/leadDispatch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -139,9 +138,9 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
     track('equipment_package_viewed', { sport: estimate.sport, equipmentTotal: equipmentPackage.total });
     
     // Dispatch lead to backend (saves to DB + syncs to Google Sheets)
-    await dispatchLeadData(leadData, projectId);
+    const syncResult = await dispatchLeadData(leadData, projectId, 'analysis');
     
-    // Send lead emails
+    // Send lead emails (annotate with sync status)
     try {
       console.log('📧 [handleAnalysisWithLead] Sending lead emails...');
       const roi = results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0;
@@ -171,6 +170,8 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
             breakEven: results.breakEvenMonths,
           },
           source: 'quick-estimate',
+          syncFailed: !syncResult.success,
+          syncError: syncResult.error,
         },
       });
       console.log('✅ [handleAnalysisWithLead] Lead emails sent successfully');
@@ -231,76 +232,115 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
     navigate(`/calculator?projectId=${projectId}&mode=quick`);
   };
 
-  // Reusable function to dispatch lead data
-  const dispatchLeadData = async (leadData: any, projectId: string) => {
-    console.log('📋 [dispatchLeadData] Starting lead dispatch...', leadData);
+  // Reusable function to dispatch lead data with inline sync and retry
+  const dispatchLeadData = async (leadData: any, projectId: string, sourceDetail: 'pdf' | 'analysis') => {
+    console.log(`📋 [dispatchLeadData/${sourceDetail}] Starting lead dispatch...`, {
+      name: leadData.name,
+      email: leadData.email,
+      source: 'quick-estimate',
+      sourceDetail
+    });
     
-    try {
-      const dispatchResult = await dispatchLead({
-        firstName: leadData.name.split(' ')[0],
-        lastName: leadData.name.split(' ').slice(1).join(' '),
-        email: leadData.email,
-        phone: leadData.phone,
-        city: leadData.city,
-        state: leadData.state,
-        projectType: SPORTS_DATA[estimate.sport].label,
-        facilitySize: SIZE_DATA[estimate.size].label,
-        sports: [SPORTS_DATA[estimate.sport].label],
-        totalSquareFootage: results.grossSF,
-        totalInvestment: results.capexTotal,
-        monthlyRevenue: results.revenueMonthly,
-        monthlyOpex: results.opexMonthly,
-        roi: results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0,
-        breakEvenMonths: results.breakEvenMonths || undefined,
-        source: 'quick-estimate',
-        timestamp: new Date().toISOString(),
-        reportData: {
-          selectedSports: [estimate.sport],
-          businessModel: SPORTS_DATA[estimate.sport].label,
-          locationType: estimate.location,
-          financialMetrics: {
-            capexTotal: results.capexTotal,
-            revenueMonthly: results.revenueMonthly,
-            opexMonthly: results.opexMonthly,
-            ebitdaMonthly: results.ebitdaMonthly,
-            breakEvenMonths: results.breakEvenMonths,
-            grossSF: results.grossSF
-          },
-          wizardResponses: {
-            sport: estimate.sport,
-            size: estimate.size,
-            location: estimate.location,
-            budget: estimate.budget
-          },
-          recommendations: {}
-        }
-      });
-      
-      if (dispatchResult.success) {
-        console.log('✅ [dispatchLeadData] Lead captured successfully:', dispatchResult.leadId);
-        toast({
-          title: "Lead Saved!",
-          description: "Your estimate has been saved and synced to our system.",
-        });
-        return true;
-      } else {
-        console.error('❌ [dispatchLeadData] Lead dispatch failed:', dispatchResult.error);
-        toast({
-          title: "Warning",
-          description: dispatchResult.error || "Lead sync failed, but we'll continue.",
-          variant: "destructive",
-        });
-        return false;
+    // Prepare payload for sync-lead-to-sheets
+    const payload = {
+      name: leadData.name,
+      email: leadData.email,
+      phone: leadData.phone,
+      business: SPORTS_DATA[estimate.sport].label,
+      city: leadData.city,
+      state: leadData.state,
+      facilityType: SPORTS_DATA[estimate.sport].label,
+      facilitySize: SIZE_DATA[estimate.size].label,
+      sports: SPORTS_DATA[estimate.sport].label,
+      estimatedSquareFootage: results.grossSF,
+      estimatedBudget: results.capexTotal,
+      estimatedMonthlyRevenue: results.revenueMonthly,
+      estimatedROI: results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0,
+      breakEvenMonths: results.breakEvenMonths || undefined,
+      monthlyOpex: results.opexMonthly,
+      source: 'quick-estimate',
+      source_detail: `quick-estimate/${sourceDetail}`,
+      userAgent: navigator.userAgent,
+      referrer: document.referrer || 'direct',
+      reportData: {
+        selectedSports: [estimate.sport],
+        businessModel: SPORTS_DATA[estimate.sport].label,
+        locationType: estimate.location,
+        financialMetrics: {
+          capexTotal: results.capexTotal,
+          revenueMonthly: results.revenueMonthly,
+          opexMonthly: results.opexMonthly,
+          ebitdaMonthly: results.ebitdaMonthly,
+          breakEvenMonths: results.breakEvenMonths,
+          grossSF: results.grossSF
+        },
+        wizardResponses: {
+          sport: estimate.sport,
+          size: estimate.size,
+          location: estimate.location,
+          budget: estimate.budget
+        },
+        recommendations: {}
       }
-    } catch (error) {
-      console.error('💥 [dispatchLeadData] Exception during lead dispatch:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save lead, but we'll continue.",
-        variant: "destructive",
-      });
-      return false;
+    };
+    
+    console.log(`📤 [dispatchLeadData/${sourceDetail}] Invoking sync-lead-to-sheets with payload:`, {
+      email: payload.email,
+      facilityType: payload.facilityType,
+      facilitySize: payload.facilitySize,
+      estimatedBudget: payload.estimatedBudget,
+      source_detail: payload.source_detail
+    });
+    
+    let lastError: any = null;
+    
+    // Try twice: initial attempt + 1 retry
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const { data, error } = await supabase.functions.invoke('sync-lead-to-sheets', {
+          body: payload
+        });
+        
+        if (error) {
+          lastError = error;
+          console.error(`❌ [dispatchLeadData/${sourceDetail}] Attempt ${attempt}/2 failed with error:`, error);
+          
+          if (attempt < 2) {
+            console.log(`🔄 [dispatchLeadData/${sourceDetail}] Retrying in 1 second...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            continue;
+          }
+        } else {
+          console.log(`✅ [dispatchLeadData/${sourceDetail}] Success on attempt ${attempt}! Result:`, data);
+          toast({
+            title: "Lead Saved!",
+            description: "Your estimate has been saved and synced to our system.",
+          });
+          return { success: true, leadId: data?.leadId, error: null };
+        }
+      } catch (exception: any) {
+        lastError = exception;
+        console.error(`💥 [dispatchLeadData/${sourceDetail}] Attempt ${attempt}/2 threw exception:`, exception);
+        
+        if (attempt < 2) {
+          console.log(`🔄 [dispatchLeadData/${sourceDetail}] Retrying in 1 second...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+      }
     }
+    
+    // Both attempts failed
+    const errorMessage = lastError?.message || lastError?.toString() || 'Failed to sync lead to Google Sheets';
+    console.error(`❌ [dispatchLeadData/${sourceDetail}] All attempts exhausted. Final error:`, errorMessage);
+    
+    toast({
+      title: "Lead Sync Failed",
+      description: errorMessage,
+      variant: "destructive",
+    });
+    
+    return { success: false, leadId: null, error: errorMessage };
   };
 
   const handlePdfDownload = () => {
@@ -317,9 +357,9 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
     track('lead_captured_pdf', { ...leadData, estimate });
     
     // Dispatch lead to backend (saves to DB + syncs to Google Sheets)
-    await dispatchLeadData(leadData, projectId);
+    const syncResult = await dispatchLeadData(leadData, projectId, 'pdf');
     
-    // Send lead emails
+    // Send lead emails (annotate with sync status)
     try {
       const roi = results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0;
       await supabase.functions.invoke('send-lead-emails', {
@@ -348,6 +388,8 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
             breakEven: results.breakEvenMonths,
           },
           source: 'quick-estimate',
+          syncFailed: !syncResult.success,
+          syncError: syncResult.error,
         },
       });
       console.log('✅ [handleLeadSubmit] Lead emails sent successfully');
