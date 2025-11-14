@@ -22,8 +22,15 @@ export interface LeadData {
   // Estimates/Results
   totalInvestment?: number;
   annualRevenue?: number;
+  monthlyRevenue?: number;
+  monthlyOpex?: number;
   roi?: number;
   paybackPeriod?: number;
+  breakEvenMonths?: number;
+  totalSquareFootage?: number;
+  
+  // Full report data for saving
+  reportData?: any;
   
   // Metadata
   source: 'quick-estimate' | 'full-calculator' | 'easy-wizard' | string;
@@ -61,7 +68,7 @@ export const saveWebhookSettings = (settings: WebhookSettings): void => {
 };
 
 // Dispatch lead data to Supabase Edge Function (syncs to Google Sheets)
-export const dispatchLead = async (leadData: LeadData): Promise<boolean> => {
+export const dispatchLead = async (leadData: LeadData): Promise<{ success: boolean; reportUrl?: string }> => {
   try {
     console.log('Dispatching lead to Google Sheets via Edge Function:', leadData);
 
@@ -76,13 +83,16 @@ export const dispatchLead = async (leadData: LeadData): Promise<boolean> => {
       facilityType: leadData.projectType,
       facilitySize: leadData.facilitySize,
       sports: Array.isArray(leadData.sports) ? leadData.sports.join(', ') : leadData.sports,
-      estimatedSquareFootage: undefined, // Not directly available in LeadData
+      estimatedSquareFootage: leadData.totalSquareFootage,
       estimatedBudget: leadData.totalInvestment,
-      estimatedMonthlyRevenue: leadData.annualRevenue ? leadData.annualRevenue / 12 : undefined,
+      estimatedMonthlyRevenue: leadData.monthlyRevenue || (leadData.annualRevenue ? leadData.annualRevenue / 12 : undefined),
       estimatedROI: leadData.roi,
+      breakEvenMonths: leadData.breakEvenMonths,
+      monthlyOpex: leadData.monthlyOpex,
       source: leadData.source,
       userAgent: navigator.userAgent,
       referrer: document.referrer || 'direct',
+      reportData: leadData.reportData, // Include full report data for saving
     };
 
     const response = await fetch(
@@ -100,16 +110,19 @@ export const dispatchLead = async (leadData: LeadData): Promise<boolean> => {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('Lead sync failed:', errorData);
-      return false;
+      return { success: false };
     }
 
     const result = await response.json();
     console.log('Lead dispatched successfully:', result);
-    return true;
+    return { 
+      success: true,
+      reportUrl: result.reportUrl 
+    };
 
   } catch (error) {
     console.error('Error dispatching lead to Google Sheets:', error);
-    return false;
+    return { success: false };
   }
 };
 
@@ -127,5 +140,6 @@ export const testWebhook = async (): Promise<boolean> => {
     timestamp: new Date().toISOString(),
   };
 
-  return await dispatchLead(testLead);
+  const result = await dispatchLead(testLead);
+  return result.success;
 };
