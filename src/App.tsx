@@ -13,6 +13,7 @@ import Calculator from "./pages/Calculator";
 import Glossary from "./pages/Glossary";
 import NotFound from "./pages/NotFound";
 import EasyWizard from "./pages/wizard/EasyWizard";
+import SharedReport from "./pages/SharedReport";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/calculator" element={<Calculator />} />
           <Route path="/glossary" element={<Glossary />} />
           <Route path="/glossary/:slug" element={<Glossary />} />
+          <Route path="/report/:id" element={<SharedReport />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

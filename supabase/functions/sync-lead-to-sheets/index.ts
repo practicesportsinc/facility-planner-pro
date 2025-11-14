@@ -20,9 +20,12 @@ interface LeadData {
   estimatedBudget?: number;
   estimatedMonthlyRevenue?: number;
   estimatedROI?: number;
+  breakEvenMonths?: number;
+  monthlyOpex?: number;
   source: string;
   userAgent?: string;
   referrer?: string;
+  reportData?: any;
 }
 
 serve(async (req) => {
@@ -38,6 +41,45 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    let reportId: string | null = null;
+
+    // Save full report data if provided
+    if (leadData.reportData) {
+      console.log('Saving full report data to wizard_submissions');
+      const { data: reportSubmission, error: reportError } = await supabase
+        .from('wizard_submissions')
+        .insert({
+          lead_name: leadData.name,
+          lead_email: leadData.email,
+          lead_phone: leadData.phone,
+          lead_business: leadData.business,
+          facility_type: leadData.facilityType,
+          facility_size: leadData.facilitySize,
+          selected_sports: leadData.reportData.selectedSports || [leadData.sports],
+          total_square_footage: leadData.estimatedSquareFootage,
+          total_investment: leadData.estimatedBudget,
+          monthly_revenue: leadData.estimatedMonthlyRevenue,
+          monthly_opex: leadData.monthlyOpex,
+          break_even_months: leadData.breakEvenMonths,
+          roi_percentage: leadData.estimatedROI,
+          wizard_responses: leadData.reportData.wizardResponses || {},
+          recommendations: leadData.reportData.recommendations || {},
+          business_model: leadData.reportData.businessModel,
+          location_type: leadData.reportData.locationType,
+          timeline: leadData.reportData.timeline,
+          financial_metrics: leadData.reportData.financialMetrics,
+        })
+        .select('id')
+        .single();
+
+      if (reportError) {
+        console.error('Error saving report data:', reportError);
+      } else {
+        reportId = reportSubmission.id;
+        console.log('Report saved with ID:', reportId);
+      }
+    }
 
     // Insert lead into database
     const { data: lead, error: insertError } = await supabase
@@ -71,8 +113,13 @@ serve(async (req) => {
 
     console.log('Lead inserted into database:', lead.id);
 
-    // Sync to Google Sheets in background
-    const syncPromise = syncToGoogleSheets(lead.id, leadData, supabase);
+    // Generate report URL if we have a report ID
+    const reportUrl = reportId 
+      ? `https://4da7e89e-10c0-46bf-bb1a-9914ee136192.lovableproject.com/report/${reportId}`
+      : undefined;
+
+    // Sync to Google Sheets in background with report URL
+    const syncPromise = syncToGoogleSheets(lead.id, leadData, reportUrl, supabase);
     
     // Use background task to continue syncing after response
     // @ts-ignore - EdgeRuntime is available in Supabase Edge Functions
@@ -88,6 +135,8 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         leadId: lead.id,
+        reportId: reportId,
+        reportUrl: reportUrl,
         message: 'Lead captured and sync to Google Sheets initiated'
       }),
       { 
@@ -113,6 +162,7 @@ serve(async (req) => {
 async function syncToGoogleSheets(
   leadId: string,
   leadData: LeadData,
+  reportUrl: string | undefined,
   supabase: any
 ) {
   try {
@@ -143,7 +193,7 @@ async function syncToGoogleSheets(
     const { access_token } = await tokenResponse.json();
     console.log('Successfully obtained Google access token');
 
-    // Prepare row data
+    // Prepare row data with report URL
     const timestamp = new Date().toISOString();
     const rowData = [
       timestamp,
@@ -160,9 +210,9 @@ async function syncToGoogleSheets(
       leadData.estimatedBudget?.toString() || '',
       leadData.estimatedMonthlyRevenue?.toString() || '',
       leadData.estimatedROI?.toString() || '',
+      leadData.breakEvenMonths?.toString() || '',
       leadData.source,
-      leadData.userAgent || '',
-      leadData.referrer || '',
+      reportUrl || '', // Add report URL to sheet
     ];
 
     // Append to Google Sheet
