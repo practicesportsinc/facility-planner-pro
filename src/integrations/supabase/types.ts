@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      leads: {
+        Row: {
+          business_name: string | null
+          city: string | null
+          created_at: string
+          email: string
+          estimated_budget: number | null
+          estimated_monthly_revenue: number | null
+          estimated_roi: number | null
+          estimated_square_footage: number | null
+          facility_size: string | null
+          facility_type: string | null
+          id: string
+          name: string
+          phone: string | null
+          referrer: string | null
+          source: string
+          sports: string | null
+          state: string | null
+          sync_attempted_at: string | null
+          sync_error: string | null
+          synced_to_google_sheets: boolean | null
+          user_agent: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          city?: string | null
+          created_at?: string
+          email: string
+          estimated_budget?: number | null
+          estimated_monthly_revenue?: number | null
+          estimated_roi?: number | null
+          estimated_square_footage?: number | null
+          facility_size?: string | null
+          facility_type?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          referrer?: string | null
+          source: string
+          sports?: string | null
+          state?: string | null
+          sync_attempted_at?: string | null
+          sync_error?: string | null
+          synced_to_google_sheets?: boolean | null
+          user_agent?: string | null
+        }
+        Update: {
+          business_name?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string
+          estimated_budget?: number | null
+          estimated_monthly_revenue?: number | null
+          estimated_roi?: number | null
+          estimated_square_footage?: number | null
+          facility_size?: string | null
+          facility_type?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          referrer?: string | null
+          source?: string
+          sports?: string | null
+          state?: string | null
+          sync_attempted_at?: string | null
+          sync_error?: string | null
+          synced_to_google_sheets?: boolean | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       wizard_submissions: {
         Row: {
           amenities: Json | null

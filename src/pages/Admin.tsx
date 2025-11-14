@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Layout from "@/components/layout/Layout";
-import { Settings, Database, Users, Download, Mail } from "lucide-react";
+import { Settings, Database, Users, Download, Mail, RefreshCw } from "lucide-react";
 import { MakeWebhookSettings } from "@/components/admin/MakeWebhookSettings";
+import { LeadSyncMonitor } from "@/components/admin/LeadSyncMonitor";
+import { LeadSyncSettings } from "@/components/admin/LeadSyncSettings";
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -63,10 +65,14 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="settings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />
               Settings
+            </TabsTrigger>
+            <TabsTrigger value="lead-sync">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Lead Sync
             </TabsTrigger>
             <TabsTrigger value="costs">
               <Database className="h-4 w-4 mr-2" />
@@ -117,6 +123,11 @@ const Admin = () => {
             </Card>
 
             <MakeWebhookSettings />
+          </TabsContent>
+
+          <TabsContent value="lead-sync" className="space-y-6">
+            <LeadSyncMonitor />
+            <LeadSyncSettings />
           </TabsContent>
 
           <TabsContent value="costs" className="space-y-6">

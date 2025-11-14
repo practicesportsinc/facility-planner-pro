@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.sync-lead-to-sheets]
 verify_jwt = false
+
+[functions.retry-lead-sync]
+verify_jwt = false
