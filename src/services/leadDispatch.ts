@@ -68,7 +68,7 @@ export const saveWebhookSettings = (settings: WebhookSettings): void => {
 };
 
 // Dispatch lead data to Supabase Edge Function (syncs to Google Sheets)
-export const dispatchLead = async (leadData: LeadData): Promise<{ success: boolean; reportUrl?: string }> => {
+export const dispatchLead = async (leadData: LeadData): Promise<{ success: boolean; reportUrl?: string; leadId?: string }> => {
   try {
     console.log('Dispatching lead to Google Sheets via Edge Function:', leadData);
 
@@ -95,6 +95,8 @@ export const dispatchLead = async (leadData: LeadData): Promise<{ success: boole
       reportData: leadData.reportData, // Include full report data for saving
     };
 
+    console.log('[dispatchLead] Sending payload to sync-lead-to-sheets:', payload);
+    
     const response = await fetch(
       'https://apdxtdarwacdcuhvtaag.supabase.co/functions/v1/sync-lead-to-sheets',
       {
@@ -107,17 +109,24 @@ export const dispatchLead = async (leadData: LeadData): Promise<{ success: boole
       }
     );
 
+    console.log('[dispatchLead] Response status:', response.status, response.statusText);
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Lead sync failed:', errorData);
+      const errorText = await response.text();
+      console.error('[dispatchLead] Lead sync failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
       return { success: false };
     }
 
     const result = await response.json();
-    console.log('Lead dispatched successfully:', result);
+    console.log('[dispatchLead] Success! Result:', result);
     return { 
       success: true,
-      reportUrl: result.reportUrl 
+      reportUrl: result.reportUrl,
+      leadId: result.leadId
     };
 
   } catch (error) {

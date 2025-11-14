@@ -35,7 +35,8 @@ serve(async (req) => {
 
   try {
     const leadData: LeadData = await req.json();
-    console.log('Received lead data:', leadData);
+    console.log('[sync-lead-to-sheets] ===== FUNCTION TRIGGERED =====');
+    console.log('[sync-lead-to-sheets] Received lead data:', JSON.stringify(leadData, null, 2));
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -118,17 +119,16 @@ serve(async (req) => {
       ? `https://4da7e89e-10c0-46bf-bb1a-9914ee136192.lovableproject.com/report/${reportId}`
       : undefined;
 
-    // Sync to Google Sheets in background with report URL
-    const syncPromise = syncToGoogleSheets(lead.id, leadData, reportUrl, supabase);
-    
-    // Use background task to continue syncing after response
-    // @ts-ignore - EdgeRuntime is available in Supabase Edge Functions
-    if (typeof EdgeRuntime !== 'undefined') {
-      // @ts-ignore
-      EdgeRuntime.waitUntil(syncPromise);
-    } else {
-      // Fallback for local development
-      syncPromise.catch(console.error);
+    console.log('[sync-lead-to-sheets] Report URL:', reportUrl);
+    console.log('[sync-lead-to-sheets] About to sync to Google Sheets...');
+
+    // TEMPORARY: Sync synchronously for debugging (will revert to background later)
+    try {
+      await syncToGoogleSheets(lead.id, leadData, reportUrl, supabase);
+      console.log('[sync-lead-to-sheets] Google Sheets sync completed successfully');
+    } catch (syncError) {
+      console.error('[sync-lead-to-sheets] Google Sheets sync failed:', syncError);
+      // Don't fail the whole request if sync fails
     }
 
     return new Response(
@@ -137,7 +137,7 @@ serve(async (req) => {
         leadId: lead.id,
         reportId: reportId,
         reportUrl: reportUrl,
-        message: 'Lead captured and sync to Google Sheets initiated'
+        message: 'Lead captured and synced to Google Sheets'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -166,15 +166,26 @@ async function syncToGoogleSheets(
   supabase: any
 ) {
   try {
-    console.log(`Starting Google Sheets sync for lead ${leadId}`);
-
-    const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON')!;
-    const sheetId = Deno.env.get('GOOGLE_SHEET_ID')!;
-    const tabName = Deno.env.get('GOOGLE_SHEET_TAB')!;
+    console.log(`[syncToGoogleSheets] ===== STARTING SYNC FOR LEAD ${leadId} =====`);
+    
+    // Get Google service account credentials
+    const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');
+    if (!serviceAccountJson) {
+      console.error('[syncToGoogleSheets] Missing GOOGLE_SERVICE_ACCOUNT_JSON');
+      throw new Error('Google service account credentials not configured');
+    }
 
     const serviceAccount = JSON.parse(serviceAccountJson);
+    console.log('[syncToGoogleSheets] Service account loaded:', serviceAccount.client_email);
+
+    const sheetId = Deno.env.get('GOOGLE_SHEET_ID');
+    const tabName = Deno.env.get('GOOGLE_SHEET_TAB');
+    
+    console.log(`[syncToGoogleSheets] Target Sheet ID: ${sheetId}`);
+    console.log(`[syncToGoogleSheets] Target Tab: ${tabName}`);
 
     // Get access token
+    console.log('[syncToGoogleSheets] Requesting access token...');
     const jwt = await createJWT(serviceAccount);
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -187,11 +198,12 @@ async function syncToGoogleSheets(
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
+      console.error('[syncToGoogleSheets] Token request failed:', errorText);
       throw new Error(`Failed to get access token: ${errorText}`);
     }
 
     const { access_token } = await tokenResponse.json();
-    console.log('Successfully obtained Google access token');
+    console.log('[syncToGoogleSheets] Access token obtained');
 
     // Prepare row data with report URL
     const timestamp = new Date().toISOString();
@@ -214,11 +226,35 @@ async function syncToGoogleSheets(
       leadData.source,
       reportUrl || '', // Add report URL to sheet
     ];
+    
+    console.log('[syncToGoogleSheets] Row data prepared:', rowData);
 
     // Append to Google Sheet
-    const appendResponse = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tabName}!A:Q:append?valueInputOption=RAW`,
-      {
+    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tabName}!A:Q:append?valueInputOption=RAW`;
+    console.log('[syncToGoogleSheets] Appending to sheet:', appendUrl);
+
+    const appendResponse = await fetch(appendUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        values: [rowData],
+      }),
+    });
+
+    console.log('[syncToGoogleSheets] Append response status:', appendResponse.status);
+
+    if (!appendResponse.ok) {
+      const errorText = await appendResponse.text();
+      console.error('[syncToGoogleSheets] Append failed:', errorText);
+      throw new Error(`Failed to append to sheet: ${appendResponse.status} ${errorText}`);
+    }
+
+    const appendResult = await appendResponse.json();
+    console.log('[syncToGoogleSheets] Append successful:', JSON.stringify(appendResult, null, 2));
+    console.log(`[syncToGoogleSheets] ✅ Successfully synced lead ${leadId} to Google Sheets`);
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${access_token}`,
