@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Mail, Phone, MapPin, MessageSquare } from "lucide-react";
+import { dispatchLead } from "@/services/leadDispatch";
 
 interface LeadCaptureProps {
   data: any;
@@ -54,9 +55,31 @@ const LeadCapture = ({ data, onUpdate, onNext, onPrevious, allData }: LeadCaptur
     onUpdate(newData);
   };
 
-  const handleSubmit = () => {
-    // Here we would typically send the data to a backend
-    console.log('Lead data:', { ...allData, leadCapture: formData });
+  const handleSubmit = async () => {
+    // Dispatch lead to Google Sheets via Edge Function
+    try {
+      await dispatchLead({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone,
+        city: formData.city,
+        state: formData.state,
+        projectType: allData[1]?.projectName || 'Sports Facility',
+        facilitySize: allData[1]?.facilitySize,
+        budget: formData.budget,
+        timeline: formData.timeline,
+        totalInvestment: allData[11]?.totalInvestment,
+        annualRevenue: allData[11]?.totalAnnualRevenue,
+        roi: allData[11]?.roi,
+        source: 'full-calculator',
+      });
+      console.log('Lead dispatched successfully');
+    } catch (error) {
+      console.error('Error dispatching lead:', error);
+    }
+    
     onNext();
   };
 
