@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface LeadData {
   // Personal Information
   firstName?: string;
@@ -95,29 +97,19 @@ export const dispatchLead = async (leadData: LeadData): Promise<{ success: boole
       reportData: leadData.reportData, // Include full report data for saving
     };
 
-    const response = await fetch(
-      'https://apdxtdarwacdcuhvtaag.supabase.co/functions/v1/sync-lead-to-sheets',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwZHh0ZGFyd2FjZGN1aHZ0YWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyMDI1NjksImV4cCI6MjA3MDc3ODU2OX0.flGfUtz-B-RXJdPX4fnbUil8I23khgtyK29h3AnF0n0',
-        },
-        body: JSON.stringify(payload),
-      }
-    );
+    const { data, error } = await supabase.functions.invoke('sync-lead-to-sheets', {
+      body: payload,
+    });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Lead sync failed:', errorData);
+    if (error) {
+      console.error('Lead sync failed:', error);
       return { success: false };
     }
 
-    const result = await response.json();
-    console.log('Lead dispatched successfully:', result);
+    console.log('Lead dispatched successfully:', data);
     return { 
       success: true,
-      reportUrl: result.reportUrl 
+      reportUrl: data?.reportUrl 
     };
 
   } catch (error) {
