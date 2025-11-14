@@ -4,7 +4,7 @@ import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Sparkles, Calculator, Users, Clock, Target, TrendingUp, Zap, Wrench, ArrowLeft } from "lucide-react";
+import { Sparkles, Calculator, Users, Clock, Target, TrendingUp, Zap, Wrench, ArrowLeft, Calendar } from "lucide-react";
 import { QuickEstimateFlow } from "@/components/QuickEstimateFlow";
 
 interface StartProps {}
@@ -171,16 +171,19 @@ const Start = () => {
 
             {/* Secondary CTAs */}
             <div className="text-center space-y-4">
-              <div className="flex flex-wrap justify-center gap-4">
-                <Button variant="ghost" asChild>
-                  <a href="/wizard-results">See Example Plans</a>
-                </Button>
-                <Button variant="ghost" asChild>
-                  <a href="/legal">Talk to a Coach</a>
-                </Button>
-              </div>
+              <Button variant="outline" size="lg" asChild>
+                <a 
+                  href="https://practicesportsinc.setmore.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2"
+                >
+                  <Calendar className="h-5 w-5" />
+                  Schedule meeting with facility expert
+                </a>
+              </Button>
               <p className="text-sm text-muted-foreground">
-                All paths can be customized later. Start simple, get detailed when needed.
+                Need personalized guidance? Schedule a free consultation with our facility planning experts.
               </p>
             </div>
           </div>
