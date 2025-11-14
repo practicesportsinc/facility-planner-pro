@@ -123,17 +123,62 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
   }, [estimate]);
 
   const handleQuickStart = () => {
-    console.log('View Detailed Analysis button clicked!');
-    console.log('Current estimate:', estimate);
-    console.log('Results:', results);
+    console.log('🚀 [handleQuickStart] User clicked "View Detailed Analysis"');
+    track('quick_start_clicked', estimate);
     
-    track('quick_estimate_started', estimate);
+    // Show lead gate for "View Detailed Analysis" path
+    setLeadGateMode('analysis');
+    setShowLeadGate(true);
+  };
+
+  const handleAnalysisWithLead = async (leadData: any) => {
+    console.log('📊 [handleAnalysisWithLead] Processing lead for detailed analysis', leadData);
+    
+    const projectId = generateProjectId('quick');
+    track('lead_captured_analysis', { ...leadData, estimate });
     track('equipment_package_viewed', { sport: estimate.sport, equipmentTotal: equipmentPackage.total });
     
-    // Generate project ID and save preset data
-    const projectId = generateProjectId('quick');
-    console.log('Generated project ID:', projectId);
+    // Dispatch lead to backend (saves to DB + syncs to Google Sheets)
+    await dispatchLeadData(leadData, projectId);
     
+    // Send lead emails
+    try {
+      console.log('📧 [handleAnalysisWithLead] Sending lead emails...');
+      const roi = results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0;
+      await supabase.functions.invoke('send-lead-emails', {
+        body: {
+          customerEmail: leadData.email,
+          customerName: leadData.name,
+          leadData: {
+            name: leadData.name,
+            email: leadData.email,
+            phone: leadData.phone,
+            city: leadData.city,
+            state: leadData.state,
+            location: leadData.location,
+            allowOutreach: leadData.allowOutreach,
+          },
+          facilityDetails: {
+            sport: SPORTS_DATA[estimate.sport].label,
+            projectType: `${SPORTS_DATA[estimate.sport].label} Facility`,
+            size: `${results.grossSF} sq ft`,
+          },
+          estimates: {
+            totalInvestment: results.capexTotal,
+            monthlyRevenue: results.revenueMonthly,
+            annualRevenue: results.revenueMonthly * 12,
+            roi: roi,
+            breakEven: results.breakEvenMonths,
+          },
+          source: 'quick-estimate',
+        },
+      });
+      console.log('✅ [handleAnalysisWithLead] Lead emails sent successfully');
+    } catch (error) {
+      console.error('❌ [handleAnalysisWithLead] Error sending lead emails:', error);
+    }
+    
+    // Save project data with lead info
     const projectData = {
       mode: 'quick' as const,
       scenario_name: `Quick ${SPORTS_DATA[estimate.sport].label} Estimate`,
@@ -164,20 +209,97 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
       }
     };
 
-    console.log('Saving project data:', projectData);
+    // Add lead data to project state
+    (projectData as any).lead = {
+      name: leadData.name,
+      email: leadData.email,
+      phone: leadData.phone,
+      city: leadData.city,
+      state: leadData.state,
+      outreach: leadData.outreach,
+      captured_at: new Date().toISOString()
+    };
+    
+    console.log('💾 [handleAnalysisWithLead] Saving project data:', projectData);
     saveProjectState(projectId, projectData);
     track('quick_estimate_completed', { estimate, results });
     
     // Close the dialog before navigating
     onClose();
     
-    console.log('Attempting to navigate to:', `/calculator?projectId=${projectId}&mode=quick`);
-    // Navigate to calculator with quick mode
+    console.log('🧭 [handleAnalysisWithLead] Navigating to Calculator');
+    navigate(`/calculator?projectId=${projectId}&mode=quick`);
+  };
+
+  // Reusable function to dispatch lead data
+  const dispatchLeadData = async (leadData: any, projectId: string) => {
+    console.log('📋 [dispatchLeadData] Starting lead dispatch...', leadData);
+    
     try {
-      navigate(`/calculator?projectId=${projectId}&mode=quick`);
-      console.log('Navigation called successfully');
+      const dispatchResult = await dispatchLead({
+        firstName: leadData.name.split(' ')[0],
+        lastName: leadData.name.split(' ').slice(1).join(' '),
+        email: leadData.email,
+        phone: leadData.phone,
+        city: leadData.city,
+        state: leadData.state,
+        projectType: SPORTS_DATA[estimate.sport].label,
+        facilitySize: SIZE_DATA[estimate.size].label,
+        sports: [SPORTS_DATA[estimate.sport].label],
+        totalSquareFootage: results.grossSF,
+        totalInvestment: results.capexTotal,
+        monthlyRevenue: results.revenueMonthly,
+        monthlyOpex: results.opexMonthly,
+        roi: results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0,
+        breakEvenMonths: results.breakEvenMonths || undefined,
+        source: 'quick-estimate',
+        timestamp: new Date().toISOString(),
+        reportData: {
+          selectedSports: [estimate.sport],
+          businessModel: SPORTS_DATA[estimate.sport].label,
+          locationType: estimate.location,
+          financialMetrics: {
+            capexTotal: results.capexTotal,
+            revenueMonthly: results.revenueMonthly,
+            opexMonthly: results.opexMonthly,
+            ebitdaMonthly: results.ebitdaMonthly,
+            breakEvenMonths: results.breakEvenMonths,
+            grossSF: results.grossSF
+          },
+          wizardResponses: {
+            sport: estimate.sport,
+            size: estimate.size,
+            location: estimate.location,
+            budget: estimate.budget
+          },
+          recommendations: {}
+        }
+      });
+      
+      if (dispatchResult.success) {
+        console.log('✅ [dispatchLeadData] Lead captured successfully:', dispatchResult.leadId);
+        toast({
+          title: "Lead Saved!",
+          description: "Your estimate has been saved and synced to our system.",
+        });
+        return true;
+      } else {
+        console.error('❌ [dispatchLeadData] Lead dispatch failed:', dispatchResult.error);
+        toast({
+          title: "Warning",
+          description: dispatchResult.error || "Lead sync failed, but we'll continue.",
+          variant: "destructive",
+        });
+        return false;
+      }
     } catch (error) {
-      console.error('Navigation failed:', error);
+      console.error('💥 [dispatchLeadData] Exception during lead dispatch:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save lead, but we'll continue.",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -592,9 +714,9 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
         <LeadGate
           isOpen={showLeadGate}
           onClose={() => setShowLeadGate(false)}
-          onSubmit={handleLeadSubmit}
-          title="Download Your Facility Estimate"
-          description="Get your complete PDF report delivered to your inbox"
+          onSubmit={leadGateMode === 'pdf' ? handleLeadSubmit : handleAnalysisWithLead}
+          title={leadGateMode === 'pdf' ? "Download Your Facility Estimate" : "Start Your Detailed Analysis"}
+          description={leadGateMode === 'pdf' ? "Get your complete PDF report delivered to your inbox" : "Get a personalized consultation based on your project details"}
           showOptionalFields={true}
         />
       </Card>
