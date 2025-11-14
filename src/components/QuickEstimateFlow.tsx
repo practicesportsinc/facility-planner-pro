@@ -14,6 +14,7 @@ import { COST_LIBRARY, getCostByTier, calculateItemTotal, type CostItem } from "
 import LeadGate from "@/components/shared/LeadGate";
 import { dispatchLead } from "@/services/leadDispatch";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 // Quick estimate types
 type SizeKey = "small" | "small_plus" | "medium" | "large" | "giant" | "arena";
@@ -187,8 +188,9 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
   const handleLeadSubmit = async (leadData: any) => {
     track('lead_captured_pdf', { ...leadData, estimate });
     
-    // Dispatch lead to Google Sheets
+    // Dispatch lead to backend (saves to DB + syncs to Google Sheets)
     try {
+      console.log('📋 Starting lead dispatch from QuickEstimateFlow...');
       const dispatchResult = await dispatchLead({
         firstName: leadData.name.split(' ')[0],
         lastName: leadData.name.split(' ').slice(1).join(' '),
@@ -232,11 +234,25 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
       if (dispatchResult.success) {
         console.log('✅ Lead captured successfully:', dispatchResult.leadId);
         console.log('📄 Report URL:', dispatchResult.reportUrl);
+        toast({
+          title: "Lead Saved!",
+          description: "Your estimate has been saved and synced to our system.",
+        });
       } else {
-        console.error('❌ Lead dispatch failed');
+        console.error('❌ Lead dispatch failed:', dispatchResult.error);
+        toast({
+          title: "Warning",
+          description: dispatchResult.error || "Lead sync failed. Your PDF will still be generated.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error('Error dispatching lead:', error);
+      console.error('💥 Exception during lead dispatch:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save lead. Your PDF will still be generated.",
+        variant: "destructive",
+      });
     }
     
     // Send lead emails
