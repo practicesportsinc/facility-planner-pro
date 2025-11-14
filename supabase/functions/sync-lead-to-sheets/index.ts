@@ -255,23 +255,6 @@ async function syncToGoogleSheets(
     const appendResult = await appendResponse.json();
     console.log('[syncToGoogleSheets] Append successful:', JSON.stringify(appendResult, null, 2));
     console.log(`[syncToGoogleSheets] ✅ Successfully synced lead ${leadId} to Google Sheets`);
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          values: [rowData],
-        }),
-      }
-    );
-
-    if (!appendResponse.ok) {
-      const errorText = await appendResponse.text();
-      throw new Error(`Failed to append to Google Sheet: ${errorText}`);
-    }
-
-    console.log(`Successfully synced lead ${leadId} to Google Sheets`);
 
     // Update lead sync status
     await supabase
