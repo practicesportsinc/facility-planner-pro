@@ -92,6 +92,7 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
   });
   const [customizing, setCustomizing] = useState(false);
   const [showLeadGate, setShowLeadGate] = useState(false);
+  const [leadGateMode, setLeadGateMode] = useState<'pdf' | 'analysis'>('pdf');
 
   // Calculate quick estimate results
   const results = useMemo((): EstimateResults => {
@@ -181,79 +182,20 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
   };
 
   const handlePdfDownload = () => {
+    console.log('📥 [handlePdfDownload] User clicked "Download / Print PDF"');
     track('pdf_download_clicked', estimate);
+    setLeadGateMode('pdf');
     setShowLeadGate(true);
   };
 
   const handleLeadSubmit = async (leadData: any) => {
+    console.log('📄 [handleLeadSubmit] Processing lead for PDF generation', leadData);
+    
+    const projectId = generateProjectId('quick');
     track('lead_captured_pdf', { ...leadData, estimate });
     
     // Dispatch lead to backend (saves to DB + syncs to Google Sheets)
-    try {
-      console.log('📋 Starting lead dispatch from QuickEstimateFlow...');
-      const dispatchResult = await dispatchLead({
-        firstName: leadData.name.split(' ')[0],
-        lastName: leadData.name.split(' ').slice(1).join(' '),
-        email: leadData.email,
-        phone: leadData.phone,
-        city: leadData.city,
-        state: leadData.state,
-        projectType: SPORTS_DATA[estimate.sport].label,
-        facilitySize: SIZE_DATA[estimate.size].label,
-        sports: [SPORTS_DATA[estimate.sport].label],
-        totalSquareFootage: results.grossSF,
-        totalInvestment: results.capexTotal,
-        monthlyRevenue: results.revenueMonthly,
-        monthlyOpex: results.opexMonthly,
-        roi: results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0,
-        breakEvenMonths: results.breakEvenMonths || undefined,
-        source: 'quick-estimate',
-        timestamp: new Date().toISOString(),
-        reportData: {
-          selectedSports: [estimate.sport],
-          businessModel: SPORTS_DATA[estimate.sport].label,
-          locationType: estimate.location,
-          financialMetrics: {
-            capexTotal: results.capexTotal,
-            revenueMonthly: results.revenueMonthly,
-            opexMonthly: results.opexMonthly,
-            ebitdaMonthly: results.ebitdaMonthly,
-            breakEvenMonths: results.breakEvenMonths,
-            grossSF: results.grossSF
-          },
-          wizardResponses: {
-            sport: estimate.sport,
-            size: estimate.size,
-            location: estimate.location,
-            budget: estimate.budget
-          },
-          recommendations: {}
-        }
-      });
-      
-      if (dispatchResult.success) {
-        console.log('✅ Lead captured successfully:', dispatchResult.leadId);
-        console.log('📄 Report URL:', dispatchResult.reportUrl);
-        toast({
-          title: "Lead Saved!",
-          description: "Your estimate has been saved and synced to our system.",
-        });
-      } else {
-        console.error('❌ Lead dispatch failed:', dispatchResult.error);
-        toast({
-          title: "Warning",
-          description: dispatchResult.error || "Lead sync failed. Your PDF will still be generated.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('💥 Exception during lead dispatch:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save lead. Your PDF will still be generated.",
-        variant: "destructive",
-      });
-    }
+    await dispatchLeadData(leadData, projectId);
     
     // Send lead emails
     try {
@@ -286,14 +228,12 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
           source: 'quick-estimate',
         },
       });
-      console.log('Lead emails sent successfully');
+      console.log('✅ [handleLeadSubmit] Lead emails sent successfully');
     } catch (error) {
-      console.error('Error sending lead emails:', error);
-      // Don't block the user flow if email fails
+      console.error('❌ [handleLeadSubmit] Error sending lead emails:', error);
     }
     
-    // Save lead data to project state for Calculator to access later
-    const projectId = generateProjectId('quick');
+    // Save lead data to project state
     saveProjectState(projectId, {
       mode: 'quick',
       lead: {
@@ -307,10 +247,9 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
       }
     });
     
-    // Generate and download the PDF
+    console.log('🖨️ [handleLeadSubmit] Generating PDF report');
     generatePdfReport();
   };
-
   const generatePdfReport = () => {
     // Create a simple HTML content for PDF
     const htmlContent = `
