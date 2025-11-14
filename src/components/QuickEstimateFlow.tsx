@@ -194,11 +194,34 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
         projectType: `${SPORTS_DATA[estimate.sport].label} Facility`,
         facilitySize: `${results.grossSF} sq ft`,
         totalInvestment: results.capexTotal,
+        monthlyRevenue: results.revenueMonthly,
+        monthlyOpex: results.opexMonthly,
         annualRevenue: results.revenueMonthly * 12,
         roi: results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0,
-        paybackPeriod: results.breakEvenMonths,
+        breakEvenMonths: results.breakEvenMonths,
+        totalSquareFootage: results.grossSF,
         source: 'quick-estimate',
         timestamp: new Date().toISOString(),
+        reportData: {
+          selectedSports: [estimate.sport],
+          businessModel: SPORTS_DATA[estimate.sport].label,
+          locationType: estimate.location,
+          financialMetrics: {
+            capexTotal: results.capexTotal,
+            revenueMonthly: results.revenueMonthly,
+            opexMonthly: results.opexMonthly,
+            ebitdaMonthly: results.ebitdaMonthly,
+            breakEvenMonths: results.breakEvenMonths,
+            grossSF: results.grossSF
+          },
+          wizardResponses: {
+            sport: estimate.sport,
+            size: estimate.size,
+            location: estimate.location,
+            budget: estimate.budget
+          },
+          recommendations: {}
+        }
       });
     } catch (error) {
       console.error('Error dispatching lead:', error);
