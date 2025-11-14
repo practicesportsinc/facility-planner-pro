@@ -187,19 +187,24 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
   const handleLeadSubmit = async (leadData: any) => {
     track('lead_captured_pdf', { ...leadData, estimate });
     
-    // Dispatch to Make.com
+    // Dispatch lead to Google Sheets
     try {
-      await dispatchLead({
-        ...leadData,
-        projectType: `${SPORTS_DATA[estimate.sport].label} Facility`,
-        facilitySize: `${results.grossSF} sq ft`,
+      const dispatchResult = await dispatchLead({
+        firstName: leadData.name.split(' ')[0],
+        lastName: leadData.name.split(' ').slice(1).join(' '),
+        email: leadData.email,
+        phone: leadData.phone,
+        city: leadData.city,
+        state: leadData.state,
+        projectType: SPORTS_DATA[estimate.sport].label,
+        facilitySize: SIZE_DATA[estimate.size].label,
+        sports: [SPORTS_DATA[estimate.sport].label],
+        totalSquareFootage: results.grossSF,
         totalInvestment: results.capexTotal,
         monthlyRevenue: results.revenueMonthly,
         monthlyOpex: results.opexMonthly,
-        annualRevenue: results.revenueMonthly * 12,
         roi: results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0,
-        breakEvenMonths: results.breakEvenMonths,
-        totalSquareFootage: results.grossSF,
+        breakEvenMonths: results.breakEvenMonths || undefined,
         source: 'quick-estimate',
         timestamp: new Date().toISOString(),
         reportData: {
@@ -223,6 +228,13 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
           recommendations: {}
         }
       });
+      
+      if (dispatchResult.success) {
+        console.log('✅ Lead captured successfully:', dispatchResult.leadId);
+        console.log('📄 Report URL:', dispatchResult.reportUrl);
+      } else {
+        console.error('❌ Lead dispatch failed');
+      }
     } catch (error) {
       console.error('Error dispatching lead:', error);
     }
