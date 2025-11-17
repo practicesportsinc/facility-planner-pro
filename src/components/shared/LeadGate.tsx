@@ -25,6 +25,7 @@ interface LeadGateProps {
   showOptionalFields?: boolean;
   showMessageField?: boolean;
   showPartnershipField?: boolean;
+  showOutreachField?: boolean;
   submitButtonText?: string;
   showCancelButton?: boolean;
   cancelButtonText?: string;
@@ -53,6 +54,7 @@ const LeadGate = ({
   showOptionalFields = true,
   showMessageField = false,
   showPartnershipField = false,
+  showOutreachField = true,
   submitButtonText = "Email me this plan",
   showCancelButton = true,
   cancelButtonText = "No thanks, keep exploring"
@@ -346,24 +348,26 @@ const LeadGate = ({
             </div>
           )}
 
-          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-            <div className="space-y-1">
-              <Label htmlFor="outreach" className="font-medium">Supplier Outreach</Label>
-              <p className="text-sm text-muted-foreground">
-                {formData.outreach === 'supplier_outreach' 
-                  ? 'We can connect you with equipment suppliers' 
-                  : 'I prefer to research suppliers myself'
+          {showOutreachField && (
+            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+              <div className="space-y-1">
+                <Label htmlFor="outreach" className="font-medium">Supplier Outreach</Label>
+                <p className="text-sm text-muted-foreground">
+                  {formData.outreach === 'supplier_outreach' 
+                    ? 'We can connect you with equipment suppliers' 
+                    : 'I prefer to research suppliers myself'
+                  }
+                </p>
+              </div>
+              <Switch
+                id="outreach"
+                checked={formData.outreach === 'supplier_outreach'}
+                onCheckedChange={(checked) => 
+                  handleInputChange('outreach', checked ? 'supplier_outreach' : 'self_research')
                 }
-              </p>
+              />
             </div>
-            <Switch
-              id="outreach"
-              checked={formData.outreach === 'supplier_outreach'}
-              onCheckedChange={(checked) => 
-                handleInputChange('outreach', checked ? 'supplier_outreach' : 'self_research')
-              }
-            />
-          </div>
+          )}
         </>
       )}
 

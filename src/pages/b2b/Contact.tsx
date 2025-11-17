@@ -179,6 +179,7 @@ const B2BContact = () => {
           showOptionalFields={true}
           showMessageField={true}
           showPartnershipField={true}
+          showOutreachField={false}
           submitButtonText="Submit"
           showCancelButton={false}
         />
