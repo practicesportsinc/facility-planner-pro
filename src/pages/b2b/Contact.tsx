@@ -176,6 +176,8 @@ const B2BContact = () => {
           description="Tell us about your partnership interest and we'll get back to you shortly."
           showOptionalFields={true}
           showMessageField={true}
+          submitButtonText="Submit"
+          showCancelButton={false}
         />
       </div>
     </Layout>

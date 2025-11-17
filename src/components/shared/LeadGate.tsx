@@ -23,6 +23,9 @@ interface LeadGateProps {
   defaultState?: string;
   showOptionalFields?: boolean;
   showMessageField?: boolean;
+  submitButtonText?: string;
+  showCancelButton?: boolean;
+  cancelButtonText?: string;
 }
 
 interface LeadData {
@@ -45,7 +48,10 @@ const LeadGate = ({
   defaultCity = '',
   defaultState = '',
   showOptionalFields = true,
-  showMessageField = false
+  showMessageField = false,
+  submitButtonText = "Email me this plan",
+  showCancelButton = true,
+  cancelButtonText = "No thanks, keep exploring"
 }: LeadGateProps) => {
   const [formData, setFormData] = useState<LeadData & { website?: string }>({
     name: '',
@@ -323,23 +329,25 @@ const LeadGate = ({
         </>
       )}
 
-      <div className="flex gap-3 pt-4">
+      <div className={showCancelButton ? "flex gap-3 pt-4" : "flex pt-4"}>
         <Button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className="ps-btn primary flex-1"
+          className={showCancelButton ? "ps-btn primary flex-1" : "ps-btn primary w-full"}
         >
-          {isSubmitting ? 'Sending...' : 'Email me this plan'}
+          {isSubmitting ? 'Sending...' : submitButtonText}
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={onClose}
-          className="flex-1"
-          disabled={isSubmitting}
-        >
-          No thanks, keep exploring
-        </Button>
+        {showCancelButton && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            className="flex-1"
+            disabled={isSubmitting}
+          >
+            {cancelButtonText}
+          </Button>
+        )}
       </div>
 
       <Alert>
