@@ -204,6 +204,9 @@ const Partnerships = () => {
               <Link to="/b2b/contact">Apply for Partnership</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
+              <Link to="/b2b/pricing">View Pricing Details</Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
               <a href="https://practicesportsinc.setmore.com/" target="_blank" rel="noopener noreferrer">
                 Schedule Discovery Call
               </a>
