@@ -25,12 +25,12 @@ const Header = () => {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-20 items-center justify-between">
+        <div className="container flex h-28 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <img 
               src="/lovable-uploads/206e396b-a0aa-474d-bf77-f74fe8aa90fc.png" 
               alt="Sports Facility.ai" 
-              className="h-14 md:h-16 w-auto object-contain"
+              className="h-24 md:h-28 w-auto object-contain"
             />
           </Link>
 
