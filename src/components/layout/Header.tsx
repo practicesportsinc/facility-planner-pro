@@ -87,53 +87,17 @@ const Header = () => {
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuTrigger className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black data-[state=open]:bg-white data-[state=open]:text-black h-9 px-3 text-sm">
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  B2B
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[200px] gap-1 p-2 bg-background">
-                    <li>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          to="/b2b/partnerships"
-                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        >
-                          <div className="text-sm font-medium leading-none">Partnerships</div>
-                          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground mt-1">
-                            Partner programs
-                          </p>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                    <li>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          to="/b2b/contact"
-                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        >
-                          <div className="text-sm font-medium leading-none">Contact</div>
-                          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground mt-1">
-                            Get in touch
-                          </p>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                    <li>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          to="/b2b/pricing"
-                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        >
-                          <div className="text-sm font-medium leading-none">Pricing</div>
-                          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground mt-1">
-                            Custom solutions
-                          </p>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                  </ul>
-                </NavigationMenuContent>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
+                >
+                  <Link to="/b2b" className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    B2B
+                  </Link>
+                </Button>
               </NavigationMenuItem>
 
               <NavigationMenuItem>
