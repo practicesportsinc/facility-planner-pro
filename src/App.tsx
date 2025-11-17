@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Home from "./pages/Home";
 import Start from "./pages/Start";
+import About from "./pages/About";
 import Wizard from "./pages/Wizard";
 import WizardResults from "./pages/WizardResults";
 import Admin from "./pages/Admin";
@@ -34,6 +35,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/start" element={<Start />} />
+            <Route path="/about" element={<About />} />
             <Route path="/wizard" element={<Wizard />} />
             <Route path="/wizard/easy/*" element={<EasyWizard />} />
             <Route path="/wizard-results" element={<WizardResults />} />
