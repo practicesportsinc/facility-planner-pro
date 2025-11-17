@@ -43,6 +43,7 @@ const B2BContact = () => {
             state: leadData.state || '',
             location: `${leadData.city || ''}, ${leadData.state || ''}`.trim(),
             allowOutreach: false,
+            message: leadData.message || '',
           },
           facilityDetails: {
             projectType: leadData.partnershipType || 'B2B Partnership Inquiry',
