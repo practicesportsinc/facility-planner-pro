@@ -1,15 +1,11 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calculator, Sparkles, HelpCircle, Briefcase, ChevronDown } from "lucide-react";
-import { QuickEstimatesButton } from "@/components/QuickEstimatesButton";
+import { Calculator, Zap } from "lucide-react";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 
 const Header = () => {
@@ -51,9 +47,9 @@ const Header = () => {
                   asChild
                   className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
                 >
-                  <Link to="/wizard" className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Wizard
+                  <Link to="/start" className="flex items-center gap-2">
+                    <Zap className="h-4 w-4" />
+                    Get Started
                   </Link>
                 </Button>
               </NavigationMenuItem>
@@ -70,38 +66,6 @@ const Header = () => {
                     Calculator
                   </Link>
                 </Button>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
-                >
-                  <Link to="/faq" className="flex items-center gap-2">
-                    <HelpCircle className="h-4 w-4" />
-                    FAQ
-                  </Link>
-                </Button>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
-                >
-                  <Link to="/b2b" className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    B2B
-                  </Link>
-                </Button>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <QuickEstimatesButton />
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
