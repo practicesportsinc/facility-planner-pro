@@ -4,6 +4,7 @@ import React from 'npm:react@18.3.1';
 import { renderAsync } from 'npm:@react-email/components@0.0.22';
 import { CustomerConfirmationEmail } from './_templates/customer-confirmation.tsx';
 import { CompanyNotificationEmail } from './_templates/company-notification.tsx';
+import { B2BConfirmationEmail } from './_templates/b2b-confirmation.tsx';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
@@ -26,6 +27,7 @@ interface EmailPayload {
     state?: string;
     location?: string;
     allowOutreach?: boolean;
+    message?: string;
   };
   facilityDetails?: {
     sport?: string;
@@ -66,14 +68,25 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Render customer confirmation email
-    const customerHtml = await renderAsync(
-      React.createElement(CustomerConfirmationEmail, {
-        customerName: payload.customerName,
-        facilityDetails: payload.facilityDetails,
-        estimates: payload.estimates,
-      })
-    );
+    // Determine if this is a B2B inquiry
+    const isB2BInquiry = payload.source === 'b2b-contact';
+
+    // Render appropriate customer confirmation email based on source
+    const customerHtml = isB2BInquiry
+      ? await renderAsync(
+          React.createElement(B2BConfirmationEmail, {
+            customerName: payload.customerName,
+            partnershipType: payload.facilityDetails?.projectType,
+            message: payload.leadData?.message,
+          })
+        )
+      : await renderAsync(
+          React.createElement(CustomerConfirmationEmail, {
+            customerName: payload.customerName,
+            facilityDetails: payload.facilityDetails,
+            estimates: payload.estimates,
+          })
+        );
 
     // Render company notification email
     const companyHtml = await renderAsync(
@@ -92,7 +105,9 @@ const handler = async (req: Request): Promise<Response> => {
       from: 'Practice Sports <noreply@sportsfacility.ai>',
       to: [payload.customerEmail],
       replyTo: 'info@practicesports.com',
-      subject: 'Thank you for your facility planning request',
+      subject: isB2BInquiry 
+        ? 'Thank you for your partnership inquiry'
+        : 'Thank you for your facility planning request',
       html: customerHtml,
     });
 
