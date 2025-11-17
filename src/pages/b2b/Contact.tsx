@@ -21,6 +21,7 @@ const B2BContact = () => {
           businessName: leadData.business_name || '',
           city: leadData.city || '',
           state: leadData.state || '',
+          message: leadData.message || '',
           source: 'b2b-contact',
           referrer: document.referrer || window.location.href,
         }
@@ -174,6 +175,7 @@ const B2BContact = () => {
           title="B2B Contact Form"
           description="Tell us about your partnership interest and we'll get back to you shortly."
           showOptionalFields={true}
+          showMessageField={true}
         />
       </div>
     </Layout>

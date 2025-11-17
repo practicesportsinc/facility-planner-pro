@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { X, Mail, Phone, MapPin, Calendar, AlertCircle } from "lucide-react";
+import { X, Mail, Phone, MapPin, Calendar, AlertCircle, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { leadSchema, checkRateLimit, recordSubmission, sanitizeLeadData, type LeadFormData } from "@/utils/leadValidation";
 import { z } from "zod";
@@ -21,6 +22,7 @@ interface LeadGateProps {
   defaultCity?: string;
   defaultState?: string;
   showOptionalFields?: boolean;
+  showMessageField?: boolean;
 }
 
 interface LeadData {
@@ -29,6 +31,7 @@ interface LeadData {
   phone?: string;
   city?: string;
   state?: string;
+  message?: string;
   outreach: 'supplier_outreach' | 'self_research';
 }
 
@@ -41,7 +44,8 @@ const LeadGate = ({
   mode = 'modal',
   defaultCity = '',
   defaultState = '',
-  showOptionalFields = true
+  showOptionalFields = true,
+  showMessageField = false
 }: LeadGateProps) => {
   const [formData, setFormData] = useState<LeadData & { website?: string }>({
     name: '',
@@ -49,6 +53,7 @@ const LeadGate = ({
     phone: '',
     city: defaultCity,
     state: defaultState,
+    message: '',
     outreach: 'supplier_outreach',
     website: '' // Honeypot field
   });
@@ -100,6 +105,7 @@ const LeadGate = ({
         business_name: '', // Not collected in LeadGate
         city: formData.city,
         state: formData.state,
+        message: formData.message,
         website: formData.website,
       });
 
@@ -119,6 +125,7 @@ const LeadGate = ({
           phone: sanitized.phone,
           city: sanitized.city,
           state: sanitized.state,
+          message: sanitized.message,
           outreach: formData.outreach,
         });
 
@@ -269,6 +276,31 @@ const LeadGate = ({
               )}
             </div>
           </div>
+
+          {/* Message Field */}
+          {showMessageField && (
+            <div className="space-y-2">
+              <Label htmlFor="message" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Message (Optional)
+              </Label>
+              <Textarea
+                id="message"
+                value={formData.message || ''}
+                onChange={(e) => handleInputChange('message', e.target.value)}
+                placeholder="Tell us about your partnership interest, project details, or any questions..."
+                rows={4}
+                maxLength={1000}
+                className={validationErrors.message ? 'border-destructive' : ''}
+              />
+              {validationErrors.message && (
+                <p className="text-sm text-destructive">{validationErrors.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground text-right">
+                {(formData.message || '').length} / 1000 characters
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
             <div className="space-y-1">
