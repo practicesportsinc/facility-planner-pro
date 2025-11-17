@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calculator, Zap, Menu, X } from "lucide-react";
+import { Calculator, Zap, Menu, Sparkles } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -15,10 +15,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { QuickEstimateFlow } from "@/components/QuickEstimateFlow";
 
 const Header = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [quickEstimateOpen, setQuickEstimateOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -52,12 +55,24 @@ const Header = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => setQuickEstimateOpen(true)}
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Quick Estimate
+                </Button>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <Button
+                  variant="outline"
+                  size="sm"
                   asChild
                   className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
                 >
-                  <Link to="/start" className="flex items-center gap-2">
-                    <Zap className="h-4 w-4" />
-                    Get Started
+                  <Link to="/wizard/easy/start" className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Easy Wizard
                   </Link>
                 </Button>
               </NavigationMenuItem>
@@ -106,13 +121,25 @@ const Header = () => {
                 <Button
                   variant="outline"
                   size="lg"
+                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setQuickEstimateOpen(true);
+                  }}
+                >
+                  <Zap className="h-5 w-5 mr-2" />
+                  Quick Estimate
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
                   asChild
                   className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <Link to="/start" className="flex items-center gap-2">
-                    <Zap className="h-5 w-5" />
-                    Get Started
+                  <Link to="/wizard/easy/start" className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    Easy Wizard
                   </Link>
                 </Button>
                 <Button
@@ -132,6 +159,12 @@ const Header = () => {
           </Sheet>
         </div>
       </header>
+
+      <Dialog open={quickEstimateOpen} onOpenChange={setQuickEstimateOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto p-0 border-0 z-[100]">
+          <QuickEstimateFlow onClose={() => setQuickEstimateOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
