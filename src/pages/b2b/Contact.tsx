@@ -13,7 +13,7 @@ const B2BContact = () => {
   const handleLeadSubmit = async (leadData: any) => {
     try {
       // Call edge function to sync lead
-      const { error } = await supabase.functions.invoke('sync-lead-to-sheets', {
+      const { error: syncError } = await supabase.functions.invoke('sync-lead-to-sheets', {
         body: {
           name: leadData.name,
           email: leadData.email,
@@ -28,7 +28,41 @@ const B2BContact = () => {
         }
       });
 
-      if (error) throw error;
+      if (syncError) throw syncError;
+
+      // Send lead emails (customer confirmation + company notification)
+      try {
+        const emailPayload = {
+          customerEmail: leadData.email,
+          customerName: leadData.name,
+          leadData: {
+            name: leadData.name,
+            email: leadData.email,
+            phone: leadData.phone || '',
+            city: leadData.city || '',
+            state: leadData.state || '',
+            location: `${leadData.city || ''}, ${leadData.state || ''}`.trim(),
+            allowOutreach: false,
+          },
+          facilityDetails: {
+            projectType: leadData.partnershipType || 'B2B Partnership Inquiry',
+          },
+          estimates: null,
+          source: 'b2b-contact',
+        };
+
+        const { error: emailError } = await supabase.functions.invoke('send-lead-emails', {
+          body: emailPayload,
+        });
+
+        if (emailError) {
+          console.error('Email sending failed (non-critical):', emailError);
+        } else {
+          console.log('✅ B2B contact emails sent successfully');
+        }
+      } catch (emailError) {
+        console.error('Email error (non-critical):', emailError);
+      }
 
       toast({
         title: "Message sent successfully!",
