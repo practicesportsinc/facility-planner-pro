@@ -40,6 +40,12 @@ export const leadSchema = z.object({
     .optional()
     .or(z.literal('')),
   
+  message: z.string()
+    .trim()
+    .max(1000, 'Message must be less than 1000 characters')
+    .optional()
+    .or(z.literal('')),
+  
   // Honeypot field - should always be empty
   website: z.string()
     .max(0, 'Invalid submission')
@@ -124,6 +130,7 @@ export const sanitizeLeadData = (data: LeadFormData): LeadFormData => {
     business_name: data.business_name?.trim() || '',
     city: data.city?.trim() || '',
     state: data.state?.trim() || '',
+    message: data.message?.trim() || '',
     website: '', // Always set honeypot to empty
   };
 };
