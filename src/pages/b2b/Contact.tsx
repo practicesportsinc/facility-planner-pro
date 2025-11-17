@@ -173,15 +173,16 @@ const B2BContact = () => {
           isOpen={showLeadGate}
           onClose={() => setShowLeadGate(false)}
           onSubmit={handleLeadSubmit}
-          mode="inline"
+          mode="modal"
           title="B2B Contact Form"
           description="Tell us about your partnership interest and we'll get back to you shortly."
           showOptionalFields={true}
           showMessageField={true}
           showPartnershipField={true}
           showOutreachField={false}
-          submitButtonText="Submit"
-          showCancelButton={false}
+          submitButtonText="Submit Inquiry"
+          showCancelButton={true}
+          cancelButtonText="Cancel"
         />
       </div>
     </Layout>
