@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight, Home, HelpCircle, Briefcase, Handshake, MessageSquare, DollarSign } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -26,6 +26,11 @@ const breadcrumbConfig: BreadcrumbConfig = {
   "glossary": { label: "Glossary" },
   "admin": { label: "Admin" },
   "legal": { label: "Legal" },
+  "faq": { label: "FAQ", icon: HelpCircle },
+  "b2b": { label: "B2B", icon: Briefcase },
+  "b2b/partnerships": { label: "Partnerships", icon: Handshake },
+  "b2b/contact": { label: "Contact", icon: MessageSquare },
+  "b2b/pricing": { label: "Pricing", icon: DollarSign },
 };
 
 export function SiteBreadcrumbs() {

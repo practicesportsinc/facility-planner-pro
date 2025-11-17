@@ -16,6 +16,11 @@ import Glossary from "./pages/Glossary";
 import NotFound from "./pages/NotFound";
 import EasyWizard from "./pages/wizard/EasyWizard";
 import SharedReport from "./pages/SharedReport";
+import FAQ from "./pages/FAQ";
+import B2B from "./pages/b2b/B2B";
+import Partnerships from "./pages/b2b/Partnerships";
+import B2BContact from "./pages/b2b/Contact";
+import B2BPricing from "./pages/b2b/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +44,11 @@ const App = () => (
             <Route path="/glossary" element={<Glossary />} />
             <Route path="/glossary/:slug" element={<Glossary />} />
             <Route path="/report/:id" element={<SharedReport />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/b2b" element={<B2B />} />
+            <Route path="/b2b/partnerships" element={<Partnerships />} />
+            <Route path="/b2b/contact" element={<B2BContact />} />
+            <Route path="/b2b/pricing" element={<B2BPricing />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

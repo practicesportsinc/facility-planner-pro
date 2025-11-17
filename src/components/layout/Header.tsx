@@ -1,8 +1,16 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calculator, Settings, FileText, Sparkles, Zap } from "lucide-react";
+import { Calculator, Sparkles, HelpCircle, Briefcase, ChevronDown } from "lucide-react";
 import { QuickEstimatesButton } from "@/components/QuickEstimatesButton";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 
 const Header = () => {
   const location = useLocation();
@@ -23,44 +31,116 @@ const Header = () => {
             />
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-3">
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
-            >
-              <Link to="/">
-                Home
-              </Link>
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
-            >
-              <Link to="/wizard" className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                Wizard
-              </Link>
-            </Button>
+          <NavigationMenu className="hidden md:flex">
+            <NavigationMenuList className="space-x-2">
+              <NavigationMenuItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
+                >
+                  <Link to="/">Home</Link>
+                </Button>
+              </NavigationMenuItem>
 
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
-            >
-              <Link to="/calculator" className="flex items-center gap-2">
-                <Calculator className="h-4 w-4" />
-                Calculator
-              </Link>
-            </Button>
+              <NavigationMenuItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
+                >
+                  <Link to="/wizard" className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Wizard
+                  </Link>
+                </Button>
+              </NavigationMenuItem>
 
-            <QuickEstimatesButton />
-          </nav>
+              <NavigationMenuItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
+                >
+                  <Link to="/calculator" className="flex items-center gap-2">
+                    <Calculator className="h-4 w-4" />
+                    Calculator
+                  </Link>
+                </Button>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
+                >
+                  <Link to="/faq" className="flex items-center gap-2">
+                    <HelpCircle className="h-4 w-4" />
+                    FAQ
+                  </Link>
+                </Button>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black data-[state=open]:bg-white data-[state=open]:text-black h-9 px-3 text-sm">
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  B2B
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[200px] gap-1 p-2 bg-background">
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          to="/b2b/partnerships"
+                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <div className="text-sm font-medium leading-none">Partnerships</div>
+                          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground mt-1">
+                            Partner programs
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          to="/b2b/contact"
+                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <div className="text-sm font-medium leading-none">Contact</div>
+                          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground mt-1">
+                            Get in touch
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          to="/b2b/pricing"
+                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <div className="text-sm font-medium leading-none">Pricing</div>
+                          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground mt-1">
+                            Custom solutions
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <QuickEstimatesButton />
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
       </header>
     </>
