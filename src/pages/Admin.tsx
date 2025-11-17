@@ -1,68 +1,32 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Layout from "@/components/layout/Layout";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 import { Settings, Database, Users, Download, Mail, RefreshCw } from "lucide-react";
 import { MakeWebhookSettings } from "@/components/admin/MakeWebhookSettings";
 import { LeadSyncMonitor } from "@/components/admin/LeadSyncMonitor";
 import { LeadSyncSettings } from "@/components/admin/LeadSyncSettings";
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Simple mock authentication for demo
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <Layout>
-        <div className="min-h-[80vh] flex items-center justify-center px-4">
-          <Card className="w-full max-w-md shadow-custom-lg">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Admin Login</CardTitle>
-              <CardDescription>
-                Access the administrative dashboard
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Username</label>
-                <input 
-                  type="text" 
-                  className="w-full p-3 border rounded-md"
-                  placeholder="Enter username"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Password</label>
-                <input 
-                  type="password" 
-                  className="w-full p-3 border rounded-md"
-                  placeholder="Enter password"
-                />
-              </div>
-              <Button variant="hero" className="w-full" onClick={handleLogin}>
-                Login
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
+  const { user, signOut } = useAuth();
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
-            Manage cost libraries, presets, and customer leads
-          </p>
-        </div>
+    <ProtectedRoute requireRole="admin">
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                Logged in as: {user?.email}
+              </p>
+            </div>
+            <Button variant="outline" onClick={() => signOut()}>
+              Sign Out
+            </Button>
+          </div>
 
         <Tabs defaultValue="settings" className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
@@ -257,8 +221,9 @@ const Admin = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </Layout>
+        </div>
+      </Layout>
+    </ProtectedRoute>
   );
 };
 
