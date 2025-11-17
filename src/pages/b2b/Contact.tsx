@@ -22,6 +22,7 @@ const B2BContact = () => {
           city: leadData.city || '',
           state: leadData.state || '',
           message: leadData.message || '',
+          partnershipType: leadData.partnershipType || '',
           source: 'b2b-contact',
           referrer: document.referrer || window.location.href,
         }
@@ -172,10 +173,12 @@ const B2BContact = () => {
           isOpen={showLeadGate}
           onClose={() => setShowLeadGate(false)}
           onSubmit={handleLeadSubmit}
+          mode="inline"
           title="B2B Contact Form"
           description="Tell us about your partnership interest and we'll get back to you shortly."
           showOptionalFields={true}
           showMessageField={true}
+          showPartnershipField={true}
           submitButtonText="Submit"
           showCancelButton={false}
         />
