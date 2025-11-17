@@ -1,3 +1,6 @@
+import { leadSchema, sanitizeLeadData, checkRateLimit, recordSubmission } from '@/utils/leadValidation';
+import { z } from 'zod';
+
 export interface LeadData {
   // Personal Information
   firstName?: string;
@@ -70,16 +73,46 @@ export const saveWebhookSettings = (settings: WebhookSettings): void => {
 // Dispatch lead data to Supabase Edge Function (syncs to Google Sheets)
 export const dispatchLead = async (leadData: LeadData): Promise<{ success: boolean; reportUrl?: string; leadId?: string; error?: string }> => {
   try {
-    console.log('🚀 [dispatchLead] Starting lead dispatch...', leadData);
+    console.log('🚀 [dispatchLead] Starting lead dispatch with validation...');
 
-    // Prepare payload with consistent field names
-    const payload = {
-      name: leadData.name || `${leadData.firstName || ''} ${leadData.lastName || ''}`.trim(),
+    // Check rate limit
+    const rateLimit = checkRateLimit();
+    if (!rateLimit.allowed) {
+      const resetTime = rateLimit.resetTime?.toLocaleTimeString();
+      console.warn('⚠️ [dispatchLead] Rate limit exceeded');
+      return {
+        success: false,
+        error: `Rate limit exceeded. Please try again after ${resetTime}`
+      };
+    }
+
+    // Prepare name field
+    const fullName = leadData.name || `${leadData.firstName || ''} ${leadData.lastName || ''}`.trim();
+
+    // Validate core lead fields using Zod schema
+    const validatedData = leadSchema.parse({
+      name: fullName,
       email: leadData.email,
-      phone: leadData.phone,
-      business: leadData.projectType,
-      city: leadData.city,
-      state: leadData.state,
+      phone: leadData.phone || '',
+      business_name: leadData.projectType || '',
+      city: leadData.city || '',
+      state: leadData.state || '',
+      website: '', // Honeypot always empty for legitimate submissions
+    });
+
+    // Sanitize validated data
+    const sanitized = sanitizeLeadData(validatedData);
+      
+    console.log('✅ [dispatchLead] Validation passed, preparing payload');
+
+    // Prepare payload with sanitized and validated data
+    const payload = {
+      name: sanitized.name,
+      email: sanitized.email,
+      phone: sanitized.phone,
+      business: sanitized.business_name,
+      city: sanitized.city,
+      state: sanitized.state,
       facilityType: leadData.projectType,
       facilitySize: leadData.facilitySize,
       sports: Array.isArray(leadData.sports) ? leadData.sports.join(', ') : leadData.sports,
@@ -95,35 +128,47 @@ export const dispatchLead = async (leadData: LeadData): Promise<{ success: boole
       reportData: leadData.reportData, // Include full report data for saving
     };
 
-    console.log('📤 [dispatchLead] Sending payload to sync-lead-to-sheets:', JSON.stringify(payload, null, 2));
-    
-    // Use Supabase client for reliable invocation
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(
-      'https://apdxtdarwacdcuhvtaag.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwZHh0ZGFyd2FjZGN1aHZ0YWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyMDI1NjksImV4cCI6MjA3MDc3ODU2OX0.flGfUtz-B-RXJdPX4fnbUil8I23khgtyK29h3AnF0n0'
-    );
-    
-    const { data, error } = await supabase.functions.invoke('sync-lead-to-sheets', {
-      body: payload,
-    });
+      console.log('📤 [dispatchLead] Sending validated payload to sync-lead-to-sheets');
+      
+      // Record submission for rate limiting
+      recordSubmission();
+      
+      // Use Supabase client for reliable invocation
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        'https://apdxtdarwacdcuhvtaag.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwZHh0ZGFyd2FjZGN1aHZ0YWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyMDI1NjksImV4cCI6MjA3MDc3ODU2OX0.flGfUtz-B-RXJdPX4fnbUil8I23khgtyK29h3AnF0n0'
+      );
+      
+      const { data, error } = await supabase.functions.invoke('sync-lead-to-sheets', {
+        body: payload,
+      });
 
-    if (error) {
-      console.error('❌ [dispatchLead] Lead sync failed with error:', error);
+      if (error) {
+        console.error('❌ [dispatchLead] Lead sync failed with error:', error);
+        return { 
+          success: false, 
+          error: error.message || 'Failed to sync lead to Google Sheets'
+        };
+      }
+
+      console.log('✅ [dispatchLead] Success! Result:', data);
       return { 
-        success: false, 
-        error: error.message || 'Failed to sync lead to Google Sheets'
+        success: true,
+        reportUrl: data?.reportUrl,
+        leadId: data?.leadId
       };
-    }
-
-    console.log('✅ [dispatchLead] Success! Result:', data);
-    return { 
-      success: true,
-      reportUrl: data?.reportUrl,
-      leadId: data?.leadId
-    };
 
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errors = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+      console.error('❌ [dispatchLead] Validation failed:', errors);
+      return {
+        success: false,
+        error: `Invalid lead data: ${errors}`
+      };
+    }
+    
     console.error('💥 [dispatchLead] Exception during lead dispatch:', error);
     return { 
       success: false, 

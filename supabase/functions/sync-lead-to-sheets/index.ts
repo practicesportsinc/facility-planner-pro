@@ -6,6 +6,54 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Server-side validation helpers
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+};
+
+const validatePhone = (phone?: string): boolean => {
+  if (!phone) return true;
+  const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+  return phoneRegex.test(phone) && phone.length >= 10 && phone.length <= 20;
+};
+
+const validateName = (name: string): boolean => {
+  const nameRegex = /^[a-zA-Z\s'-]+$/;
+  return nameRegex.test(name) && name.length >= 2 && name.length <= 100;
+};
+
+const sanitizeString = (str: string | undefined): string | undefined => {
+  if (!str) return str;
+  return str.trim().substring(0, 255); // Limit length
+};
+
+const validateLeadData = (data: LeadData): { valid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  if (!data.name || !validateName(data.name)) {
+    errors.push('Invalid name: must be 2-100 characters, letters only');
+  }
+
+  if (!data.email || !validateEmail(data.email)) {
+    errors.push('Invalid email address');
+  }
+
+  if (data.phone && !validatePhone(data.phone)) {
+    errors.push('Invalid phone number format');
+  }
+
+  if (data.city && data.city.length > 100) {
+    errors.push('City name too long');
+  }
+
+  if (data.state && data.state.length > 50) {
+    errors.push('State name too long');
+  }
+
+  return { valid: errors.length === 0, errors };
+};
+
 interface LeadData {
   name: string;
   email: string;
@@ -36,7 +84,36 @@ serve(async (req) => {
   try {
     const leadData: LeadData = await req.json();
     console.log('[sync-lead-to-sheets] ===== FUNCTION TRIGGERED =====');
-    console.log('[sync-lead-to-sheets] Received lead data:', JSON.stringify(leadData, null, 2));
+    console.log('[sync-lead-to-sheets] Received lead data');
+
+    // Validate lead data
+    const validation = validateLeadData(leadData);
+    if (!validation.valid) {
+      console.error('[sync-lead-to-sheets] Validation failed:', validation.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid lead data', 
+          details: validation.errors 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Sanitize string fields
+    const sanitizedData: LeadData = {
+      ...leadData,
+      name: sanitizeString(leadData.name)!,
+      email: sanitizeString(leadData.email)!.toLowerCase(),
+      phone: sanitizeString(leadData.phone),
+      business: sanitizeString(leadData.business),
+      city: sanitizeString(leadData.city),
+      state: sanitizeString(leadData.state),
+    };
+
+    console.log('[sync-lead-to-sheets] Data validated and sanitized successfully');
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -46,30 +123,30 @@ serve(async (req) => {
     let reportId: string | null = null;
 
     // Save full report data if provided
-    if (leadData.reportData) {
+    if (sanitizedData.reportData) {
       console.log('Saving full report data to wizard_submissions');
       const { data: reportSubmission, error: reportError } = await supabase
         .from('wizard_submissions')
         .insert({
-          lead_name: leadData.name,
-          lead_email: leadData.email,
-          lead_phone: leadData.phone,
-          lead_business: leadData.business,
-          facility_type: leadData.facilityType,
-          facility_size: leadData.facilitySize,
-          selected_sports: leadData.reportData.selectedSports || [leadData.sports],
-          total_square_footage: leadData.estimatedSquareFootage,
-          total_investment: leadData.estimatedBudget,
-          monthly_revenue: leadData.estimatedMonthlyRevenue,
-          monthly_opex: leadData.monthlyOpex,
-          break_even_months: leadData.breakEvenMonths,
-          roi_percentage: leadData.estimatedROI,
-          wizard_responses: leadData.reportData.wizardResponses || {},
-          recommendations: leadData.reportData.recommendations || {},
-          business_model: leadData.reportData.businessModel,
-          location_type: leadData.reportData.locationType,
-          timeline: leadData.reportData.timeline,
-          financial_metrics: leadData.reportData.financialMetrics,
+          lead_name: sanitizedData.name,
+          lead_email: sanitizedData.email,
+          lead_phone: sanitizedData.phone,
+          lead_business: sanitizedData.business,
+          facility_type: sanitizedData.facilityType,
+          facility_size: sanitizedData.facilitySize,
+          selected_sports: sanitizedData.reportData.selectedSports || [sanitizedData.sports],
+          total_square_footage: sanitizedData.estimatedSquareFootage,
+          total_investment: sanitizedData.estimatedBudget,
+          monthly_revenue: sanitizedData.estimatedMonthlyRevenue,
+          monthly_opex: sanitizedData.monthlyOpex,
+          break_even_months: sanitizedData.breakEvenMonths,
+          roi_percentage: sanitizedData.estimatedROI,
+          wizard_responses: sanitizedData.reportData.wizardResponses || {},
+          recommendations: sanitizedData.reportData.recommendations || {},
+          business_model: sanitizedData.reportData.businessModel,
+          location_type: sanitizedData.reportData.locationType,
+          timeline: sanitizedData.reportData.timeline,
+          financial_metrics: sanitizedData.reportData.financialMetrics,
         })
         .select('id')
         .single();
@@ -86,22 +163,22 @@ serve(async (req) => {
     const { data: lead, error: insertError } = await supabase
       .from('leads')
       .insert({
-        name: leadData.name,
-        email: leadData.email,
-        phone: leadData.phone,
-        business_name: leadData.business,
-        city: leadData.city,
-        state: leadData.state,
-        facility_type: leadData.facilityType,
-        facility_size: leadData.facilitySize,
-        sports: leadData.sports,
-        estimated_square_footage: leadData.estimatedSquareFootage,
-        estimated_budget: leadData.estimatedBudget,
-        estimated_monthly_revenue: leadData.estimatedMonthlyRevenue,
-        estimated_roi: leadData.estimatedROI,
-        source: leadData.source,
-        user_agent: leadData.userAgent,
-        referrer: leadData.referrer,
+        name: sanitizedData.name,
+        email: sanitizedData.email,
+        phone: sanitizedData.phone,
+        business_name: sanitizedData.business,
+        city: sanitizedData.city,
+        state: sanitizedData.state,
+        facility_type: sanitizedData.facilityType,
+        facility_size: sanitizedData.facilitySize,
+        sports: sanitizedData.sports,
+        estimated_square_footage: sanitizedData.estimatedSquareFootage,
+        estimated_budget: sanitizedData.estimatedBudget,
+        estimated_monthly_revenue: sanitizedData.estimatedMonthlyRevenue,
+        estimated_roi: sanitizedData.estimatedROI,
+        source: sanitizedData.source,
+        user_agent: sanitizedData.userAgent,
+        referrer: sanitizedData.referrer,
         synced_to_google_sheets: false,
       })
       .select()
