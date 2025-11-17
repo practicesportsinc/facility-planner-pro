@@ -1,15 +1,24 @@
 
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calculator, Zap } from "lucide-react";
+import { Calculator, Zap, Menu, X } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const Header = () => {
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -27,6 +36,7 @@ const Header = () => {
             />
           </Link>
 
+          {/* Desktop Navigation */}
           <NavigationMenu className="hidden md:flex">
             <NavigationMenuList className="space-x-2">
               <NavigationMenuItem>
@@ -69,6 +79,59 @@ const Header = () => {
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
+
+          {/* Mobile Navigation */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="md:hidden bg-gradient-primary text-white border-0 shadow-glow"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-64 bg-background">
+              <SheetHeader>
+                <SheetTitle>Navigation</SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col gap-4 mt-8">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Link to="/">Home</Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Link to="/start" className="flex items-center gap-2">
+                    <Zap className="h-5 w-5" />
+                    Get Started
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Link to="/calculator" className="flex items-center gap-2">
+                    <Calculator className="h-5 w-5" />
+                    Calculator
+                  </Link>
+                </Button>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </header>
     </>
