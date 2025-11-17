@@ -201,12 +201,12 @@ const B2BPricing = () => {
               className={tier.highlighted ? "border-primary shadow-xl relative" : ""}
             >
               {tier.badge && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-center py-1.5 text-xs font-bold flex items-center justify-center gap-1 rounded-t-lg">
                   <Star className="h-3 w-3 fill-current" />
                   {tier.badge}
                 </div>
               )}
-              <CardHeader>
+              <CardHeader className={tier.badge ? "pt-8" : ""}>
                 <CardTitle className="text-2xl flex items-center gap-2">
                   {tier.name}
                   {tier.name === "Featured Supplier" && <Star className="h-5 w-5 text-primary fill-current" />}
