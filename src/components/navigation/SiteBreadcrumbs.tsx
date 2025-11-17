@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { ChevronRight, Home, HelpCircle, Briefcase, Handshake, MessageSquare, DollarSign } from "lucide-react";
 import {
   Breadcrumb,
@@ -66,12 +66,14 @@ export function SiteBreadcrumbs() {
                   </BreadcrumbPage>
                 ) : (
                   <>
-                    <BreadcrumbLink 
-                      href={href}
-                      className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-smooth"
-                    >
-                      {Icon && <Icon className="h-4 w-4" />}
-                      {config.label}
+                    <BreadcrumbLink asChild>
+                      <Link 
+                        to={href}
+                        className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-smooth"
+                      >
+                        {Icon && <Icon className="h-4 w-4" />}
+                        {config.label}
+                      </Link>
                     </BreadcrumbLink>
                     <BreadcrumbSeparator>
                       <ChevronRight className="h-4 w-4" />
