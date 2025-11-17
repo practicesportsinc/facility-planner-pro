@@ -30,7 +30,7 @@ const Header = () => {
             <img 
               src="/lovable-uploads/206e396b-a0aa-474d-bf77-f74fe8aa90fc.png" 
               alt="Sports Facility.ai" 
-              className="h-14 md:h-16 w-auto object-contain mix-blend-multiply"
+              className="h-14 md:h-16 w-auto object-contain"
             />
           </Link>
 
