@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,10 +6,12 @@ import Layout from "@/components/layout/Layout";
 import { Calculator, TrendingUp, FileText, Users, Target, Clock, Sparkles, BookOpen } from "lucide-react";
 import QuickEstimatesButton from "@/components/QuickEstimatesButton";
 import { HomeImageScroller } from "@/components/home/HomeImageScroller";
+import { FacilityChatWidget } from "@/components/home/FacilityChatWidget";
 
 
 const Home = () => {
   const navigate = useNavigate();
+  const [showChat, setShowChat] = useState(false);
   
   return (
     <Layout>
@@ -22,17 +25,29 @@ const Home = () => {
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             </p>
             <div className="flex justify-center mt-12">
-              <Card className="max-w-lg w-full shadow-elegant hover:shadow-glow transition-smooth border-2 border-primary/20 bg-gradient-to-br from-background to-card/50 backdrop-blur-sm">
+              <Card className="max-w-4xl w-full shadow-elegant hover:shadow-glow transition-smooth border-2 border-primary/20 bg-gradient-to-br from-background to-card/50 backdrop-blur-sm">
                 <CardContent className="p-10 text-center">
-                  <Button 
-                    variant="hero" 
-                    size="lg" 
-                    onClick={() => navigate('/start')}
-                    className="w-full py-6 px-10 text-xl font-bold mb-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                  >
-                    <Sparkles className="mr-3 h-7 w-7" />
-                    Get Started Free
-                  </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <Button 
+                      variant="hero" 
+                      size="lg" 
+                      onClick={() => setShowChat(true)}
+                      className="py-6 px-6 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-primary"
+                    >
+                      <Sparkles className="mr-3 h-6 w-6" />
+                      Chat with AI
+                    </Button>
+                    <QuickEstimatesButton />
+                    <Button 
+                      variant="hero" 
+                      size="lg" 
+                      onClick={() => navigate('/calculator')}
+                      className="py-6 px-6 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                    >
+                      <Calculator className="mr-3 h-6 w-6" />
+                      Calculator
+                    </Button>
+                  </div>
                   <p className="text-muted-foreground leading-relaxed font-medium">
                     <span className="text-lg">Itemized estimates + full business plan, in minutes.</span><br />
                     <span className="text-primary font-semibold">Real Estate. Op Expenses. Revenue. Equipment.</span>
@@ -202,6 +217,8 @@ const Home = () => {
           </div>
         </div>
       </footer>
+      
+      {showChat && <FacilityChatWidget onClose={() => setShowChat(false)} />}
     </Layout>
   );
 };
