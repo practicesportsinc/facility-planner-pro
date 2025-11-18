@@ -39,6 +39,7 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
   const [showLeadGate, setShowLeadGate] = useState(false);
   const [extractedParams, setExtractedParams] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialMessageSent = useRef(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -52,10 +53,10 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
     saveChatHistory(messages);
   }, [messages]);
 
-  // Handle initial message
+  // Handle initial message - send only once when provided
   useEffect(() => {
-    if (initialMessage && messages.length === 1) {
-      // Send the initial message directly without setting input state
+    if (initialMessage && !initialMessageSent.current) {
+      initialMessageSent.current = true;
       handleSend(initialMessage);
     }
   }, [initialMessage]);

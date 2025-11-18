@@ -8,6 +8,7 @@ import QuickEstimatesButton from "@/components/QuickEstimatesButton";
 import { HomeImageScroller } from "@/components/home/HomeImageScroller";
 import { FacilityChatWidget } from "@/components/home/FacilityChatWidget";
 import { InlineChatInput } from "@/components/home/InlineChatInput";
+import { clearChatHistory } from "@/utils/chatHelpers";
 
 
 const Home = () => {
@@ -16,6 +17,8 @@ const Home = () => {
   const [initialMessage, setInitialMessage] = useState<string | undefined>(undefined);
 
   const handleChatSend = (message: string) => {
+    // Clear any existing chat history to start fresh
+    clearChatHistory();
     setInitialMessage(message);
     setShowChat(true);
   };
