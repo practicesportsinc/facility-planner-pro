@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import {
   ChatMessage,
+  QuickReplyButton,
   streamChat,
   saveChatHistory,
   loadChatHistory,
@@ -62,7 +63,31 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
     }
   }, [initialMessage]);
 
-  const handleSend = async (messageToSend?: string) => {
+  // Parse quick-reply buttons from assistant messages
+  const parseQuickReplies = (content: string): { content: string; quickReplies?: QuickReplyButton[] } => {
+    const delimiter = '[QUICK_REPLIES]';
+    if (!content.includes(delimiter)) {
+      return { content };
+    }
+
+    const parts = content.split(delimiter);
+    const mainContent = parts[0].trim();
+    const repliesJson = parts[1]?.trim();
+
+    if (!repliesJson) {
+      return { content: mainContent };
+    }
+
+    try {
+      const quickReplies = JSON.parse(repliesJson);
+      return { content: mainContent, quickReplies };
+    } catch (e) {
+      console.error('[FacilityChatWidget] Failed to parse quick replies:', e);
+      return { content: mainContent };
+    }
+  };
+
+  const handleSend = async (messageToSend?: string, clearButtons = false) => {
     const messageContent = messageToSend || input.trim();
     if (!messageContent || isStreaming || isGeneratingReport) return;
 
@@ -71,6 +96,19 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
       content: messageContent,
       timestamp: new Date(),
     };
+
+    // If this is a quick-reply button click, clear buttons from the last assistant message
+    if (clearButtons) {
+      setMessages((prev) => {
+        const lastAssistantIndex = prev.length - 1;
+        if (prev[lastAssistantIndex]?.role === 'assistant' && prev[lastAssistantIndex].quickReplies) {
+          return prev.map((m, i) =>
+            i === lastAssistantIndex ? { ...m, quickReplies: undefined } : m
+          );
+        }
+        return prev;
+      });
+    }
 
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
@@ -97,8 +135,22 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
         onDone: () => {
           setIsStreaming(false);
           
+          // Parse quick replies from the complete assistant response
+          const { content: parsedContent, quickReplies } = parseQuickReplies(assistantContent);
+          
+          // Update the last assistant message with parsed content and quick replies
+          setMessages((prev) => {
+            const lastIndex = prev.length - 1;
+            if (prev[lastIndex]?.role === 'assistant') {
+              return prev.map((m, i) =>
+                i === lastIndex ? { ...m, content: parsedContent, quickReplies } : m
+              );
+            }
+            return prev;
+          });
+          
           // Check if this is the trigger message for report generation
-          if (assistantContent.includes("Perfect! I have everything I need. Let me generate your personalized facility report")) {
+          if (parsedContent.includes("Perfect! I have everything I need. Let me generate your personalized facility report")) {
             handleTriggerLeadCapture();
           }
         },
@@ -362,19 +414,38 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
+          <div key={index} className="space-y-2">
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                message.role === 'user'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-foreground'
-              }`}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              <div
+                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-foreground'
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              </div>
             </div>
+
+            {/* Quick-reply buttons (only for assistant messages) */}
+            {message.role === 'assistant' && message.quickReplies && message.quickReplies.length > 0 && (
+              <div className="flex flex-wrap gap-2 ml-2">
+                {message.quickReplies.map((reply) => (
+                  <Button
+                    key={reply.id}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSend(reply.value, true)}
+                    disabled={isStreaming || isGeneratingReport}
+                    className="text-xs px-3 py-1.5 h-auto rounded-full border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all"
+                  >
+                    {reply.label}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         ))}
 
