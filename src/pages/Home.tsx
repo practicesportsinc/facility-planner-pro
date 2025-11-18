@@ -7,11 +7,18 @@ import { Calculator, TrendingUp, FileText, Users, Target, Clock, Sparkles, BookO
 import QuickEstimatesButton from "@/components/QuickEstimatesButton";
 import { HomeImageScroller } from "@/components/home/HomeImageScroller";
 import { FacilityChatWidget } from "@/components/home/FacilityChatWidget";
+import { InlineChatInput } from "@/components/home/InlineChatInput";
 
 
 const Home = () => {
   const navigate = useNavigate();
   const [showChat, setShowChat] = useState(false);
+  const [initialMessage, setInitialMessage] = useState<string | undefined>(undefined);
+
+  const handleChatSend = (message: string) => {
+    setInitialMessage(message);
+    setShowChat(true);
+  };
   
   return (
     <Layout>
@@ -24,36 +31,21 @@ const Home = () => {
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             </p>
-            <div className="flex justify-center mt-12">
-              <Card className="max-w-4xl w-full shadow-elegant hover:shadow-glow transition-smooth border-2 border-primary/20 bg-gradient-to-br from-background to-card/50 backdrop-blur-sm">
-                <CardContent className="p-10 text-center">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <Button 
-                      variant="hero" 
-                      size="lg" 
-                      onClick={() => setShowChat(true)}
-                      className="py-6 px-6 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-primary"
-                    >
-                      <Sparkles className="mr-3 h-6 w-6" />
-                      Chat with AI
-                    </Button>
-                    <QuickEstimatesButton />
-                    <Button 
-                      variant="hero" 
-                      size="lg" 
-                      onClick={() => navigate('/calculator')}
-                      className="py-6 px-6 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                    >
-                      <Calculator className="mr-3 h-6 w-6" />
-                      Calculator
-                    </Button>
-                  </div>
-                  <p className="text-muted-foreground leading-relaxed font-medium">
-                    <span className="text-lg">Itemized estimates + full business plan, in minutes.</span><br />
-                    <span className="text-primary font-semibold">Real Estate. Op Expenses. Revenue. Equipment.</span>
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="mt-12">
+              <InlineChatInput onSend={handleChatSend} />
+              
+              <div className="flex justify-center gap-4 max-w-2xl mx-auto mt-6">
+                <QuickEstimatesButton />
+                <Button 
+                  variant="hero" 
+                  size="lg" 
+                  onClick={() => navigate('/calculator')}
+                  className="py-6 px-6 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                >
+                  <Calculator className="mr-3 h-6 w-6" />
+                  Calculator
+                </Button>
+              </div>
             </div>
             
             {/* Image Gallery Carousel */}
@@ -218,7 +210,15 @@ const Home = () => {
         </div>
       </footer>
       
-      {showChat && <FacilityChatWidget onClose={() => setShowChat(false)} />}
+      {showChat && (
+        <FacilityChatWidget 
+          onClose={() => {
+            setShowChat(false);
+            setInitialMessage(undefined);
+          }} 
+          initialMessage={initialMessage}
+        />
+      )}
     </Layout>
   );
 };
