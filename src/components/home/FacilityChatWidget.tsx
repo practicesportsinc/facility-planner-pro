@@ -15,6 +15,7 @@ import {
 } from '@/utils/chatHelpers';
 import LeadGate from '@/components/shared/LeadGate';
 import { dispatchLead } from '@/services/leadDispatch';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FacilityChatWidgetProps {
   onClose: () => void;
@@ -197,7 +198,7 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
     try {
       setIsGeneratingReport(true);
       
-      // Dispatch lead to backend (Google Sheets sync + emails)
+      // Step 1: Dispatch lead to backend (Google Sheets sync + DB save)
       await dispatchLead({
         ...leadData,
         sports: extractedParams?.sports || 'Not specified',
@@ -210,6 +211,52 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
         source: 'ai-chat',
         sourceDetail: 'facility-chat-widget',
       });
+      
+      // Step 2: Send lead emails
+      try {
+        console.log('📧 [FacilityChatWidget] Sending lead emails...');
+        
+        const emailPayload = {
+          customerEmail: leadData.email,
+          customerName: leadData.name,
+          leadData: {
+            name: leadData.name,
+            email: leadData.email,
+            phone: leadData.phone || '',
+            city: extractedParams?.city || leadData.city || '',
+            state: extractedParams?.state || leadData.state || '',
+            allowOutreach: true,
+          },
+          facilityDetails: {
+            sport: extractedParams?.sports || 'Multi-sport',
+            projectType: 'Sports Facility',
+            size: extractedParams?.facilitySize || 'Medium',
+            sports: extractedParams?.sports?.split(', ') || [],
+          },
+          estimates: {
+            totalInvestment: extractedParams?.estimatedBudget,
+            monthlyRevenue: extractedParams?.estimatedMonthlyRevenue,
+            annualRevenue: extractedParams?.estimatedMonthlyRevenue 
+              ? extractedParams.estimatedMonthlyRevenue * 12 
+              : undefined,
+          },
+          source: 'ai-chat',
+        };
+
+        const { error: emailError } = await supabase.functions.invoke('send-lead-emails', {
+          body: emailPayload,
+        });
+
+        if (emailError) {
+          console.error('❌ [FacilityChatWidget] Email sending failed:', emailError);
+          // Don't throw - lead was still saved successfully
+        } else {
+          console.log('✅ [FacilityChatWidget] Emails sent successfully');
+        }
+      } catch (emailErr) {
+        console.error('❌ [FacilityChatWidget] Email error:', emailErr);
+        // Continue anyway - lead is saved
+      }
       
       toast({
         title: 'Success!',
