@@ -94,6 +94,36 @@ serve(async (req) => {
 
     console.log(`[facility-chat] Sending ${formattedMessages.length} messages to AI`);
 
+    // Detect conversation stage to provide appropriate quick-reply buttons
+    const conversationText = formattedMessages.map(m => m.content).join(' ').toLowerCase();
+    const hasSports = /basketball|volleyball|pickleball|soccer|tennis|baseball|turf|multi-sport|hockey|lacrosse/i.test(conversationText);
+    const hasSize = /square feet|sq\.? ?ft|small|medium|large|(\d+,?\d*)\s*sf/i.test(conversationText);
+    const hasLocation = /[A-Z][a-z]+,?\s+[A-Z]{2}/.test(formattedMessages.map(m => m.content).join(' '));
+    const hasBudget = /budget|\$\d|million|cost|afford/i.test(conversationText);
+    
+    let stageGuidance = '';
+    if (formattedMessages.length <= 2 && !hasSports) {
+      stageGuidance = `First message - offer path selection buttons:
+[QUICK_REPLIES]
+[{"id":"quick","label":"Quick Estimate 🚀","value":"I want a quick cost estimate"},{"id":"easy","label":"Easy Wizard 🧙","value":"Guide me step-by-step"},{"id":"calc","label":"Full Calculator 🧮","value":"I want detailed customization"}]`;
+    } else if (!hasSports) {
+      stageGuidance = `No sports collected yet - offer sport buttons:
+[QUICK_REPLIES]
+[{"id":"basketball","label":"Basketball 🏀","value":"Basketball"},{"id":"volleyball","label":"Volleyball 🏐","value":"Volleyball"},{"id":"pickleball","label":"Pickleball 🏓","value":"Pickleball"},{"id":"soccer","label":"Soccer ⚽","value":"Indoor soccer/turf"},{"id":"multi","label":"Multi-Sport 🏟️","value":"Multiple sports"}]`;
+    } else if (!hasSize) {
+      stageGuidance = `Sports collected, need size - offer size buttons:
+[QUICK_REPLIES]
+[{"id":"small","label":"Small (10k-25k sf)","value":"Small facility, around 15,000 square feet"},{"id":"medium","label":"Medium (25k-50k sf)","value":"Medium sized, around 35,000 square feet"},{"id":"large","label":"Large (50k+ sf)","value":"Large facility, 60,000+ square feet"}]`;
+    } else if (!hasLocation) {
+      stageGuidance = `Sports and size collected, need location - offer location buttons:
+[QUICK_REPLIES]
+[{"id":"tx","label":"Texas","value":"Texas"},{"id":"ca","label":"California","value":"California"},{"id":"fl","label":"Florida","value":"Florida"},{"id":"ny","label":"New York","value":"New York"},{"id":"custom","label":"Other location","value":"Let me enter my city and state"}]`;
+    } else if (!hasBudget) {
+      stageGuidance = `Sports, size, location collected - optional budget buttons:
+[QUICK_REPLIES]
+[{"id":"under1m","label":"Under $1M","value":"Budget is under $1 million"},{"id":"1to3m","label":"$1M-$3M","value":"Budget is $1-3 million"},{"id":"3to5m","label":"$3M-$5M","value":"Budget is $3-5 million"},{"id":"over5m","label":"$5M+","value":"Budget is over $5 million"},{"id":"ready","label":"I'm ready for my report","value":"I have enough information, generate my report"}]`;
+    }
+
     // System prompt for facility planning assistant
     const systemPrompt = `You are a helpful facility planning consultant helping users design their sports facility.
 
@@ -101,10 +131,20 @@ Your goal is to gather the following information through natural conversation:
 1. **Sports/activities** - Which sports or activities they want (basketball, volleyball, pickleball, turf, etc.)
 2. **Facility size** - Square footage or size descriptor (small=10,000-25,000 sf, medium=25,000-50,000 sf, large=50,000+ sf)
 3. **Location** - City and state for accurate cost estimates
-4. **Budget** - Their budget range if known (optional but helpful)
+4. **Budget** - Approximate budget (optional but helpful)
 5. **Timeline** - When they want to open (optional but helpful)
 
 Ask conversational follow-up questions to clarify their vision. Be friendly and helpful.
+
+QUICK-REPLY BUTTON INSTRUCTIONS:
+- After EVERY response, include a [QUICK_REPLIES] section with button options
+- Use the exact format: [QUICK_REPLIES] followed by a JSON array on the next line
+- Buttons help users respond quickly by clicking instead of typing
+- Always provide 3-5 relevant button options based on what information is still needed
+- The button "value" is what gets sent as the user's message when clicked
+- Include emoji in button labels to make them friendly and visual
+
+${stageGuidance}
 
 CRITICAL TRIGGER RULES:
 - Once you have AT MINIMUM collected: (1) at least one sport/activity AND (2) facility size information, you MUST trigger report generation
@@ -112,13 +152,20 @@ CRITICAL TRIGGER RULES:
 "Perfect! I have everything I need. Let me generate your personalized facility report..."
 - Do NOT modify this phrase in any way - it must be exact
 - Do NOT add extra text before or after this phrase
+- Do NOT include [QUICK_REPLIES] when triggering report generation
 - This phrase triggers the lead capture and report generation flow
 
 Example conversation flow:
 User: "I want a basketball facility"
-You: "Great! Basketball is a popular choice. How large of a facility are you thinking? For example, are you looking at something small (10,000-25,000 sq ft), medium (25,000-50,000 sq ft), or large (50,000+ sq ft)?"
+You: "Great! Basketball is a popular choice. How large of a facility are you thinking?"
+[QUICK_REPLIES]
+[{"id":"small","label":"Small (10k-25k sf)","value":"Small facility, around 15,000 square feet"},{"id":"medium","label":"Medium (25k-50k sf)","value":"Medium sized, around 35,000 square feet"},{"id":"large","label":"Large (50k+ sf)","value":"Large facility, 60,000+ square feet"}]
+
 User: "Medium sized, around 40,000 square feet"
 You: "Perfect! And where are you planning to build this facility? The location helps me provide accurate cost estimates."
+[QUICK_REPLIES]
+[{"id":"tx","label":"Texas","value":"Texas"},{"id":"ca","label":"California","value":"California"},{"id":"fl","label":"Florida","value":"Florida"},{"id":"custom","label":"Other location","value":"Let me enter my city and state"}]
+
 User: "Dallas, Texas"
 You: "Perfect! I have everything I need. Let me generate your personalized facility report..."`;
 

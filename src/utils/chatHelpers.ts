@@ -2,10 +2,18 @@
  * Chat streaming utilities for AI facility chat
  */
 
+export interface QuickReplyButton {
+  id: string;
+  label: string;
+  value: string;
+  icon?: string;
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp?: Date;
+  quickReplies?: QuickReplyButton[];
 }
 
 export interface ToolCall {
