@@ -13,6 +13,8 @@ import {
   clearChatHistory,
   FacilityParameters,
 } from '@/utils/chatHelpers';
+import LeadGate from '@/components/shared/LeadGate';
+import { dispatchLead } from '@/services/leadDispatch';
 
 interface FacilityChatWidgetProps {
   onClose: () => void;
@@ -33,6 +35,8 @@ export const FacilityChatWidget = ({ onClose }: FacilityChatWidgetProps) => {
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [showLeadGate, setShowLeadGate] = useState(false);
+  const [extractedParams, setExtractedParams] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -80,11 +84,10 @@ export const FacilityChatWidget = ({ onClose }: FacilityChatWidgetProps) => {
         onDelta: updateAssistant,
         onDone: () => {
           setIsStreaming(false);
-          // Check if AI is ready to generate report
-          const lastMsg = messages[messages.length - 1];
-          if (lastMsg?.content?.includes('Let me generate your personalized facility report')) {
-            // Extract parameters from conversation (simple heuristic for now)
-            handleGenerateReportFromConversation();
+          
+          // Check if this is the trigger message for report generation
+          if (assistantContent.includes("Perfect! I have everything I need. Let me generate your personalized facility report")) {
+            handleTriggerLeadCapture();
           }
         },
         onError: (error) => {
@@ -106,6 +109,115 @@ export const FacilityChatWidget = ({ onClose }: FacilityChatWidgetProps) => {
         description: 'Failed to send message. Please try again.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleTriggerLeadCapture = () => {
+    // Extract parameters from conversation for later use
+    const params = extractParametersFromConversation();
+    setExtractedParams(params);
+    setShowLeadGate(true);
+  };
+
+  const extractParametersFromConversation = () => {
+    const conversationText = messages.map(m => m.content).join(' ').toLowerCase();
+    
+    // Extract sports mentioned in conversation
+    const sportsKeywords: Record<string, string[]> = {
+      basketball: ['basketball', 'hoops'],
+      volleyball: ['volleyball', 'volley'],
+      pickleball: ['pickleball', 'pickle'],
+      turf: ['turf', 'soccer', 'football', 'field'],
+      tennis: ['tennis'],
+      'multi-sport': ['multi-sport', 'multiple sports', 'various sports'],
+    };
+    
+    const detectedSports: string[] = [];
+    Object.entries(sportsKeywords).forEach(([sport, keywords]) => {
+      if (keywords.some(kw => conversationText.includes(kw))) {
+        detectedSports.push(sport);
+      }
+    });
+    
+    const sports = detectedSports.length > 0 ? detectedSports.join(', ') : 'Basketball';
+    
+    // Extract size
+    const sizeMatch = conversationText.match(/(\d+,?\d*)\s*(square feet|sq\.? ?ft?\.?|sf)/i);
+    let squareFootage = sizeMatch ? parseInt(sizeMatch[1].replace(',', '')) : 30000;
+    let facilitySize = 'Medium (25k-50k sf)';
+    
+    if (conversationText.includes('small')) {
+      squareFootage = 15000;
+      facilitySize = 'Small (10k-25k sf)';
+    } else if (conversationText.includes('medium')) {
+      squareFootage = 35000;
+      facilitySize = 'Medium (25k-50k sf)';
+    } else if (conversationText.includes('large') || conversationText.includes('big')) {
+      squareFootage = 60000;
+      facilitySize = 'Large (50k+ sf)';
+    }
+    
+    // Extract location
+    const stateMatch = conversationText.match(/\b(alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|georgia|hawaii|idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|wisconsin|wyoming)\b/i);
+    const cityMatch = conversationText.match(/\bin\s+([a-z\s]+),?\s+(alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|georgia|hawaii|idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|wisconsin|wyoming)\b/i);
+    
+    const city = cityMatch ? cityMatch[1].trim() : '';
+    const state = stateMatch ? stateMatch[0] : '';
+    
+    // Generate simple estimates based on square footage
+    const costPerSqFt = 200; // Average cost per sq ft for sports facilities
+    const equipmentCost = squareFootage * 50;
+    const totalCost = squareFootage * costPerSqFt + equipmentCost;
+    const monthlyRevenue = squareFootage * 3; // $3 per sq ft monthly revenue estimate
+    
+    return {
+      sports,
+      facilitySize,
+      squareFootage,
+      city,
+      state,
+      estimatedBudget: totalCost,
+      estimatedMonthlyRevenue: monthlyRevenue,
+      equipmentCost,
+    };
+  };
+
+  const handleLeadSubmit = async (leadData: any) => {
+    try {
+      setIsGeneratingReport(true);
+      
+      // Dispatch lead to backend (Google Sheets sync + emails)
+      await dispatchLead({
+        ...leadData,
+        sports: extractedParams?.sports || 'Not specified',
+        facilitySize: extractedParams?.facilitySize || 'Not specified',
+        estimatedBudget: extractedParams?.estimatedBudget || 0,
+        estimatedMonthlyRevenue: extractedParams?.estimatedMonthlyRevenue || 0,
+        estimatedSquareFootage: extractedParams?.squareFootage || 0,
+        city: extractedParams?.city || leadData.city,
+        state: extractedParams?.state || leadData.state,
+        source: 'ai-chat',
+        sourceDetail: 'facility-chat-widget',
+      });
+      
+      toast({
+        title: 'Success!',
+        description: 'Your facility report has been sent to your email.',
+      });
+      
+      // Close widget and clear chat
+      clearChatHistory();
+      setShowLeadGate(false);
+      onClose();
+      
+    } catch (error) {
+      console.error('Error submitting lead:', error);
+      toast({
+        title: 'Error',
+        description: 'There was an issue generating your report. Please try again.',
+        variant: 'destructive',
+      });
+      setIsGeneratingReport(false);
     }
   };
 
@@ -160,7 +272,8 @@ export const FacilityChatWidget = ({ onClose }: FacilityChatWidgetProps) => {
   };
 
   return (
-    <Card className="fixed inset-0 md:inset-auto md:bottom-4 md:right-4 md:w-[450px] md:h-[600px] flex flex-col shadow-2xl border-primary/20 z-50">
+    <>
+      <Card className="fixed inset-0 md:inset-auto md:bottom-4 md:right-4 md:w-[450px] md:h-[600px] flex flex-col shadow-2xl border-primary/20 z-50">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-gradient-primary text-primary-foreground">
         <div className="flex items-center gap-2">
@@ -257,5 +370,17 @@ export const FacilityChatWidget = ({ onClose }: FacilityChatWidgetProps) => {
         </form>
       </div>
     </Card>
+
+    {/* Lead Gate Modal */}
+    <LeadGate
+      isOpen={showLeadGate}
+      onClose={() => setShowLeadGate(false)}
+      onSubmit={handleLeadSubmit}
+      mode="modal"
+      title="Get Your Personalized Facility Report"
+      description="Enter your contact information to receive your detailed facility plan and cost estimates."
+      submitButtonText={isGeneratingReport ? "Generating Report..." : "Generate Report"}
+    />
+    </>
   );
 };
