@@ -2,9 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { X, Send, Sparkles, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import {
   ChatMessage,
   QuickReplyButton,
@@ -30,8 +33,28 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
     return [
       {
         role: 'assistant',
-        content: "Hi! I'm here to help you plan your sports facility. Tell me about your vision - what sports are you interested in?",
+        content: "Welcome! I'm here to help you plan your sports facility. Let's get started by choosing your planning mode:",
         timestamp: new Date(),
+        quickReplies: [
+          {
+            id: 'fast',
+            label: '⚡ Fast / Basic',
+            value: 'I want the Fast / Basic mode - give me a quick estimate',
+            icon: '⚡'
+          },
+          {
+            id: 'advanced',
+            label: '🎯 Advanced',
+            value: 'I want the Advanced mode - guide me through more details',
+            icon: '🎯'
+          },
+          {
+            id: 'expert',
+            label: '🔬 Expert / Detailed',
+            value: 'I want the Expert / Detailed mode - full comprehensive analysis',
+            icon: '🔬'
+          }
+        ]
       },
     ];
   });
@@ -40,6 +63,7 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [showLeadGate, setShowLeadGate] = useState(false);
   const [extractedParams, setExtractedParams] = useState<any>(null);
+  const [selectedMode, setSelectedMode] = useState<'fast' | 'advanced' | 'expert' | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initialMessageSent = useRef(false);
   const { toast } = useToast();
@@ -62,6 +86,18 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
       handleSend(initialMessage);
     }
   }, [initialMessage]);
+
+  // Detect mode from messages
+  useEffect(() => {
+    const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+    if (/fast.*basic/i.test(lastUserMsg) && !selectedMode) {
+      setSelectedMode('fast');
+    } else if (/advanced.*mode/i.test(lastUserMsg) && !selectedMode) {
+      setSelectedMode('advanced');
+    } else if (/expert.*detailed/i.test(lastUserMsg) && !selectedMode) {
+      setSelectedMode('expert');
+    }
+  }, [messages, selectedMode]);
 
   // Parse quick-reply buttons from assistant messages
   const parseQuickReplies = (content: string): { content: string; quickReplies?: QuickReplyButton[] } => {
@@ -371,14 +407,69 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
     setMessages([
       {
         role: 'assistant',
-        content: "Hi! I'm here to help you plan your sports facility. Tell me about your vision - what sports are you interested in?",
+        content: "Welcome! I'm here to help you plan your sports facility. Let's get started by choosing your planning mode:",
         timestamp: new Date(),
+        quickReplies: [
+          {
+            id: 'fast',
+            label: '⚡ Fast / Basic',
+            value: 'I want the Fast / Basic mode - give me a quick estimate',
+            icon: '⚡'
+          },
+          {
+            id: 'advanced',
+            label: '🎯 Advanced',
+            value: 'I want the Advanced mode - guide me through more details',
+            icon: '🎯'
+          },
+          {
+            id: 'expert',
+            label: '🔬 Expert / Detailed',
+            value: 'I want the Expert / Detailed mode - full comprehensive analysis',
+            icon: '🔬'
+          }
+        ]
       },
     ]);
+    setInput('');
+    setIsStreaming(false);
+    setIsGeneratingReport(false);
+    setShowLeadGate(false);
+    setExtractedParams(null);
+    setSelectedMode(null);
     toast({
       title: 'Chat Reset',
       description: 'Starting a fresh conversation.',
     });
+  };
+
+  // Calculate progress based on mode and collected info
+  const calculateProgress = () => {
+    if (!selectedMode) return 0;
+    
+    const conversationText = messages.map(m => m.content).join(' ').toLowerCase();
+    const hasSports = /basketball|volleyball|pickleball|soccer|tennis|baseball|turf|multi-sport|hockey|lacrosse/i.test(conversationText);
+    const hasSize = /square feet|sq\.? ?ft|small|medium|large|(\d+,?\d*)\s*sf/i.test(conversationText);
+    const hasLocation = /[A-Z][a-z]+,?\s+[A-Z]{2}/.test(messages.map(m => m.content).join(' '));
+    const hasBudget = /budget|\$\d|million|cost|afford/i.test(conversationText);
+    const hasTimeline = /timeline|month|year|soon|immediately/i.test(conversationText);
+    const hasBuildMode = /new construction|retrofit|existing|lease|buy/i.test(conversationText);
+    
+    const required = {
+      fast: 3,
+      advanced: 6,
+      expert: 10
+    }[selectedMode];
+    
+    let collected = 0;
+    if (hasSports) collected++;
+    if (hasSize) collected++;
+    if (hasLocation) collected++;
+    if (hasBudget && selectedMode !== 'fast') collected++;
+    if (hasTimeline && selectedMode !== 'fast') collected++;
+    if (hasBuildMode && selectedMode !== 'fast') collected++;
+    
+    return Math.min((collected / required) * 100, 100);
   };
 
   return (
@@ -386,9 +477,21 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
       <Card className="fixed inset-0 md:inset-auto md:bottom-4 md:right-4 md:w-[450px] md:h-[600px] flex flex-col shadow-2xl border-primary/20 z-50">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-gradient-primary text-primary-foreground">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Sparkles className="h-5 w-5" />
-          <h3 className="font-semibold">AI Facility Planner</h3>
+          <div>
+            <h3 className="font-semibold">AI Facility Planner</h3>
+            {selectedMode && (
+              <Badge 
+                variant={selectedMode === 'fast' ? 'default' : selectedMode === 'advanced' ? 'secondary' : 'outline'}
+                className="text-xs mt-0.5 bg-white/20 hover:bg-white/30"
+              >
+                {selectedMode === 'fast' && '⚡ Fast Mode'}
+                {selectedMode === 'advanced' && '🎯 Advanced Mode'}
+                {selectedMode === 'expert' && '🔬 Expert Mode'}
+              </Badge>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -411,6 +514,16 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
         </div>
       </div>
 
+      {/* Progress Bar for Advanced/Expert modes */}
+      {selectedMode && selectedMode !== 'fast' && (
+        <div className="px-4 pt-3 pb-2 bg-muted/30">
+          <Progress value={calculateProgress()} className="h-1.5" />
+          <p className="text-xs text-muted-foreground mt-1.5">
+            {Math.round(calculateProgress())}% complete
+          </p>
+        </div>
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
@@ -431,19 +544,45 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
 
             {/* Quick-reply buttons (only for assistant messages) */}
             {message.role === 'assistant' && message.quickReplies && message.quickReplies.length > 0 && (
-              <div className="flex flex-wrap gap-2 ml-2">
-                {message.quickReplies.map((reply) => (
-                  <Button
-                    key={reply.id}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSend(reply.value, true)}
-                    disabled={isStreaming || isGeneratingReport}
-                    className="text-xs px-3 py-1.5 h-auto rounded-full border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all"
-                  >
-                    {reply.label}
-                  </Button>
-                ))}
+              <div className={cn(
+                "flex flex-col gap-2 ml-2",
+                index === 0 && "gap-3"
+              )}>
+                {message.quickReplies.map((reply) => {
+                  const isModeButton = ['fast', 'advanced', 'expert'].includes(reply.id);
+                  
+                  return (
+                    <Button
+                      key={reply.id}
+                      variant={isModeButton ? "default" : "outline"}
+                      size={isModeButton ? "lg" : "sm"}
+                      onClick={() => handleSend(reply.value, true)}
+                      disabled={isStreaming || isGeneratingReport}
+                      className={cn(
+                        isModeButton 
+                          ? "w-full justify-start text-left py-6 px-4 h-auto shadow-md hover:shadow-lg transition-all" 
+                          : "text-xs px-3 py-1.5 h-auto rounded-full border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all",
+                        reply.id === 'fast' && "bg-success hover:bg-success/90 text-success-foreground",
+                        reply.id === 'advanced' && "bg-primary hover:bg-primary/90 text-primary-foreground",
+                        reply.id === 'expert' && "bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white"
+                      )}
+                    >
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="font-semibold flex items-center gap-2">
+                          {reply.icon && <span className="text-lg">{reply.icon}</span>}
+                          {reply.label}
+                        </span>
+                        {isModeButton && (
+                          <span className="text-xs opacity-90 font-normal">
+                            {reply.id === 'fast' && '3-4 quick questions • 2 min estimate'}
+                            {reply.id === 'advanced' && '6-8 guided questions • 5 min projection'}
+                            {reply.id === 'expert' && '10+ detailed questions • Complete analysis'}
+                          </span>
+                        )}
+                      </div>
+                    </Button>
+                  );
+                })}
               </div>
             )}
           </div>
