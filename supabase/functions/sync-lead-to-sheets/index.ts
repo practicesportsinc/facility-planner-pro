@@ -1,10 +1,64 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
+import { z } from 'npm:zod@3.22.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Rate limiting: 10 submissions per hour
+const RATE_LIMIT = {
+  requests: 10,
+  windowMinutes: 60
+};
+
+async function checkRateLimit(
+  supabase: any,
+  identifier: string,
+  endpoint: string
+): Promise<{ allowed: boolean; remaining: number }> {
+  const windowStart = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60 * 1000);
+  
+  const { data: rateLimitData, error: rateLimitError } = await supabase
+    .from('rate_limits')
+    .select('request_count, window_start')
+    .eq('identifier', identifier)
+    .eq('endpoint', endpoint)
+    .gte('window_start', windowStart.toISOString())
+    .maybeSingle();
+
+  if (rateLimitError) {
+    console.error('Rate limit check error:', rateLimitError);
+    return { allowed: true, remaining: RATE_LIMIT.requests };
+  }
+
+  if (!rateLimitData) {
+    await supabase.from('rate_limits').insert({
+      identifier,
+      endpoint,
+      request_count: 1,
+      window_start: new Date().toISOString()
+    });
+    return { allowed: true, remaining: RATE_LIMIT.requests - 1 };
+  }
+
+  if (rateLimitData.request_count >= RATE_LIMIT.requests) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  await supabase
+    .from('rate_limits')
+    .update({ request_count: rateLimitData.request_count + 1 })
+    .eq('identifier', identifier)
+    .eq('endpoint', endpoint)
+    .gte('window_start', windowStart.toISOString());
+
+  return { 
+    allowed: true, 
+    remaining: RATE_LIMIT.requests - rateLimitData.request_count - 1 
+  };
+}
 
 // Server-side validation helpers
 const validateEmail = (email: string): boolean => {
@@ -81,10 +135,33 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  );
+
   try {
+    // Rate limiting
+    const identifier = req.headers.get('x-forwarded-for') || 'unknown';
+    const rateLimit = await checkRateLimit(supabase, identifier, 'sync-lead-to-sheets');
+
+    if (!rateLimit.allowed) {
+      console.warn('Rate limit exceeded:', { identifier, endpoint: 'sync-lead-to-sheets' });
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again later.',
+          remaining: 0
+        }),
+        {
+          status: 429,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
     const leadData: LeadData = await req.json();
     console.log('[sync-lead-to-sheets] ===== FUNCTION TRIGGERED =====');
-    console.log('[sync-lead-to-sheets] Received lead data');
+    console.log('[sync-lead-to-sheets] Received lead data. Remaining:', rateLimit.remaining);
 
     // Validate lead data
     const validation = validateLeadData(leadData);
@@ -114,11 +191,6 @@ serve(async (req) => {
     };
 
     console.log('[sync-lead-to-sheets] Data validated and sanitized successfully');
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     let reportId: string | null = null;
 

@@ -1,5 +1,7 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from 'npm:resend@4.0.0';
+import { z } from 'npm:zod@3.22.4';
 import React from 'npm:react@18.3.1';
 import { renderAsync } from 'npm:@react-email/components@0.0.22';
 import { CustomerConfirmationEmail } from './_templates/customer-confirmation.tsx';
@@ -13,8 +15,93 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting: 5 emails per hour
+const RATE_LIMIT = {
+  requests: 5,
+  windowMinutes: 60
+};
+
 // Configure your company email here
 const COMPANY_EMAIL = 'chad@sportsfacility.ai';
+
+// Validation schema
+const EmailPayloadSchema = z.object({
+  customerEmail: z.string().email().max(255),
+  customerName: z.string().min(1).max(200),
+  leadData: z.object({
+    name: z.string().min(1).max(200),
+    email: z.string().email().max(255),
+    phone: z.string().max(50).optional(),
+    city: z.string().max(100).optional(),
+    state: z.string().max(50).optional(),
+    location: z.string().max(200).optional(),
+    allowOutreach: z.boolean().optional(),
+    message: z.string().max(5000).optional()
+  }),
+  facilityDetails: z.object({
+    sport: z.string().max(100).optional(),
+    projectType: z.string().max(100).optional(),
+    size: z.string().max(100).optional(),
+    buildMode: z.string().max(100).optional(),
+    sports: z.array(z.string()).optional()
+  }).optional(),
+  estimates: z.object({
+    totalInvestment: z.number().positive().optional(),
+    annualRevenue: z.number().positive().optional(),
+    monthlyRevenue: z.number().positive().optional(),
+    roi: z.number().optional(),
+    paybackPeriod: z.union([z.number(), z.string()]).optional(),
+    breakEven: z.union([z.number(), z.string()]).optional()
+  }).optional(),
+  source: z.string().min(1).max(100)
+});
+
+async function checkRateLimit(
+  supabase: any,
+  identifier: string,
+  endpoint: string
+): Promise<{ allowed: boolean; remaining: number }> {
+  const windowStart = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60 * 1000);
+  
+  const { data: rateLimitData, error: rateLimitError } = await supabase
+    .from('rate_limits')
+    .select('request_count, window_start')
+    .eq('identifier', identifier)
+    .eq('endpoint', endpoint)
+    .gte('window_start', windowStart.toISOString())
+    .maybeSingle();
+
+  if (rateLimitError) {
+    console.error('Rate limit check error:', rateLimitError);
+    return { allowed: true, remaining: RATE_LIMIT.requests };
+  }
+
+  if (!rateLimitData) {
+    await supabase.from('rate_limits').insert({
+      identifier,
+      endpoint,
+      request_count: 1,
+      window_start: new Date().toISOString()
+    });
+    return { allowed: true, remaining: RATE_LIMIT.requests - 1 };
+  }
+
+  if (rateLimitData.request_count >= RATE_LIMIT.requests) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  await supabase
+    .from('rate_limits')
+    .update({ request_count: rateLimitData.request_count + 1 })
+    .eq('identifier', identifier)
+    .eq('endpoint', endpoint)
+    .gte('window_start', windowStart.toISOString());
+
+  return { 
+    allowed: true, 
+    remaining: RATE_LIMIT.requests - rateLimitData.request_count - 1 
+  };
+}
 
 interface EmailPayload {
   customerEmail: string;
@@ -48,25 +135,39 @@ interface EmailPayload {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const payload: EmailPayload = await req.json();
-    console.log('Processing lead email request from:', payload.source);
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
 
-    // Validate required fields
-    if (!payload.customerEmail || !payload.customerName) {
+  try {
+    // Rate limiting
+    const identifier = req.headers.get('x-forwarded-for') || 'unknown';
+    const rateLimit = await checkRateLimit(supabase, identifier, 'send-lead-emails');
+
+    if (!rateLimit.allowed) {
+      console.warn('Rate limit exceeded:', { identifier, endpoint: 'send-lead-emails' });
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: customerEmail and customerName' }),
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again later.',
+          remaining: 0
+        }),
         {
-          status: 400,
+          status: 429,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
         }
       );
     }
+
+    // Input validation
+    const rawPayload = await req.json();
+    const payload = EmailPayloadSchema.parse(rawPayload);
+
+    console.log('Processing lead email request from:', payload.source, 'Remaining:', rateLimit.remaining);
 
     // Determine if this is a B2B inquiry
     const isB2BInquiry = payload.source === 'b2b-contact';
