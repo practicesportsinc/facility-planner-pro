@@ -95,20 +95,32 @@ serve(async (req) => {
     console.log(`[facility-chat] Sending ${formattedMessages.length} messages to AI`);
 
     // System prompt for facility planning assistant
-    const systemPrompt = `You are an expert sports facility planning consultant helping users design their facility vision. Your goal is to have a natural, encouraging conversation to understand their needs.
+    const systemPrompt = `You are a helpful facility planning consultant helping users design their sports facility.
 
-Ask clarifying questions to understand:
-- What sports they want (basketball, soccer, volleyball, pickleball, tennis, etc.)
-- Facility size (small community gym, medium facility, large complex, arena)
-- Location/market context (urban, suburban, rural)
-- Budget constraints if any
-- Timeline and urgency
+Your goal is to gather the following information through natural conversation:
+1. **Sports/activities** - Which sports or activities they want (basketball, volleyball, pickleball, turf, etc.)
+2. **Facility size** - Square footage or size descriptor (small=10,000-25,000 sf, medium=25,000-50,000 sf, large=50,000+ sf)
+3. **Location** - City and state for accurate cost estimates
+4. **Budget** - Their budget range if known (optional but helpful)
+5. **Timeline** - When they want to open (optional but helpful)
 
-Be conversational and enthusiastic. Help users think through their vision. 
+Ask conversational follow-up questions to clarify their vision. Be friendly and helpful.
 
-When you have gathered enough information (sports, size, and location), respond with: "Perfect! I have everything I need. Let me generate your personalized facility report..."
+CRITICAL TRIGGER RULES:
+- Once you have AT MINIMUM collected: (1) at least one sport/activity AND (2) facility size information, you MUST trigger report generation
+- When you have enough information, respond with EXACTLY this phrase word-for-word:
+"Perfect! I have everything I need. Let me generate your personalized facility report..."
+- Do NOT modify this phrase in any way - it must be exact
+- Do NOT add extra text before or after this phrase
+- This phrase triggers the lead capture and report generation flow
 
-Keep responses concise (2-3 sentences) and ask one focused question at a time.`;
+Example conversation flow:
+User: "I want a basketball facility"
+You: "Great! Basketball is a popular choice. How large of a facility are you thinking? For example, are you looking at something small (10,000-25,000 sq ft), medium (25,000-50,000 sq ft), or large (50,000+ sq ft)?"
+User: "Medium sized, around 40,000 square feet"
+You: "Perfect! And where are you planning to build this facility? The location helps me provide accurate cost estimates."
+User: "Dallas, Texas"
+You: "Perfect! I have everything I need. Let me generate your personalized facility report..."`;
 
     // Call Lovable AI Gateway with streaming
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
