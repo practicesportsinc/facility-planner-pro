@@ -109,9 +109,18 @@ Keep the tone professional but accessible, as if speaking to a potential investo
     return new Response(JSON.stringify({ summary }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('Error in generate-financial-summary function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+  } catch (error: any) {
+    // Log detailed error server-side only
+    console.error('Error in generate-financial-summary function:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Return generic error message to client
+    return new Response(JSON.stringify({ 
+      error: 'An error occurred while generating the financial summary' 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -112,8 +112,12 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (customerEmailResult.error) {
-      console.error('Error sending customer email:', customerEmailResult.error);
-      throw new Error(`Customer email failed: ${customerEmailResult.error.message}`);
+      console.error('Error sending customer email:', {
+        error: customerEmailResult.error,
+        timestamp: new Date().toISOString(),
+        recipient: payload.customerEmail
+      });
+      throw new Error('Failed to send customer confirmation email');
     }
 
     console.log('Customer email sent successfully:', customerEmailResult.data?.id);
@@ -129,7 +133,10 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (companyEmailResult.error) {
-      console.error('Error sending company email:', companyEmailResult.error);
+      console.error('Error sending company email:', {
+        error: companyEmailResult.error,
+        timestamp: new Date().toISOString()
+      });
       // Don't throw here - customer email was successful
     } else {
       console.log('Company email sent successfully:', companyEmailResult.data?.id);
@@ -147,11 +154,17 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error('Error in send-lead-emails function:', error);
+    // Log detailed error server-side only
+    console.error('Error in send-lead-emails function:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Return generic error message to client
     return new Response(
       JSON.stringify({
-        error: error.message || 'Failed to send emails',
-        details: error.toString(),
+        error: 'An error occurred while processing your email request'
       }),
       {
         status: 500,
