@@ -2,10 +2,47 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Send } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface InlineChatInputProps {
   onSend: (message: string) => void;
 }
+
+interface ModeButton {
+  id: 'fast' | 'advanced' | 'expert';
+  icon: string;
+  label: string;
+  description: string;
+  color: string;
+  hoverColor: string;
+}
+
+const modeButtons: ModeButton[] = [
+  {
+    id: 'fast',
+    icon: '⚡',
+    label: 'Fast / Basic',
+    description: '3-4 quick questions • 2 min estimate',
+    color: 'bg-green-500',
+    hoverColor: 'hover:bg-green-600'
+  },
+  {
+    id: 'advanced',
+    icon: '🎯',
+    label: 'Advanced',
+    description: '6-8 guided questions • 5 min projection',
+    color: 'bg-blue-500',
+    hoverColor: 'hover:bg-blue-600'
+  },
+  {
+    id: 'expert',
+    icon: '🔬',
+    label: 'Expert / Detailed',
+    description: '10+ detailed questions • Complete analysis',
+    color: 'bg-purple-500',
+    hoverColor: 'hover:bg-purple-600'
+  }
+];
 
 export const InlineChatInput = ({ onSend }: InlineChatInputProps) => {
   const [input, setInput] = useState("");
@@ -14,6 +51,15 @@ export const InlineChatInput = ({ onSend }: InlineChatInputProps) => {
     if (!input.trim()) return;
     onSend(input.trim());
     setInput("");
+  };
+
+  const handleModeSelect = (mode: 'fast' | 'advanced' | 'expert') => {
+    const modeMessages = {
+      fast: 'I want the Fast / Basic mode - give me a quick estimate',
+      advanced: 'I want the Advanced mode - guide me through more details',
+      expert: 'I want the Expert / Detailed mode - full comprehensive analysis'
+    };
+    onSend(modeMessages[mode]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -38,26 +84,59 @@ export const InlineChatInput = ({ onSend }: InlineChatInputProps) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Describe your facility vision... (e.g., 'I want to build a basketball and volleyball facility in Austin, Texas')"
-              className="min-h-[120px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-base placeholder:text-muted-foreground/60"
+              placeholder="Or describe your facility vision in your own words... (e.g., 'I want to build a basketball and volleyball facility in Austin, Texas')"
+              className="min-h-[100px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-base placeholder:text-muted-foreground/60"
               aria-label="Chat with AI about your facility"
             />
           </div>
-          <div className="flex justify-end px-4 pb-4 pt-0">
-            <Button
-              onClick={handleSubmit}
-              disabled={!input.trim()}
-              className="bg-gradient-primary hover:bg-gradient-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-              size="sm"
-            >
-              <Send className="h-4 w-4 mr-2" />
-              Send
-            </Button>
+          
+          {/* Mode Selection Buttons */}
+          <div className="px-4 pb-4">
+            <div className="mb-3 text-center">
+              <p className="text-sm font-medium text-muted-foreground">
+                Choose your planning mode:
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+              {modeButtons.map((mode) => (
+                <Button
+                  key={mode.id}
+                  onClick={() => handleModeSelect(mode.id)}
+                  className={cn(
+                    "h-auto py-4 px-4 flex flex-col items-start gap-1 text-left",
+                    mode.color,
+                    mode.hoverColor,
+                    "text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  )}
+                >
+                  <span className="font-semibold flex items-center gap-2 text-base">
+                    <span className="text-lg">{mode.icon}</span>
+                    {mode.label}
+                  </span>
+                  <span className="text-xs opacity-90 font-normal">
+                    {mode.description}
+                  </span>
+                </Button>
+              ))}
+            </div>
+            
+            {/* Send button for free-form text */}
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSubmit}
+                disabled={!input.trim()}
+                className="bg-gradient-primary hover:bg-gradient-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                size="sm"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Send Message
+              </Button>
+            </div>
           </div>
         </div>
       </div>
       <p className="text-xs text-muted-foreground text-center mt-3">
-        💡 Chat with our AI to explore your facility options, or use Quick Estimates or Calculator below
+        💡 Start with a planning mode or describe your vision in your own words
       </p>
     </div>
   );
