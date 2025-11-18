@@ -78,12 +78,14 @@ export const FacilityChatWidget = ({ onClose }: FacilityChatWidgetProps) => {
       await streamChat({
         messages: [...messages, userMessage],
         onDelta: updateAssistant,
-        onToolCall: (toolCall, params) => {
-          console.log('[FacilityChatWidget] Tool call received:', toolCall.function.name, params);
-          handleGenerateReport(params);
-        },
         onDone: () => {
           setIsStreaming(false);
+          // Check if AI is ready to generate report
+          const lastMsg = messages[messages.length - 1];
+          if (lastMsg?.content?.includes('Let me generate your personalized facility report')) {
+            // Extract parameters from conversation (simple heuristic for now)
+            handleGenerateReportFromConversation();
+          }
         },
         onError: (error) => {
           console.error('[FacilityChatWidget] Stream error:', error);
@@ -107,25 +109,33 @@ export const FacilityChatWidget = ({ onClose }: FacilityChatWidgetProps) => {
     }
   };
 
-  const handleGenerateReport = (params: FacilityParameters) => {
+  const handleGenerateReportFromConversation = () => {
     setIsGeneratingReport(true);
     
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: 'assistant',
-        content: '✨ Perfect! I have everything I need. Generating your personalized facility report...',
-        timestamp: new Date(),
-      },
-    ]);
+    // Simple heuristic: extract sports from conversation
+    const conversationText = messages.map(m => m.content.toLowerCase()).join(' ');
+    
+    // Extract sports mentioned
+    const sports: string[] = [];
+    const sportKeywords = ['basketball', 'soccer', 'volleyball', 'pickleball', 'tennis', 'baseball', 'hockey', 'lacrosse'];
+    sportKeywords.forEach(sport => {
+      if (conversationText.includes(sport)) {
+        sports.push(sport);
+      }
+    });
 
-    // Navigate to results page with parameters
+    // Default parameters if not enough info
+    const params = {
+      sports: sports.length > 0 ? sports : ['basketball'],
+      facilitySize: 'medium' as const,
+      location: 'average' as const,
+    };
+
+    // Navigate to results page
     const searchParams = new URLSearchParams();
     searchParams.set('sports', params.sports.join(','));
     searchParams.set('size', params.facilitySize);
     searchParams.set('location', params.location);
-    if (params.buildMode) searchParams.set('buildMode', params.buildMode);
-    if (params.budget) searchParams.set('budget', params.budget.toString());
     searchParams.set('source', 'ai-chat');
 
     setTimeout(() => {

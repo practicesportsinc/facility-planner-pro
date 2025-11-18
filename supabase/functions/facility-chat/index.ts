@@ -98,7 +98,9 @@ Ask clarifying questions to understand:
 - Budget constraints if any
 - Timeline and urgency
 
-Be conversational and enthusiastic. Help users think through their vision. When you have enough information about their sports selection, facility size, and location, use the 'generate_facility_report' tool.
+Be conversational and enthusiastic. Help users think through their vision. 
+
+When you have gathered enough information (sports, size, and location), respond with: "Perfect! I have everything I need. Let me generate your personalized facility report..."
 
 Keep responses concise (2-3 sentences) and ask one focused question at a time.`;
 
@@ -116,44 +118,8 @@ Keep responses concise (2-3 sentences) and ask one focused question at a time.`;
           ...formattedMessages
         ],
         stream: true,
-        tools: [
-          {
-            type: 'function',
-            name: 'generate_facility_report',
-            description: 'Generate a detailed facility estimate when you have gathered sufficient information about the user\'s goals',
-            parameters: {
-              type: 'object',
-              properties: {
-                sports: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  description: 'Selected sports (basketball, soccer, volleyball, pickleball, tennis, etc.)'
-                },
-                facilitySize: {
-                  type: 'string',
-                  enum: ['small', 'medium', 'large', 'giant', 'arena'],
-                  description: 'Facility size category'
-                },
-                location: {
-                  type: 'string',
-                  enum: ['low', 'average', 'high', 'premium'],
-                  description: 'Location cost tier based on market context'
-                },
-                buildMode: {
-                  type: 'string',
-                  enum: ['build', 'buy', 'lease'],
-                  description: 'Development approach (default to build if not specified)'
-                },
-                budget: {
-                  type: 'number',
-                  description: 'Budget in dollars (optional)'
-                }
-              },
-              required: ['sports', 'facilitySize', 'location']
-            }
-          }
-        ],
-        tool_choice: 'auto'
+        temperature: 0.8,
+        max_tokens: 300
       }),
     });
 
