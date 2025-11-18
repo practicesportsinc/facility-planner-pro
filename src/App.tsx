@@ -4,7 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ChatProvider } from "./contexts/ChatContext";
 import { ScrollToTop } from "./components/layout/ScrollToTop";
+import { GlobalChatWidget } from "./components/chat/GlobalChatWidget";
 import Home from "./pages/Home";
 import Start from "./pages/Start";
 import About from "./pages/About";
@@ -29,34 +31,37 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/start" element={<Start />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/wizard" element={<Wizard />} />
-            <Route path="/wizard/easy/*" element={<EasyWizard />} />
-            <Route path="/wizard-results" element={<WizardResults />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/legal" element={<Legal />} />
-            <Route path="/calculator" element={<Calculator />} />
-            <Route path="/glossary" element={<Glossary />} />
-            <Route path="/glossary/:slug" element={<Glossary />} />
-            <Route path="/report/:id" element={<SharedReport />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/b2b" element={<B2B />} />
-            <Route path="/b2b/partnerships" element={<Partnerships />} />
-            <Route path="/b2b/contact" element={<B2BContact />} />
-            <Route path="/b2b/pricing" element={<B2BPricing />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ChatProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/start" element={<Start />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/wizard" element={<Wizard />} />
+              <Route path="/wizard/easy/*" element={<EasyWizard />} />
+              <Route path="/wizard-results" element={<WizardResults />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/legal" element={<Legal />} />
+              <Route path="/calculator" element={<Calculator />} />
+              <Route path="/glossary" element={<Glossary />} />
+              <Route path="/glossary/:slug" element={<Glossary />} />
+              <Route path="/report/:id" element={<SharedReport />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/b2b" element={<B2B />} />
+              <Route path="/b2b/partnerships" element={<Partnerships />} />
+              <Route path="/b2b/contact" element={<B2BContact />} />
+              <Route path="/b2b/pricing" element={<B2BPricing />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <GlobalChatWidget />
+          </BrowserRouter>
+        </TooltipProvider>
+      </ChatProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

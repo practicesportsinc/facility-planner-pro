@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calculator, Zap, Menu, Sparkles } from "lucide-react";
+import { Calculator, Zap, Menu, Sparkles, MessageCircle } from "lucide-react";
+import { useChat } from "@/contexts/ChatContext";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -20,6 +21,7 @@ import { QuickEstimateFlow } from "@/components/QuickEstimateFlow";
 
 const Header = () => {
   const location = useLocation();
+  const { openChat } = useChat();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [quickEstimateOpen, setQuickEstimateOpen] = useState(false);
 
@@ -48,6 +50,18 @@ const Header = () => {
                   className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
                 >
                   <Link to="/">Home</Link>
+                </Button>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openChat()}
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black hover:border hover:border-primary/30"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Chat with AI
                 </Button>
               </NavigationMenuItem>
 
@@ -118,6 +132,20 @@ const Header = () => {
                 >
                   <Link to="/">Home</Link>
                 </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    openChat();
+                  }}
+                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:bg-white hover:text-black"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Chat with AI
+                </Button>
+
                 <Button
                   variant="outline"
                   size="lg"

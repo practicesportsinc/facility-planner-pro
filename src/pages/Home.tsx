@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,21 +5,18 @@ import Layout from "@/components/layout/Layout";
 import { Calculator, TrendingUp, FileText, Users, Target, Clock, Sparkles, BookOpen } from "lucide-react";
 import QuickEstimatesButton from "@/components/QuickEstimatesButton";
 import { HomeImageScroller } from "@/components/home/HomeImageScroller";
-import { FacilityChatWidget } from "@/components/home/FacilityChatWidget";
 import { InlineChatInput } from "@/components/home/InlineChatInput";
 import { clearChatHistory } from "@/utils/chatHelpers";
+import { useChat } from "@/contexts/ChatContext";
 
 
 const Home = () => {
   const navigate = useNavigate();
-  const [showChat, setShowChat] = useState(false);
-  const [initialMessage, setInitialMessage] = useState<string | undefined>(undefined);
+  const { openChat } = useChat();
 
   const handleChatSend = (message: string) => {
-    // Clear any existing chat history to start fresh
     clearChatHistory();
-    setInitialMessage(message);
-    setShowChat(true);
+    openChat(message);
   };
   
   return (
@@ -212,16 +208,6 @@ const Home = () => {
           </div>
         </div>
       </footer>
-      
-      {showChat && (
-        <FacilityChatWidget 
-          onClose={() => {
-            setShowChat(false);
-            setInitialMessage(undefined);
-          }} 
-          initialMessage={initialMessage}
-        />
-      )}
     </Layout>
   );
 };
