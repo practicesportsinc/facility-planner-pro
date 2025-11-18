@@ -73,7 +73,7 @@ serve(async (req) => {
     console.log(`[facility-chat] Processing ${messages.length} messages`);
 
     // Filter and format messages for AI API (remove timestamps, filter out initial assistant greeting)
-    const formattedMessages = messages
+    let formattedMessages = messages
       .filter((msg: any) => {
         // Skip the initial assistant greeting (it's UI-only)
         if (msg.role === 'assistant' && msg.content.includes("Hi! I'm here to help you plan")) {
@@ -85,6 +85,12 @@ serve(async (req) => {
         role: msg.role,
         content: msg.content,
       }));
+
+    // Limit conversation length to prevent overload (keep last 10 messages)
+    if (formattedMessages.length > 10) {
+      console.log(`[facility-chat] Truncating conversation from ${formattedMessages.length} to 10 messages`);
+      formattedMessages = formattedMessages.slice(-10);
+    }
 
     console.log(`[facility-chat] Sending ${formattedMessages.length} messages to AI`);
 
@@ -138,8 +144,14 @@ Keep responses concise (2-3 sentences) and ask one focused question at a time.`;
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+      if (response.status === 500) {
+        return new Response(
+          JSON.stringify({ error: 'AI service is experiencing issues. Please try starting a new conversation.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       return new Response(
-        JSON.stringify({ error: 'Unable to process request' }),
+        JSON.stringify({ error: 'Unable to process request. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
