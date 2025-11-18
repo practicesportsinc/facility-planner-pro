@@ -54,21 +54,19 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
 
   // Handle initial message
   useEffect(() => {
-    if (initialMessage && messages.length === 1 && !input) {
-      // Only send if we have the default system message and no input yet
-      setInput(initialMessage);
-      setTimeout(() => {
-        handleSend();
-      }, 100);
+    if (initialMessage && messages.length === 1) {
+      // Send the initial message directly without setting input state
+      handleSend(initialMessage);
     }
   }, [initialMessage]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isStreaming || isGeneratingReport) return;
+  const handleSend = async (messageToSend?: string) => {
+    const messageContent = messageToSend || input.trim();
+    if (!messageContent || isStreaming || isGeneratingReport) return;
 
     const userMessage: ChatMessage = {
       role: 'user',
-      content: input.trim(),
+      content: messageContent,
       timestamp: new Date(),
     };
 
