@@ -72,6 +72,22 @@ serve(async (req) => {
 
     console.log(`[facility-chat] Processing ${messages.length} messages`);
 
+    // Filter and format messages for AI API (remove timestamps, filter out initial assistant greeting)
+    const formattedMessages = messages
+      .filter((msg: any) => {
+        // Skip the initial assistant greeting (it's UI-only)
+        if (msg.role === 'assistant' && msg.content.includes("Hi! I'm here to help you plan")) {
+          return false;
+        }
+        return true;
+      })
+      .map((msg: any) => ({
+        role: msg.role,
+        content: msg.content,
+      }));
+
+    console.log(`[facility-chat] Sending ${formattedMessages.length} messages to AI`);
+
     // System prompt for facility planning assistant
     const systemPrompt = `You are an expert sports facility planning consultant helping users design their facility vision. Your goal is to have a natural, encouraging conversation to understand their needs.
 
@@ -97,7 +113,7 @@ Keep responses concise (2-3 sentences) and ask one focused question at a time.`;
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          ...messages
+          ...formattedMessages
         ],
         stream: true,
         tools: [
@@ -142,7 +158,8 @@ Keep responses concise (2-3 sentences) and ask one focused question at a time.`;
     });
 
     if (!response.ok) {
-      console.error(`[facility-chat] Lovable AI error: ${response.status}`);
+      const errorText = await response.text().catch(() => 'No error details');
+      console.error(`[facility-chat] Lovable AI error: ${response.status}`, errorText);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'High traffic detected. Please try again in a moment.' }),
