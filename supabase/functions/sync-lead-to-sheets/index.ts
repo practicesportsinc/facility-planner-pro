@@ -226,7 +226,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: 'An error occurred while processing your lead submission'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -276,7 +276,7 @@ async function syncToGoogleSheets(
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error('[syncToGoogleSheets] Token request failed:', errorText);
-      throw new Error(`Failed to get access token: ${errorText}`);
+      throw new Error('Failed to authenticate with Google Sheets');
     }
 
     const { access_token } = await tokenResponse.json();
@@ -326,7 +326,7 @@ async function syncToGoogleSheets(
     if (!appendResponse.ok) {
       const errorText = await appendResponse.text();
       console.error('[syncToGoogleSheets] Append failed:', errorText);
-      throw new Error(`Failed to append to sheet: ${appendResponse.status} ${errorText}`);
+      throw new Error('Failed to save lead data');
     }
 
     const appendResult = await appendResponse.json();

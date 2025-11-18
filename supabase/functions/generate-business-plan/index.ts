@@ -125,10 +125,17 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
-    console.error('Error generating business plan:', error);
-    return new Response(JSON.stringify({ 
+  } catch (error: any) {
+    // Log detailed error server-side only
+    console.error('Error generating business plan:', {
       error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Return generic error message to client
+    return new Response(JSON.stringify({ 
+      error: 'An error occurred while generating your business plan',
       success: false 
     }), {
       status: 500,

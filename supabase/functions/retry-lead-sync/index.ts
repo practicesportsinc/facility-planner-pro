@@ -79,12 +79,19 @@ serve(async (req) => {
         status: 200 
       }
     );
-  } catch (error) {
-    console.error('Error in retry-lead-sync:', error);
+  } catch (error: any) {
+    // Log detailed error server-side only
+    console.error('Error in retry-lead-sync:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Return generic error message to client
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message 
+        error: 'An error occurred while retrying lead sync'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -117,7 +124,8 @@ async function syncToGoogleSheets(leadId: string, leadData: any, supabase: any) 
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      throw new Error(`Failed to get access token: ${errorText}`);
+      console.error('Google token error:', errorText);
+      throw new Error('Failed to authenticate with Google Sheets');
     }
 
     const { access_token } = await tokenResponse.json();
@@ -159,7 +167,8 @@ async function syncToGoogleSheets(leadId: string, leadData: any, supabase: any) 
 
     if (!appendResponse.ok) {
       const errorText = await appendResponse.text();
-      throw new Error(`Failed to append to Google Sheet: ${errorText}`);
+      console.error('Google Sheets append error:', errorText);
+      throw new Error('Failed to save lead data');
     }
 
     console.log(`Successfully synced lead ${leadId} to Google Sheets`);
