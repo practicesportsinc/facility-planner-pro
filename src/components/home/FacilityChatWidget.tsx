@@ -18,9 +18,10 @@ import { dispatchLead } from '@/services/leadDispatch';
 
 interface FacilityChatWidgetProps {
   onClose: () => void;
+  initialMessage?: string;
 }
 
-export const FacilityChatWidget = ({ onClose }: FacilityChatWidgetProps) => {
+export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidgetProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const history = loadChatHistory();
     if (history.length > 0) return history;
@@ -50,6 +51,17 @@ export const FacilityChatWidget = ({ onClose }: FacilityChatWidgetProps) => {
   useEffect(() => {
     saveChatHistory(messages);
   }, [messages]);
+
+  // Handle initial message
+  useEffect(() => {
+    if (initialMessage && messages.length === 1 && !input) {
+      // Only send if we have the default system message and no input yet
+      setInput(initialMessage);
+      setTimeout(() => {
+        handleSend();
+      }, 100);
+    }
+  }, [initialMessage]);
 
   const handleSend = async () => {
     if (!input.trim() || isStreaming || isGeneratingReport) return;
