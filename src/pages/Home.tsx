@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/layout/Layout";
 import { Calculator, TrendingUp, FileText, Users, Target, Clock, Sparkles, BookOpen } from "lucide-react";
-import QuickEstimatesButton from "@/components/QuickEstimatesButton";
+
 import { HomeImageScroller } from "@/components/home/HomeImageScroller";
 import { InlineChatInput } from "@/components/home/InlineChatInput";
 import { clearChatHistory } from "@/utils/chatHelpers";
@@ -32,19 +32,6 @@ const Home = () => {
             </p>
             <div className="mt-12">
               <InlineChatInput onSend={handleChatSend} />
-              
-              <div className="flex justify-center gap-4 max-w-2xl mx-auto mt-6">
-                <QuickEstimatesButton />
-                <Button 
-                  variant="hero" 
-                  size="lg" 
-                  onClick={() => navigate('/calculator')}
-                  className="py-6 px-6 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                >
-                  <Calculator className="mr-3 h-6 w-6" />
-                  Calculator
-                </Button>
-              </div>
             </div>
             
             {/* Image Gallery Carousel */}
