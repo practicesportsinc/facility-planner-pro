@@ -474,7 +474,7 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
 
   return (
     <>
-      <Card className="fixed inset-0 md:inset-auto md:bottom-4 md:right-4 md:w-[450px] md:h-[600px] flex flex-col shadow-2xl border-primary/20 z-50">
+      <Card className="fixed bottom-4 right-4 w-full max-w-md h-[600px] flex flex-col shadow-2xl border-primary/20 z-50">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-gradient-primary text-primary-foreground">
         <div className="flex items-center gap-3">
