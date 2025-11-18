@@ -31,13 +31,11 @@ export interface FacilityParameters {
 export async function streamChat({
   messages,
   onDelta,
-  onToolCall,
   onDone,
   onError,
 }: {
   messages: ChatMessage[];
   onDelta: (text: string) => void;
-  onToolCall?: (toolCall: ToolCall, params: FacilityParameters) => void;
   onDone: () => void;
   onError: (error: Error) => void;
 }) {
@@ -66,8 +64,6 @@ export async function streamChat({
     const decoder = new TextDecoder();
     let textBuffer = '';
     let streamDone = false;
-    let currentToolCall: Partial<ToolCall> | null = null;
-    let toolCallArgs = '';
 
     while (!streamDone) {
       const { done, value } = await reader.read();
@@ -97,37 +93,6 @@ export async function streamChat({
           // Handle text content
           if (delta?.content) {
             onDelta(delta.content);
-          }
-
-          // Handle tool calls
-          if (delta?.tool_calls) {
-            const toolCall = delta.tool_calls[0];
-            
-            if (toolCall?.id) {
-              currentToolCall = {
-                id: toolCall.id,
-                type: 'function',
-                function: {
-                  name: toolCall.function?.name || '',
-                  arguments: '',
-                },
-              };
-              toolCallArgs = '';
-            }
-
-            if (toolCall?.function?.arguments) {
-              toolCallArgs += toolCall.function.arguments;
-            }
-          }
-
-          // Check if tool call is complete (finish_reason includes tool_calls)
-          if (parsed.choices?.[0]?.finish_reason === 'tool_calls' && currentToolCall && onToolCall) {
-            try {
-              const params = JSON.parse(toolCallArgs) as FacilityParameters;
-              onToolCall(currentToolCall as ToolCall, params);
-            } catch (e) {
-              console.error('Failed to parse tool call arguments:', e);
-            }
           }
 
         } catch (e) {
