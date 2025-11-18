@@ -33,8 +33,8 @@ const Header = () => {
         <div className="container flex h-28 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <img 
-              src="/lovable-uploads/206e396b-a0aa-474d-bf77-f74fe8aa90fc.png" 
-              alt="Sports Facility.ai" 
+              src="/images/sportsfacility-logo.png" 
+              alt="SportsFacility.ai - Building the future of modern sports facilities" 
               className="h-24 md:h-28 w-auto object-contain"
             />
           </Link>
