@@ -1,9 +1,3 @@
-import basketballImage from "@/assets/presets/basketball-4-courts.jpg";
-import pickleballImage from "@/assets/presets/pickleball-6-courts.jpg";
-import baseballImage from "@/assets/presets/baseball-8-cages.jpg";
-import multisportImage from "@/assets/presets/multisport-basketball-volleyball.jpg";
-import soccerImage from "@/assets/presets/soccer-small-field.jpg";
-import volleyballImage from "@/assets/presets/volleyball-4-courts.jpg";
 
 export interface PresetCategory {
   id: string;
@@ -61,7 +55,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "basketball-4-court",
     name: "4-Court Basketball Facility",
     description: "Perfect for leagues, tournaments, and open play",
-    image: basketballImage,
+    image: "/images/home-gallery/facility-5.jpg",
     sport: "basketball",
     category: "court-sports",
     configuration: {
@@ -81,7 +75,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "pickleball-6-court",
     name: "6-Court Pickleball Center",
     description: "Growing sport with strong community engagement",
-    image: pickleballImage,
+    image: "/images/home-gallery/facility-5.jpg",
     sport: "pickleball",
     category: "court-sports",
     configuration: {
@@ -101,7 +95,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "baseball-8-cage",
     name: "8-Cage Batting Facility",
     description: "Year-round training for all skill levels",
-    image: baseballImage,
+    image: "/images/home-gallery/facility-1.jpg",
     sport: "baseball",
     category: "training-practice",
     configuration: {
@@ -121,7 +115,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "multisport-basketball-volleyball",
     name: "Multi-Sport Complex",
     description: "2 basketball courts + 4 volleyball courts for maximum versatility",
-    image: multisportImage,
+    image: "/images/home-gallery/facility-5.jpg",
     sport: "multisport",
     category: "multi-sport",
     configuration: {
@@ -142,7 +136,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "soccer-small-field",
     name: "Indoor Soccer Arena",
     description: "Climate-controlled turf for year-round play",
-    image: soccerImage,
+    image: "/images/home-gallery/facility-2.jpg",
     sport: "soccer",
     category: "training-practice",
     configuration: {
@@ -162,7 +156,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "volleyball-4-court",
     name: "4-Court Volleyball Center",
     description: "Dedicated volleyball facility for competitive and recreational play",
-    image: volleyballImage,
+    image: "/images/home-gallery/facility-5.jpg",
     sport: "volleyball",
     category: "court-sports",
     configuration: {
