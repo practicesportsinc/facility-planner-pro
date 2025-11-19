@@ -55,7 +55,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "basketball-4-court",
     name: "4-Court Basketball Facility",
     description: "Perfect for leagues, tournaments, and open play",
-    image: "/images/home-gallery/facility-5.jpg",
+    image: "/images/home-gallery/facility-9.jpg",
     sport: "basketball",
     category: "court-sports",
     configuration: {
@@ -75,7 +75,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "pickleball-6-court",
     name: "6-Court Pickleball Center",
     description: "Growing sport with strong community engagement",
-    image: "/images/home-gallery/facility-5.jpg",
+    image: "/images/home-gallery/facility-6.jpg",
     sport: "pickleball",
     category: "court-sports",
     configuration: {
@@ -115,7 +115,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "multisport-basketball-volleyball",
     name: "Multi-Sport Complex",
     description: "2 basketball courts + 4 volleyball courts for maximum versatility",
-    image: "/images/home-gallery/facility-5.jpg",
+    image: "/images/home-gallery/facility-8.jpg",
     sport: "multisport",
     category: "multi-sport",
     configuration: {
@@ -156,7 +156,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "volleyball-4-court",
     name: "4-Court Volleyball Center",
     description: "Dedicated volleyball facility for competitive and recreational play",
-    image: "/images/home-gallery/facility-5.jpg",
+    image: "/images/home-gallery/facility-7.jpg",
     sport: "volleyball",
     category: "court-sports",
     configuration: {
