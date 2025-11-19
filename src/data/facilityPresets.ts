@@ -5,12 +5,19 @@ import multisportImage from "@/assets/presets/multisport-basketball-volleyball.j
 import soccerImage from "@/assets/presets/soccer-small-field.jpg";
 import volleyballImage from "@/assets/presets/volleyball-4-courts.jpg";
 
+export interface PresetCategory {
+  id: string;
+  title: string;
+  description: string;
+}
+
 export interface FacilityPreset {
   id: string;
   name: string;
   description: string;
   image: string;
   sport: string;
+  category: string;
   configuration: {
     basketball_courts_full?: number;
     basketball_courts_half?: number;
@@ -31,6 +38,24 @@ export interface FacilityPreset {
   popularFeatures: string[];
 }
 
+export const PRESET_CATEGORIES: PresetCategory[] = [
+  {
+    id: "court-sports",
+    title: "Court Sports Facilities",
+    description: "Purpose-built facilities for basketball, volleyball, and pickleball with regulation courts and optimal playing conditions"
+  },
+  {
+    id: "training-practice",
+    title: "Training & Practice Facilities",
+    description: "Year-round training centers focused on skill development, individual coaching, and team practice sessions"
+  },
+  {
+    id: "multi-sport",
+    title: "Multi-Sport Complexes",
+    description: "Versatile facilities designed to host multiple sports with flexible layouts and maximum revenue potential"
+  }
+];
+
 export const FACILITY_PRESETS: FacilityPreset[] = [
   {
     id: "basketball-4-court",
@@ -38,6 +63,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     description: "Perfect for leagues, tournaments, and open play",
     image: basketballImage,
     sport: "basketball",
+    category: "court-sports",
     configuration: {
       basketball_courts_full: 4,
       grossSF: 24000,
@@ -57,6 +83,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     description: "Growing sport with strong community engagement",
     image: pickleballImage,
     sport: "pickleball",
+    category: "court-sports",
     configuration: {
       pickleball_courts: 6,
       grossSF: 12000,
@@ -76,6 +103,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     description: "Year-round training for all skill levels",
     image: baseballImage,
     sport: "baseball",
+    category: "training-practice",
     configuration: {
       baseball_tunnels: 8,
       grossSF: 16000,
@@ -95,6 +123,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     description: "2 basketball courts + 4 volleyball courts for maximum versatility",
     image: multisportImage,
     sport: "multisport",
+    category: "multi-sport",
     configuration: {
       basketball_courts_full: 2,
       volleyball_courts: 4,
@@ -115,6 +144,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     description: "Climate-controlled turf for year-round play",
     image: soccerImage,
     sport: "soccer",
+    category: "training-practice",
     configuration: {
       soccer_field_small: 1,
       grossSF: 22000,
@@ -134,6 +164,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     description: "Dedicated volleyball facility for competitive and recreational play",
     image: volleyballImage,
     sport: "volleyball",
+    category: "court-sports",
     configuration: {
       volleyball_courts: 4,
       grossSF: 18000,
