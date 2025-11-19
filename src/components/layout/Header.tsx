@@ -29,7 +29,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-cyan-500/30 bg-gradient-logo">
+      <header className="sticky top-0 z-50 w-full border-b border-cyan-500/30 bg-black">
         <div className="container flex h-36 md:h-44 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <img 
@@ -47,7 +47,7 @@ const Header = () => {
                   variant="outline"
                   size="sm"
                   asChild
-                  className="bg-black text-white border-0 shadow-glow hover:bg-black/90"
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                 >
                   <Link to="/">Home</Link>
                 </Button>
@@ -58,7 +58,7 @@ const Header = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => openChat()}
-                  className="bg-black text-white border-0 shadow-glow hover:bg-black/90"
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Chat with AI
@@ -70,7 +70,7 @@ const Header = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setQuickEstimateOpen(true)}
-                  className="bg-black text-white border-0 shadow-glow hover:bg-black/90"
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                 >
                   <Zap className="h-4 w-4 mr-2" />
                   Quick Estimate
@@ -82,7 +82,7 @@ const Header = () => {
                   variant="outline"
                   size="sm"
                   asChild
-                  className="bg-black text-white border-0 shadow-glow hover:bg-black/90"
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                 >
                   <Link to="/wizard/easy/start" className="flex items-center gap-2">
                     <Sparkles className="h-4 w-4" />
@@ -96,7 +96,7 @@ const Header = () => {
                   variant="outline"
                   size="sm"
                   asChild
-                  className="bg-black text-white border-0 shadow-glow hover:bg-black/90"
+                  className="bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                 >
                   <Link to="/calculator" className="flex items-center gap-2">
                     <Calculator className="h-4 w-4" />
@@ -113,7 +113,7 @@ const Header = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="md:hidden bg-black text-white border-0 shadow-glow"
+                className="md:hidden bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -127,7 +127,7 @@ const Header = () => {
                   variant="outline"
                   size="lg"
                   asChild
-                  className="w-full justify-start bg-black text-white border-0 shadow-glow hover:bg-black/90"
+                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Link to="/">Home</Link>
@@ -140,7 +140,7 @@ const Header = () => {
                     setMobileMenuOpen(false);
                     openChat();
                   }}
-                  className="w-full justify-start bg-black text-white border-0 shadow-glow hover:bg-black/90"
+                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Chat with AI
@@ -149,7 +149,7 @@ const Header = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="w-full justify-start bg-black text-white border-0 shadow-glow hover:bg-black/90"
+                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                   onClick={() => {
                     setMobileMenuOpen(false);
                     setQuickEstimateOpen(true);
@@ -162,7 +162,7 @@ const Header = () => {
                   variant="outline"
                   size="lg"
                   asChild
-                  className="w-full justify-start bg-black text-white border-0 shadow-glow hover:bg-black/90"
+                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Link to="/wizard/easy/start" className="flex items-center gap-2">
@@ -174,7 +174,7 @@ const Header = () => {
                   variant="outline"
                   size="lg"
                   asChild
-                  className="w-full justify-start bg-black text-white border-0 shadow-glow hover:bg-black/90"
+                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Link to="/calculator" className="flex items-center gap-2">
