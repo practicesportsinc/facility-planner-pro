@@ -84,7 +84,7 @@ export const InlineChatInput = ({ onSend }: InlineChatInputProps) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Or describe your facility vision in your own words... (e.g., 'I want to build a basketball and volleyball facility in Austin, Texas')"
+              placeholder="Describe your facility in your own words e.g. 'I want to open a baseball training facility with 8 cages'"
               className="min-h-[100px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-base placeholder:text-muted-foreground/60"
               aria-label="Chat with AI about your facility"
             />
