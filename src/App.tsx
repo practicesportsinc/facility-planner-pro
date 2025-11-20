@@ -8,6 +8,7 @@ import { ChatProvider } from "./contexts/ChatContext";
 import { ScrollToTop } from "./components/layout/ScrollToTop";
 import { GlobalChatWidget } from "./components/chat/GlobalChatWidget";
 import Home from "./pages/Home";
+import Gallery from "./pages/Gallery";
 import Start from "./pages/Start";
 import About from "./pages/About";
 import Wizard from "./pages/Wizard";
@@ -38,8 +39,9 @@ const App = () => (
           <BrowserRouter>
             <ScrollToTop />
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/start" element={<Start />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/start" element={<Start />} />
               <Route path="/about" element={<About />} />
               <Route path="/wizard" element={<Wizard />} />
               <Route path="/wizard/easy/*" element={<EasyWizard />} />
