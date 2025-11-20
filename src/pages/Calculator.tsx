@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -35,15 +35,110 @@ const STEPS = [
 
 const Calculator = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const projectId = searchParams.get('projectId');
   const mode = searchParams.get('mode');
   const isQuickMode = mode === 'quick';
   const isWizardMode = mode === 'wizard';
   const contentRef = useRef<HTMLDivElement>(null);
   
+  // Get preset data from location state (coming from Gallery)
+  const presetData = location.state?.presetData;
+  const presetId = location.state?.presetId;
+  
   // If it's quick mode, start at the KPI Results step (step 8)
   const [currentStep, setCurrentStep] = useState(isQuickMode || isWizardMode ? 8 : 1);
   const [calculatorData, setCalculatorData] = useState({});
+
+  // Load preset data if coming from Gallery
+  useEffect(() => {
+    if (presetData && presetId) {
+      console.log('Loading preset:', presetId, presetData);
+      
+      // Map preset configuration to calculator format
+      setCalculatorData({
+        1: { // Project Basics
+          projectName: `${presetData.name} Project`,
+          location: '',
+          selectedSports: [presetData.sport],
+          currency: 'USD',
+        },
+        2: { // Build Mode
+          buildMode: 'lease' // Default for presets
+        },
+        3: { // Facility Plan
+          facilityType: 'lease',
+          totalSquareFootage: presetData.configuration.grossSF.toString(),
+          clearHeight: presetData.configuration.clearHeight.toString(),
+          selectedSports: [presetData.sport],
+          amenities: [],
+          // Map sport-specific counts
+          numberOfCourts: presetData.configuration.basketball_courts_full || 
+                          presetData.configuration.volleyball_courts || 
+                          presetData.configuration.pickleball_courts || '',
+          numberOfCages: presetData.configuration.baseball_tunnels || '',
+          numberOfFields: presetData.configuration.soccer_field_small || '',
+          court_or_cage_counts: {
+            basketball_courts_full: presetData.configuration.basketball_courts_full || 0,
+            volleyball_courts: presetData.configuration.volleyball_courts || 0,
+            pickleball_courts: presetData.configuration.pickleball_courts || 0,
+            baseball_tunnels: presetData.configuration.baseball_tunnels || 0,
+            soccer_field_small: presetData.configuration.soccer_field_small || 0,
+          }
+        },
+        4: { // Equipment - defaults based on facility size
+          equipmentCost: Math.round(presetData.configuration.grossSF * 15), // $15/sqft estimate
+          installationEstimate: Math.round(presetData.configuration.grossSF * 3), // $3/sqft install
+          equipmentTotal: Math.round(presetData.configuration.grossSF * 18),
+        },
+        5: { // Staffing & OpEx - defaults
+          gmFte: '1',
+          gmRate: '35',
+          opsLeadFte: '1',
+          opsLeadRate: '28',
+          coachFte: '4',
+          coachRate: '25',
+          frontDeskFte: '2',
+          frontDeskRate: '20',
+          utilities: Math.round(presetData.configuration.grossSF * 2.5).toString(),
+          insurance: Math.round(presetData.configuration.grossSF * 1.2).toString(),
+          propertyTax: Math.round(presetData.configuration.grossSF * 0.8).toString(),
+          maintenance: Math.round(presetData.configuration.grossSF * 1.5).toString(),
+          marketing: '2000',
+          software: '500',
+          janitorial: Math.round(presetData.configuration.grossSF * 0.75).toString(),
+          other: '800',
+        },
+        6: { // Revenue Programs - sport-specific defaults
+          membershipBasic: presetData.sport === 'pickleball' ? '75' : '65',
+          membershipBasicCount: '150',
+          membershipPremium: '125',
+          membershipPremiumCount: '100',
+          membershipFamily: '175',
+          membershipFamilyCount: '75',
+          courtRentalRate: presetData.sport === 'basketball' ? '80' : '60',
+          courtUtilization: '65',
+          privateLessonRate: '75',
+          privateLessonsPerWeek: '40',
+          groupLessonRate: '25',
+          groupLessonsPerWeek: '60',
+        },
+        7: { // Financing - lease defaults
+          lease_terms: {
+            base_rent_per_sf_year: 15,
+            nnn_per_sf_year: 8,
+            cam_per_sf_year: 2,
+            lease_term_years: 10,
+            free_rent_months: 3,
+            tenant_improvement_allowance_per_sf: 25,
+          }
+        }
+      });
+      
+      // Start at step 1 so users can review and customize all preset data
+      setCurrentStep(1);
+    }
+  }, [presetId, presetData]);
 
   // Load data from localStorage (quick estimate or wizard)
   useEffect(() => {
