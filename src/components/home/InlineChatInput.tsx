@@ -94,7 +94,7 @@ export const InlineChatInput = ({ onSend }: InlineChatInputProps) => {
           <div className="px-4 pb-4">
             <div className="mb-3 text-center">
               <p className="text-sm font-medium text-muted-foreground">
-                Choose your planning mode:
+                OR Select Your Planning Mode
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
