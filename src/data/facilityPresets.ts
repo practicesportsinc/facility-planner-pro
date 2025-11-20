@@ -39,11 +39,6 @@ export const PRESET_CATEGORIES: PresetCategory[] = [
     description: "Purpose-built facilities for basketball, volleyball, and pickleball with regulation courts and optimal playing conditions"
   },
   {
-    id: "training-practice",
-    title: "Training & Practice Facilities",
-    description: "Year-round training centers focused on skill development, individual coaching, and team practice sessions"
-  },
-  {
     id: "multi-sport",
     title: "Multi-Sport Complexes",
     description: "Versatile facilities designed to host multiple sports with flexible layouts and maximum revenue potential"
@@ -51,26 +46,6 @@ export const PRESET_CATEGORIES: PresetCategory[] = [
 ];
 
 export const FACILITY_PRESETS: FacilityPreset[] = [
-  {
-    id: "basketball-4-court",
-    name: "4-Court Basketball Facility",
-    description: "Perfect for leagues, tournaments, and open play",
-    image: "/images/home-gallery/facility-9.jpg",
-    sport: "basketball",
-    category: "court-sports",
-    configuration: {
-      basketball_courts_full: 4,
-      grossSF: 24000,
-      clearHeight: 24
-    },
-    financials: {
-      estimatedCapEx: 850000,
-      monthlyRevenue: 42000,
-      monthlyOpEx: 28000
-    },
-    targetMarket: "Youth leagues, adult tournaments, open gym",
-    popularFeatures: ["Tournament hosting", "League play", "Skills training", "Open gym sessions"]
-  },
   {
     id: "pickleball-6-court",
     name: "6-Court Pickleball Center",
@@ -97,7 +72,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     description: "Year-round training for all skill levels",
     image: "/images/home-gallery/facility-1.jpg",
     sport: "baseball",
-    category: "training-practice",
+    category: "court-sports",
     configuration: {
       baseball_tunnels: 8,
       grossSF: 16000,
@@ -110,6 +85,26 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     },
     targetMarket: "Youth baseball/softball, team training, individual lessons",
     popularFeatures: ["Pitching machines", "HitTrax systems", "Private lessons", "Team rentals"]
+  },
+  {
+    id: "basketball-4-court",
+    name: "4-Court Basketball Facility",
+    description: "Perfect for leagues, tournaments, and open play",
+    image: "/images/home-gallery/facility-9.jpg",
+    sport: "basketball",
+    category: "court-sports",
+    configuration: {
+      basketball_courts_full: 4,
+      grossSF: 24000,
+      clearHeight: 24
+    },
+    financials: {
+      estimatedCapEx: 850000,
+      monthlyRevenue: 42000,
+      monthlyOpEx: 28000
+    },
+    targetMarket: "Youth leagues, adult tournaments, open gym",
+    popularFeatures: ["Tournament hosting", "League play", "Skills training", "Open gym sessions"]
   },
   {
     id: "multisport-basketball-volleyball",
@@ -133,32 +128,12 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     popularFeatures: ["Flexible court dividers", "Multi-sport events", "School partnerships", "Club programs"]
   },
   {
-    id: "soccer-small-field",
-    name: "Indoor Soccer Arena",
-    description: "Climate-controlled turf for year-round play",
-    image: "/images/home-gallery/facility-2.jpg",
-    sport: "soccer",
-    category: "training-practice",
-    configuration: {
-      soccer_field_small: 1,
-      grossSF: 22000,
-      clearHeight: 22
-    },
-    financials: {
-      estimatedCapEx: 780000,
-      monthlyRevenue: 38000,
-      monthlyOpEx: 25000
-    },
-    targetMarket: "Youth leagues, adult recreation, training programs",
-    popularFeatures: ["League play", "Open play sessions", "Skills training", "Birthday parties"]
-  },
-  {
     id: "volleyball-4-court",
     name: "4-Court Volleyball Center",
     description: "Dedicated volleyball facility for competitive and recreational play",
     image: "/images/home-gallery/facility-7.jpg",
     sport: "volleyball",
-    category: "court-sports",
+    category: "multi-sport",
     configuration: {
       volleyball_courts: 4,
       grossSF: 18000,
