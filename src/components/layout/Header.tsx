@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calculator, Zap, Menu, Sparkles, MessageCircle } from "lucide-react";
+import { Calculator, Zap, Menu, MessageCircle, LayoutGrid } from "lucide-react";
 import { useChat } from "@/contexts/ChatContext";
 import {
   NavigationMenu,
@@ -49,7 +49,10 @@ const Header = () => {
                   asChild
                   className="bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                 >
-                  <Link to="/">Home</Link>
+                  <Link to="/gallery" className="flex items-center gap-2">
+                    <LayoutGrid className="h-4 w-4" />
+                    Gallery Designer
+                  </Link>
                 </Button>
               </NavigationMenuItem>
 
@@ -74,20 +77,6 @@ const Header = () => {
                 >
                   <Zap className="h-4 w-4 mr-2" />
                   Quick Estimate
-                </Button>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
-                >
-                  <Link to="/wizard/easy/start" className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Easy Wizard
-                  </Link>
                 </Button>
               </NavigationMenuItem>
 
@@ -130,7 +119,10 @@ const Header = () => {
                   className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <Link to="/">Home</Link>
+                  <Link to="/gallery" className="flex items-center gap-2">
+                    <LayoutGrid className="h-5 w-5" />
+                    Gallery Designer
+                  </Link>
                 </Button>
 
                 <Button
@@ -158,18 +150,7 @@ const Header = () => {
                   <Zap className="h-5 w-5 mr-2" />
                   Quick Estimate
                 </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  asChild
-                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Link to="/wizard/easy/start" className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
-                    Easy Wizard
-                  </Link>
-                </Button>
+
                 <Button
                   variant="outline"
                   size="lg"
