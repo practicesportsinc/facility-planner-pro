@@ -47,26 +47,6 @@ export const PRESET_CATEGORIES: PresetCategory[] = [
 
 export const FACILITY_PRESETS: FacilityPreset[] = [
   {
-    id: "pickleball-6-court",
-    name: "6-Court Pickleball Center",
-    description: "Growing sport with strong community engagement",
-    image: "/images/home-gallery/facility-6.jpg",
-    sport: "pickleball",
-    category: "court-sports",
-    configuration: {
-      pickleball_courts: 6,
-      grossSF: 12000,
-      clearHeight: 16
-    },
-    financials: {
-      estimatedCapEx: 425000,
-      monthlyRevenue: 28000,
-      monthlyOpEx: 18000
-    },
-    targetMarket: "Adults 50+, competitive leagues, drop-in play",
-    popularFeatures: ["League play", "Drop-in sessions", "Clinics & lessons", "Social events"]
-  },
-  {
     id: "baseball-8-cage",
     name: "8-Cage Batting Facility",
     description: "Year-round training for all skill levels",
@@ -105,6 +85,26 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     },
     targetMarket: "Youth leagues, adult tournaments, open gym",
     popularFeatures: ["Tournament hosting", "League play", "Skills training", "Open gym sessions"]
+  },
+  {
+    id: "pickleball-6-court",
+    name: "6-Court Pickleball Center",
+    description: "Growing sport with strong community engagement",
+    image: "/images/home-gallery/facility-6.jpg",
+    sport: "pickleball",
+    category: "court-sports",
+    configuration: {
+      pickleball_courts: 6,
+      grossSF: 12000,
+      clearHeight: 16
+    },
+    financials: {
+      estimatedCapEx: 425000,
+      monthlyRevenue: 28000,
+      monthlyOpEx: 18000
+    },
+    targetMarket: "Adults 50+, competitive leagues, drop-in play",
+    popularFeatures: ["League play", "Drop-in sessions", "Clinics & lessons", "Social events"]
   },
   {
     id: "multisport-basketball-volleyball",
