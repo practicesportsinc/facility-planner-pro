@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FacilityPreset } from "@/data/facilityPresets";
 import { formatCurrency } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import LeadGate from "@/components/shared/LeadGate";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Building2, 
   DollarSign, 
@@ -25,6 +29,9 @@ interface PresetReportModalProps {
 
 export function PresetReportModal({ preset, open, onClose }: PresetReportModalProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [leadGateOpen, setLeadGateOpen] = useState(false);
+  const [leadGateAction, setLeadGateAction] = useState<'download' | 'customize' | null>(null);
 
   const monthlyEBITDA = preset.financials.monthlyRevenue - preset.financials.monthlyOpEx;
   const annualRevenue = preset.financials.monthlyRevenue * 12;
@@ -33,19 +40,111 @@ export function PresetReportModal({ preset, open, onClose }: PresetReportModalPr
   const breakEvenMonths = preset.financials.estimatedCapEx / monthlyEBITDA;
 
   const handleCustomize = () => {
-    // Navigate to calculator with preset data pre-populated
-    navigate('/calculator', { 
-      state: { 
-        presetId: preset.id,
-        presetData: preset 
-      } 
-    });
-    onClose();
+    setLeadGateAction('customize');
+    setLeadGateOpen(true);
   };
 
   const handleDownload = () => {
-    // TODO: Implement lead gate + PDF generation
-    console.log("Download report for:", preset.id);
+    setLeadGateAction('download');
+    setLeadGateOpen(true);
+  };
+
+  const handleLeadSubmit = async (leadData: any) => {
+    try {
+      // Prepare payload for Google Sheets sync
+      const sheetPayload = {
+        name: leadData.name,
+        email: leadData.email,
+        phone: leadData.phone || '',
+        city: leadData.city || '',
+        state: leadData.state || '',
+        source: leadGateAction === 'download' ? 'gallery-download' : 'gallery-customize',
+        source_detail: `preset-${preset.id}`,
+        estimatedSquareFootage: preset.configuration.grossSF,
+        estimatedBudget: preset.financials.estimatedCapEx,
+        estimatedMonthlyRevenue: preset.financials.monthlyRevenue,
+        estimatedROI: ((monthlyEBITDA * 12) / preset.financials.estimatedCapEx * 100).toFixed(1),
+        referrer: document.referrer || window.location.href,
+        userAgent: navigator.userAgent,
+      };
+
+      // Sync lead to Google Sheets
+      const { error: syncError } = await supabase.functions.invoke('sync-lead-to-sheets', {
+        body: sheetPayload
+      });
+
+      if (syncError) throw syncError;
+
+      // Send confirmation emails
+      try {
+        const emailPayload = {
+          customerEmail: leadData.email,
+          customerName: leadData.name,
+          leadData: {
+            name: leadData.name,
+            email: leadData.email,
+            phone: leadData.phone || '',
+            city: leadData.city || '',
+            state: leadData.state || '',
+            location: `${leadData.city || ''}, ${leadData.state || ''}`.trim().replace(/^,\s*/, ''),
+            allowOutreach: leadData.outreach === 'supplier_outreach',
+          },
+          facilityDetails: {
+            presetName: preset.name,
+            squareFootage: preset.configuration.grossSF,
+            projectType: preset.category,
+          },
+          estimates: {
+            totalCapEx: preset.financials.estimatedCapEx,
+            monthlyRevenue: preset.financials.monthlyRevenue,
+            monthlyOpEx: preset.financials.monthlyOpEx,
+            monthlyEBITDA: monthlyEBITDA,
+            breakEvenMonths: Math.ceil(breakEvenMonths),
+          },
+          source: leadGateAction === 'download' ? 'gallery-download' : 'gallery-customize',
+        };
+
+        const { error: emailError } = await supabase.functions.invoke('send-lead-emails', {
+          body: emailPayload,
+        });
+
+        if (emailError) {
+          console.error('Email sending failed (non-critical):', emailError);
+        }
+      } catch (emailError) {
+        console.error('Email error (non-critical):', emailError);
+      }
+
+      // Execute the action user selected
+      if (leadGateAction === 'download') {
+        toast({
+          title: "Report downloading...",
+          description: "Your detailed facility report will be sent to your email shortly.",
+        });
+        // Future: Generate and download PDF report
+      } else if (leadGateAction === 'customize') {
+        toast({
+          title: "Opening calculator...",
+          description: "Your preset data has been loaded.",
+        });
+        navigate('/calculator', { 
+          state: { 
+            presetId: preset.id,
+            presetData: preset 
+          } 
+        });
+        onClose();
+      }
+
+      setLeadGateOpen(false);
+    } catch (error) {
+      console.error('Lead submission error:', error);
+      toast({
+        variant: "destructive",
+        title: "Submission failed",
+        description: "Please try again or contact us directly.",
+      });
+    }
   };
 
   const handleSchedule = () => {
@@ -248,6 +347,37 @@ export function PresetReportModal({ preset, open, onClose }: PresetReportModalPr
             </Button>
           </div>
         </div>
+
+        <LeadGate
+          isOpen={leadGateOpen}
+          onClose={() => {
+            setLeadGateOpen(false);
+            setLeadGateAction(null);
+          }}
+          onSubmit={handleLeadSubmit}
+          mode="modal"
+          title={
+            leadGateAction === 'download' 
+              ? "Get Your Full Facility Report" 
+              : "Customize This Layout"
+          }
+          description={
+            leadGateAction === 'download'
+              ? "Enter your details to download the complete facility analysis and cost breakdown."
+              : "Enter your details to load this preset into the calculator for customization."
+          }
+          showOptionalFields={true}
+          showMessageField={false}
+          showPartnershipField={false}
+          showOutreachField={true}
+          submitButtonText={
+            leadGateAction === 'download' ? "Download Report" : "Open Calculator"
+          }
+          showCancelButton={true}
+          cancelButtonText="Cancel"
+          defaultCity=""
+          defaultState=""
+        />
       </DialogContent>
     </Dialog>
   );
