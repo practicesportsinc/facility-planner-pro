@@ -48,9 +48,9 @@ export const PRESET_CATEGORIES: PresetCategory[] = [
 export const FACILITY_PRESETS: FacilityPreset[] = [
   {
     id: "baseball-8-cage",
-    name: "8-Cage Batting Facility",
+    name: "Batting Cage Facility",
     description: "Year-round training for all skill levels",
-    image: "/images/home-gallery/facility-1.jpg",
+    image: "/images/home-gallery/batting-cage-facility.jpg",
     sport: "baseball",
     category: "court-sports",
     configuration: {
