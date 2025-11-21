@@ -25,7 +25,7 @@ const Home = () => {
       <section className="pt-20 pb-16 px-4">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-hero bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-hero bg-clip-text text-transparent leading-tight py-2">
               Amazing Sports Facility Idea?
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
