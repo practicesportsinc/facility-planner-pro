@@ -38,14 +38,14 @@ const Home = () => {
       </section>
 
       {/* Facility Preset Gallery Section */}
-      <section className="py-16 px-4">
+      <section className="pt-8 pb-16 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Or Start with a Proven Layout
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Click any facility to see instant cost breakdowns and projections
+              Click any facility for instant rough estimates and customize to fit
             </p>
           </div>
           <FacilityPresetGallery />
