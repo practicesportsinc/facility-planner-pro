@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import LeadGate from "@/components/shared/LeadGate";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 const B2BPricing = () => {
   const [showLeadGate, setShowLeadGate] = useState(false);
@@ -245,6 +246,9 @@ const B2BPricing = () => {
             </Card>
           ))}
         </div>
+
+        {/* Pricing Disclaimer */}
+        <PricingDisclaimer className="mb-16" />
 
         {/* Add-ons */}
         <div className="mb-16">

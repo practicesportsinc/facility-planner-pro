@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Calculator, DollarSign, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 const QuickEstimate = () => {
   const navigate = useNavigate();
@@ -201,11 +202,8 @@ const QuickEstimate = () => {
                   </div>
                 </div>
 
-                <div className="mt-8 p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground text-center">
-                    <strong>Note:</strong> These are rough estimates for initial planning. 
-                    For detailed analysis with financing options, try our Wizard Builder or Custom Calculator.
-                  </p>
+                <div className="mt-8">
+                  <PricingDisclaimer className="mb-6" />
                 </div>
 
                 <div className="flex gap-4 mt-6">

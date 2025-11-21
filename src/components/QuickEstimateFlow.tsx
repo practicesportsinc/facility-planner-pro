@@ -14,6 +14,7 @@ import { COST_LIBRARY, getCostByTier, calculateItemTotal, type CostItem } from "
 import LeadGate from "@/components/shared/LeadGate";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 // Quick estimate types
 type SizeKey = "small" | "small_plus" | "medium" | "large" | "giant" | "arena";
@@ -642,6 +643,9 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
             <div className="text-sm text-muted-foreground">Break Even</div>
           </Card>
         </div>
+
+        {/* Pricing Disclaimer */}
+        <PricingDisclaimer className="mb-6" />
 
         {/* Financial Summary */}
         <Card className="p-6 bg-gradient-subtle">
