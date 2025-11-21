@@ -30,7 +30,7 @@ const Header = () => {
         <div className="container flex h-36 md:h-44 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <img 
-              src="/images/sportsfacility-logo.png" 
+              src="/images/sportsfacility-logo.png?v=2" 
               alt="SportsFacility.ai - Building the future of modern sports facilities" 
               className="h-32 md:h-40 w-auto object-contain"
             />
