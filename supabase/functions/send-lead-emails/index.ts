@@ -163,9 +163,14 @@ const handler = async (req: Request): Promise<Response> => {
   );
 
   try {
+    console.log('=== Starting send-lead-emails function ===');
+    
     // Rate limiting
     const identifier = req.headers.get('x-forwarded-for') || 'unknown';
+    console.log('Checking rate limit for:', identifier);
+    
     const rateLimit = await checkRateLimit(supabase, identifier, 'send-lead-emails');
+    console.log('Rate limit check result:', rateLimit);
 
     if (!rateLimit.allowed) {
       console.warn('Rate limit exceeded:', { identifier, endpoint: 'send-lead-emails' });
@@ -182,22 +187,40 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Input validation
+    console.log('Parsing request payload...');
     const rawPayload = await req.json();
+    console.log('Raw payload received:', {
+      source: rawPayload.source,
+      customerEmail: rawPayload.customerEmail,
+      hasLeadData: !!rawPayload.leadData,
+      hasFacilityDetails: !!rawPayload.facilityDetails
+    });
+    
     const payload = EmailPayloadSchema.parse(rawPayload);
-
+    console.log('Payload validated successfully');
     console.log('Processing lead email request from:', payload.source, 'Remaining:', rateLimit.remaining);
 
     // Determine if this is a B2B inquiry
     const isB2BInquiry = payload.source === 'b2b-contact';
+    console.log('Is B2B inquiry:', isB2BInquiry);
 
     // Format partnership type for display
     const formattedPartnershipType = isB2BInquiry 
       ? formatPartnershipType(payload.facilityDetails?.projectType)
       : payload.facilityDetails?.projectType;
+    console.log('Formatted partnership type:', formattedPartnershipType);
 
     // Render appropriate customer confirmation email based on source
     let customerHtml: string;
     try {
+      console.log('Starting customer email rendering...');
+      console.log('Customer email props:', {
+        customerName: payload.customerName,
+        partnershipType: formattedPartnershipType,
+        hasMessage: !!(payload.leadData?.message && payload.leadData.message !== 'b2b'),
+        isB2B: isB2BInquiry
+      });
+      
       customerHtml = isB2BInquiry
         ? await renderAsync(
             React.createElement(B2BConfirmationEmail, {
@@ -215,13 +238,14 @@ const handler = async (req: Request): Promise<Response> => {
               estimates: payload.estimates,
             })
           );
-      console.log('Customer email rendered successfully');
+      console.log('✅ Customer email rendered successfully, length:', customerHtml.length);
     } catch (renderError: any) {
-      console.error('Failed to render customer email:', {
+      console.error('❌ Failed to render customer email:', {
         error: renderError.message,
         stack: renderError.stack,
         isB2B: isB2BInquiry,
-        partnershipType: formattedPartnershipType
+        partnershipType: formattedPartnershipType,
+        errorName: renderError.name
       });
       throw new Error(`Email rendering failed: ${renderError.message}`);
     }
@@ -253,7 +277,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Send customer confirmation email
-    console.log('Sending customer confirmation to:', payload.customerEmail);
+    console.log('Attempting to send customer confirmation to:', payload.customerEmail);
+    console.log('Email config:', {
+      from: 'Practice Sports <noreply@sportsfacility.ai>',
+      to: payload.customerEmail,
+      subject: isB2BInquiry ? 'Thank you for your partnership inquiry' : 'Thank you for your facility planning request',
+      htmlLength: customerHtml.length
+    });
+    
     const customerEmailResult = await resend.emails.send({
       from: 'Practice Sports <noreply@sportsfacility.ai>',
       to: [payload.customerEmail],
@@ -264,8 +295,14 @@ const handler = async (req: Request): Promise<Response> => {
       html: customerHtml,
     });
 
+    console.log('Customer email result:', {
+      hasError: !!customerEmailResult.error,
+      hasData: !!customerEmailResult.data,
+      emailId: customerEmailResult.data?.id
+    });
+
     if (customerEmailResult.error) {
-      console.error('Error sending customer email:', {
+      console.error('❌ Error sending customer email:', {
         error: customerEmailResult.error,
         timestamp: new Date().toISOString(),
         recipient: payload.customerEmail
@@ -273,7 +310,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Failed to send customer confirmation email');
     }
 
-    console.log('Customer email sent successfully:', customerEmailResult.data?.id);
+    console.log('✅ Customer email sent successfully:', customerEmailResult.data?.id);
 
     // Send company notification email
     console.log('Sending company notification to:', COMPANY_EMAIL);
@@ -308,16 +345,21 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     // Log detailed error server-side only
-    console.error('Error in send-lead-emails function:', {
-      error: error.message,
+    console.error('❌❌❌ CRITICAL ERROR in send-lead-emails function ❌❌❌');
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
       stack: error.stack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      errorType: typeof error,
+      errorKeys: Object.keys(error)
     });
     
     // Return generic error message to client
     return new Response(
       JSON.stringify({
-        error: 'An error occurred while processing your email request'
+        error: 'An error occurred while processing your email request',
+        debug: error.message // Include error message in development
       }),
       {
         status: 500,
