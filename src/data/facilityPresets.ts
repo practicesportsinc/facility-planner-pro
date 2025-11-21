@@ -128,21 +128,21 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     popularFeatures: ["Flexible court dividers", "Multi-sport events", "School partnerships", "Club programs"]
   },
   {
-    id: "volleyball-4-court",
-    name: "4-Court Volleyball Center",
+    id: "volleyball-6-court",
+    name: "Volleyball Facility",
     description: "Dedicated volleyball facility for competitive and recreational play",
-    image: "/images/home-gallery/facility-7.jpg",
+    image: "/images/home-gallery/volleyball-facility.jpg",
     sport: "volleyball",
     category: "multi-sport",
     configuration: {
-      volleyball_courts: 4,
-      grossSF: 18000,
+      volleyball_courts: 6,
+      grossSF: 27000,
       clearHeight: 24
     },
     financials: {
-      estimatedCapEx: 620000,
-      monthlyRevenue: 32000,
-      monthlyOpEx: 21000
+      estimatedCapEx: 930000,
+      monthlyRevenue: 48000,
+      monthlyOpEx: 31500
     },
     targetMarket: "Club teams, adult leagues, recreational play",
     popularFeatures: ["Club training", "Tournament hosting", "League play", "Beach volleyball option"]
