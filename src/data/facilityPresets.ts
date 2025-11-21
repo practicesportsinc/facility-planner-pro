@@ -110,7 +110,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "multisport-basketball-volleyball",
     name: "Multi-Sport Complex",
     description: "2 basketball courts + 4 volleyball courts for maximum versatility",
-    image: "/images/home-gallery/facility-8.jpg",
+    image: "/images/home-gallery/multisport-facility.jpg",
     sport: "multisport",
     category: "multi-sport",
     configuration: {
