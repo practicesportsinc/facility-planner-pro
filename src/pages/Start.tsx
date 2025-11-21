@@ -69,11 +69,11 @@ const Start = () => {
       <Layout>
         <section className="py-16 px-4">
           <div className="container mx-auto max-w-5xl">
-            <div className="text-center mb-12">
+            <div className="text-center mb-12 relative z-10">
               <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-hero bg-clip-text text-transparent">
                 How do you want to plan your facility?
               </h1>
-              <p className="text-xl text-muted-foreground mb-8">
+              <p className="text-xl text-muted-foreground mb-16">
                 Choose your planning approach. All paths give you professional results.
               </p>
             </div>
