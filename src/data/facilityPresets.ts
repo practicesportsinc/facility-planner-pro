@@ -109,23 +109,24 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
   {
     id: "multisport-basketball-volleyball",
     name: "Multi-Sport Complex",
-    description: "2 basketball courts + 4 volleyball courts for maximum versatility",
+    description: "2 basketball courts + 4 volleyball courts + batting cage for maximum versatility",
     image: "/images/home-gallery/multisport-facility.jpg",
     sport: "multisport",
     category: "multi-sport",
     configuration: {
       basketball_courts_full: 2,
       volleyball_courts: 4,
+      baseball_tunnels: 1,
       grossSF: 28000,
       clearHeight: 24
     },
     financials: {
-      estimatedCapEx: 950000,
+      estimatedCapEx: 980000,
       monthlyRevenue: 52000,
       monthlyOpEx: 32000
     },
-    targetMarket: "Multiple sports leagues, schools, clubs",
-    popularFeatures: ["Flexible court dividers", "Multi-sport events", "School partnerships", "Club programs"]
+    targetMarket: "Multiple sports leagues, schools, clubs, baseball/softball training",
+    popularFeatures: ["Flexible court dividers", "Multi-sport events", "School partnerships", "Club programs", "AirCage batting cage"]
   },
   {
     id: "volleyball-6-court",
