@@ -60,7 +60,17 @@ const Footer = () => {
         {/* Global Pricing Disclaimer */}
         <div className="mt-12 pt-8 border-t border-slate-800">
           <div className="container mx-auto px-4">
-            <PricingDisclaimer className="max-w-4xl mx-auto" />
+            <div className="max-w-4xl mx-auto flex items-start gap-2 p-3 bg-white text-black border border-gray-300 rounded-lg text-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <p>
+                <strong>Disclaimer:</strong> Pricing displayed is only for budgeting purposes and is not guaranteed. 
+                Contact a facility specialist with Practice Sports, Inc. to confirm current pricing.
+              </p>
+            </div>
           </div>
         </div>
         
