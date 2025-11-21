@@ -70,7 +70,7 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
     id: "basketball-4-court",
     name: "4-Court Basketball Facility",
     description: "Perfect for leagues, tournaments, and open play",
-    image: "/images/home-gallery/facility-9.jpg",
+    image: "/images/home-gallery/basketball-facility.jpg",
     sport: "basketball",
     category: "court-sports",
     configuration: {
