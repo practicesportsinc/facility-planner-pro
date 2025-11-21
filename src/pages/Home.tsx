@@ -133,7 +133,7 @@ const Home = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">How It Works</h2>
             <p className="text-lg text-muted-foreground">
-              Get your complete facility analysis in just 10 minutes
+              Get your complete facility analysis in minutes!
             </p>
           </div>
 
