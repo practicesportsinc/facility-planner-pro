@@ -103,6 +103,24 @@ async function checkRateLimit(
   };
 }
 
+// Helper function to transform partnership type slugs to display names
+function formatPartnershipType(slug?: string): string {
+  if (!slug) return 'Partnership Inquiry';
+  
+  const partnershipTypes: Record<string, string> = {
+    'referral-partner': 'Referral Partner',
+    'equipment-supplier': 'Equipment Supplier',
+    'featured-supplier': 'Featured Supplier',
+    'white-label': 'White Label Partnership',
+    'integration-partner': 'Integration Partner',
+    'reseller': 'Reseller Partner'
+  };
+  
+  return partnershipTypes[slug] || slug.split('-').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+}
+
 interface EmailPayload {
   customerEmail: string;
   customerName: string;
@@ -172,33 +190,67 @@ const handler = async (req: Request): Promise<Response> => {
     // Determine if this is a B2B inquiry
     const isB2BInquiry = payload.source === 'b2b-contact';
 
+    // Format partnership type for display
+    const formattedPartnershipType = isB2BInquiry 
+      ? formatPartnershipType(payload.facilityDetails?.projectType)
+      : payload.facilityDetails?.projectType;
+
     // Render appropriate customer confirmation email based on source
-    const customerHtml = isB2BInquiry
-      ? await renderAsync(
-          React.createElement(B2BConfirmationEmail, {
-            customerName: payload.customerName,
-            partnershipType: payload.facilityDetails?.projectType,
-            message: payload.leadData?.message,
-          })
-        )
-      : await renderAsync(
-          React.createElement(CustomerConfirmationEmail, {
-            customerName: payload.customerName,
-            facilityDetails: payload.facilityDetails,
-            estimates: payload.estimates,
-          })
-        );
+    let customerHtml: string;
+    try {
+      customerHtml = isB2BInquiry
+        ? await renderAsync(
+            React.createElement(B2BConfirmationEmail, {
+              customerName: payload.customerName,
+              partnershipType: formattedPartnershipType,
+              message: payload.leadData?.message && payload.leadData.message !== 'b2b' 
+                ? payload.leadData.message 
+                : undefined,
+            })
+          )
+        : await renderAsync(
+            React.createElement(CustomerConfirmationEmail, {
+              customerName: payload.customerName,
+              facilityDetails: payload.facilityDetails,
+              estimates: payload.estimates,
+            })
+          );
+      console.log('Customer email rendered successfully');
+    } catch (renderError: any) {
+      console.error('Failed to render customer email:', {
+        error: renderError.message,
+        stack: renderError.stack,
+        isB2B: isB2BInquiry,
+        partnershipType: formattedPartnershipType
+      });
+      throw new Error(`Email rendering failed: ${renderError.message}`);
+    }
 
     // Render company notification email
-    const companyHtml = await renderAsync(
-      React.createElement(CompanyNotificationEmail, {
-        leadData: payload.leadData,
-        facilityDetails: payload.facilityDetails,
-        estimates: payload.estimates,
-        source: payload.source,
-        timestamp: new Date().toISOString(),
-      })
-    );
+    let companyHtml: string;
+    try {
+      // Update facility details with formatted partnership type for company notification
+      const formattedFacilityDetails = isB2BInquiry && payload.facilityDetails
+        ? { ...payload.facilityDetails, projectType: formattedPartnershipType }
+        : payload.facilityDetails;
+
+      companyHtml = await renderAsync(
+        React.createElement(CompanyNotificationEmail, {
+          leadData: payload.leadData,
+          facilityDetails: formattedFacilityDetails,
+          estimates: payload.estimates,
+          source: payload.source,
+          timestamp: new Date().toISOString(),
+        })
+      );
+      console.log('Company email rendered successfully');
+    } catch (renderError: any) {
+      console.error('Failed to render company email:', {
+        error: renderError.message,
+        stack: renderError.stack
+      });
+      throw new Error(`Company email rendering failed: ${renderError.message}`);
+    }
 
     // Send customer confirmation email
     console.log('Sending customer confirmation to:', payload.customerEmail);
@@ -229,7 +281,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: 'Practice Sports Leads <leads@sportsfacility.ai>',
       to: [COMPANY_EMAIL, 'info@practicesports.com'],
       replyTo: 'info@practicesports.com',
-      subject: `New Lead: ${payload.customerName} - ${payload.facilityDetails?.projectType || 'Sports Facility'}`,
+      subject: `New Lead: ${payload.customerName} - ${formattedPartnershipType || 'Sports Facility'}`,
       html: companyHtml,
     });
 
