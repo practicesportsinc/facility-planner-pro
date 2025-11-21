@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import LeadGate from "@/components/shared/LeadGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 import { 
   Building2, 
   DollarSign, 
@@ -243,6 +244,9 @@ export function PresetReportModal({ preset, open, onClose }: PresetReportModalPr
               </div>
             </CardContent>
           </Card>
+
+          {/* Pricing Disclaimer */}
+          <PricingDisclaimer className="mb-6" />
 
           {/* Configuration Details */}
           <Card>

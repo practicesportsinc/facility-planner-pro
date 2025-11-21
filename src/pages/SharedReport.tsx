@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { Building, DollarSign, TrendingUp, Calendar } from 'lucide-react';
 import { formatMoney } from '@/lib/utils';
+import { PricingDisclaimer } from '@/components/ui/pricing-disclaimer';
 
 export default function SharedReport() {
   const { id } = useParams();
@@ -222,6 +223,9 @@ export default function SharedReport() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Pricing Disclaimer */}
+        <PricingDisclaimer className="mb-6" />
 
         {/* Recommendations */}
         {report.recommendations && (

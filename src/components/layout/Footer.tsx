@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, Phone, Mail, Calendar } from "lucide-react";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 
 const Footer = () => {
   return (
@@ -55,7 +56,15 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        <div className="mt-12 pt-8 border-t border-slate-800 text-center text-sm text-slate-400">
+        
+        {/* Global Pricing Disclaimer */}
+        <div className="mt-12 pt-8 border-t border-slate-800">
+          <div className="container mx-auto px-4">
+            <PricingDisclaimer className="max-w-4xl mx-auto" />
+          </div>
+        </div>
+        
+        <div className="mt-8 pt-8 border-t border-slate-800 text-center text-sm text-slate-400">
           <p>© {new Date().getFullYear()} Practice Sports, Inc. All rights reserved.</p>
         </div>
       </div>
