@@ -88,9 +88,9 @@ export const FACILITY_PRESETS: FacilityPreset[] = [
   },
   {
     id: "pickleball-6-court",
-    name: "6-Court Pickleball Center",
+    name: "Pickleball Facility",
     description: "Growing sport with strong community engagement",
-    image: "/images/home-gallery/facility-6.jpg",
+    image: "/images/home-gallery/pickleball-facility.jpg",
     sport: "pickleball",
     category: "court-sports",
     configuration: {
