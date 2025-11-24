@@ -14,10 +14,13 @@ import { PathSelector } from "@/components/equipment/PathSelector";
 import { SportSelector } from "@/components/equipment/SportSelector";
 import { SportQuestionnaire } from "@/components/equipment/SportQuestionnaire";
 import { EquipmentQuoteDisplay } from "@/components/equipment/EquipmentQuote";
-import { SportKey } from "@/components/home/SportIcons";
+import { SportKey, SPORT_LABELS } from "@/components/home/SportIcons";
 import { EquipmentInputs, EquipmentQuote } from "@/types/equipment";
 import { calculateEquipmentQuote } from "@/utils/equipmentCalculator";
 import useAnalytics from "@/hooks/useAnalytics";
+import LeadGate from "@/components/shared/LeadGate";
+import { submitLeadToDatabase } from "@/utils/leadSubmission";
+import { toast } from "sonner";
 
 type FlowStep = 'path' | 'sport' | 'questionnaire' | 'quote' | 'facility';
 
@@ -29,6 +32,7 @@ const Home = () => {
   const [flowStep, setFlowStep] = useState<FlowStep>('path');
   const [selectedSport, setSelectedSport] = useState<SportKey | null>(null);
   const [quote, setQuote] = useState<EquipmentQuote | null>(null);
+  const [isLeadGateOpen, setIsLeadGateOpen] = useState(false);
 
   // Initialize flow based on URL parameters
   useEffect(() => {
@@ -70,7 +74,36 @@ const Home = () => {
   };
 
   const handleRequestReview = () => {
-    openChat("I'd like an expert to review my equipment quote");
+    setIsLeadGateOpen(true);
+  };
+
+  const handleLeadSubmit = async (leadData: any) => {
+    const enrichedData = {
+      name: leadData.name,
+      email: leadData.email,
+      phone: leadData.phone,
+      city: leadData.city,
+      state: leadData.state,
+      message: leadData.message,
+      facility_type: quote ? SPORT_LABELS[quote.sport] : undefined,
+      estimated_budget: quote?.totals.grandTotal,
+      source: 'equipment_quote_review',
+      user_agent: navigator.userAgent,
+      referrer: document.referrer,
+    };
+
+    const result = await submitLeadToDatabase(enrichedData);
+    
+    if (result.success) {
+      toast.success("Review request submitted! Our team will contact you soon.");
+      setIsLeadGateOpen(false);
+      track('equipment_review_lead_submitted', {
+        sport: quote?.sport,
+        total: quote?.totals.grandTotal
+      });
+    } else {
+      toast.error(result.error || "Failed to submit request. Please try again.");
+    }
   };
 
   const handleUpgradeToFull = () => {
@@ -137,7 +170,22 @@ const Home = () => {
         </div>
       </section>
 
-
+      {/* Lead Capture for Expert Review */}
+      <LeadGate
+        isOpen={isLeadGateOpen}
+        onClose={() => setIsLeadGateOpen(false)}
+        onSubmit={handleLeadSubmit}
+        title="Request Expert Review"
+        description={`Get personalized advice on your ${quote ? SPORT_LABELS[quote.sport] : ''} equipment quote from our experts.`}
+        mode="modal"
+        showOptionalFields={true}
+        showMessageField={true}
+        showPartnershipField={false}
+        showOutreachField={false}
+        submitButtonText="Request Review"
+        showCancelButton={true}
+        cancelButtonText="Cancel"
+      />
 
       {/* Features Section */}
       <section id="features" className="py-16 px-4 bg-card">
