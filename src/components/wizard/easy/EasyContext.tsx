@@ -69,7 +69,7 @@ export const EasyContext = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle p-6">
+    <div className="container mx-auto p-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-ps-text mb-4">{title}</h1>
