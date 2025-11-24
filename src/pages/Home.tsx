@@ -6,6 +6,7 @@ import Layout from "@/components/layout/Layout";
 import { Calculator, TrendingUp, FileText, Users, Target, Clock, Sparkles, BookOpen } from "lucide-react";
 
 import { FacilityPresetGallery } from "@/components/home/FacilityPresetGallery";
+import { FullFacilitySelector } from "@/components/home/FullFacilitySelector";
 import { InlineChatInput } from "@/components/home/InlineChatInput";
 import { clearChatHistory } from "@/utils/chatHelpers";
 import { useChat } from "@/contexts/ChatContext";
@@ -129,29 +130,13 @@ const Home = () => {
               )}
               
               {flowStep === 'facility' && (
-                <InlineChatInput onSend={handleChatSend} />
+                <FullFacilitySelector onBack={handleBackToPath} />
               )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Facility Preset Gallery Section - Only show for facility flow */}
-      {flowStep === 'facility' && (
-        <section className="pt-8 pb-16 px-4">
-          <div className="container mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Or Start with a Proven Layout
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Click any facility for instant rough estimates and customize to fit
-              </p>
-            </div>
-            <FacilityPresetGallery />
-          </div>
-        </section>
-      )}
 
 
       {/* Features Section */}
