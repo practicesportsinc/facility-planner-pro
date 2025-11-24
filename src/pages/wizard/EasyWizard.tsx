@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import EasyStartSports from "@/components/wizard/easy/EasyStartSports";
 import FacilitySizeSelector from "@/components/wizard/easy/FacilitySizeSelector";
@@ -10,6 +10,7 @@ const EasyWizard = () => {
   return (
     <Layout showWizardNav={true}>
       <Routes>
+      <Route index element={<Navigate to="/wizard/easy/start" replace />} />
       <Route path="/start" element={
         <EasyStartSports
           title="What are you building?"
