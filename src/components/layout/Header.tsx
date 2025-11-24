@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, MessageCircle, LayoutGrid, Sparkles } from "lucide-react";
+import { Menu, MessageCircle, Home as HomeIcon, Wrench, Building2 } from "lucide-react";
 import { useChat } from "@/contexts/ChatContext";
 import {
   NavigationMenu,
@@ -22,7 +22,13 @@ const Header = () => {
   const { openChat } = useChat();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string, mode?: string) => {
+    if (mode) {
+      const params = new URLSearchParams(location.search);
+      return location.pathname === path && params.get('mode') === mode;
+    }
+    return location.pathname === path && !new URLSearchParams(location.search).get('mode');
+  };
 
   return (
     <>
@@ -44,11 +50,51 @@ const Header = () => {
                   variant="outline"
                   size="sm"
                   asChild
-                  className="bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
+                  className={`border-0 shadow-glow transition-all ${
+                    isActive('/')
+                      ? 'bg-gradient-primary text-white'
+                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80'
+                  }`}
                 >
-                  <Link to="/gallery" className="flex items-center gap-2">
-                    <LayoutGrid className="h-4 w-4" />
-                    Gallery Designer
+                  <Link to="/" className="flex items-center gap-2">
+                    <HomeIcon className="h-4 w-4" />
+                    Home
+                  </Link>
+                </Button>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className={`border-0 shadow-glow transition-all ${
+                    isActive('/', 'equipment')
+                      ? 'bg-gradient-primary text-white'
+                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80'
+                  }`}
+                >
+                  <Link to="/?mode=equipment" className="flex items-center gap-2">
+                    <Wrench className="h-4 w-4" />
+                    Equipment Only
+                  </Link>
+                </Button>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className={`border-0 shadow-glow transition-all ${
+                    isActive('/', 'facility')
+                      ? 'bg-gradient-primary text-white'
+                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80'
+                  }`}
+                >
+                  <Link to="/?mode=facility" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Full Facility
                   </Link>
                 </Button>
               </NavigationMenuItem>
@@ -58,24 +104,10 @@ const Header = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => openChat()}
-                  className="bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
+                  className="bg-gradient-primary/60 text-white/80 border-0 shadow-glow hover:bg-gradient-primary/80"
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  Chat with AI
-                </Button>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
-                >
-                  <Link to="/start" className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Get Estimates
-                  </Link>
+                  Chat
                 </Button>
               </NavigationMenuItem>
             </NavigationMenuList>
@@ -101,12 +133,50 @@ const Header = () => {
                   variant="outline"
                   size="lg"
                   asChild
-                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
+                  className={`w-full justify-start border-0 shadow-glow ${
+                    isActive('/')
+                      ? 'bg-gradient-primary text-white'
+                      : 'bg-gradient-primary/60 text-white/80'
+                  }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <Link to="/gallery" className="flex items-center gap-2">
-                    <LayoutGrid className="h-5 w-5" />
-                    Gallery Designer
+                  <Link to="/" className="flex items-center gap-2">
+                    <HomeIcon className="h-5 w-5" />
+                    Home
+                  </Link>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className={`w-full justify-start border-0 shadow-glow ${
+                    isActive('/', 'equipment')
+                      ? 'bg-gradient-primary text-white'
+                      : 'bg-gradient-primary/60 text-white/80'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Link to="/?mode=equipment" className="flex items-center gap-2">
+                    <Wrench className="h-5 w-5" />
+                    Equipment Only
+                  </Link>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className={`w-full justify-start border-0 shadow-glow ${
+                    isActive('/', 'facility')
+                      ? 'bg-gradient-primary text-white'
+                      : 'bg-gradient-primary/60 text-white/80'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Link to="/?mode=facility" className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5" />
+                    Full Facility
                   </Link>
                 </Button>
 
@@ -117,23 +187,10 @@ const Header = () => {
                     setMobileMenuOpen(false);
                     openChat();
                   }}
-                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
+                  className="w-full justify-start bg-gradient-primary/60 text-white/80 border-0 shadow-glow"
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Chat with AI
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="lg"
-                  asChild
-                  className="w-full justify-start bg-gradient-primary text-white border-0 shadow-glow hover:opacity-90"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Link to="/start" className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
-                    Get Estimates
-                  </Link>
                 </Button>
               </nav>
             </SheetContent>
