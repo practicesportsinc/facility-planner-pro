@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/layout/Layout";
@@ -24,9 +24,20 @@ const Home = () => {
   const navigate = useNavigate();
   const { openChat } = useChat();
   const { track } = useAnalytics();
+  const [searchParams] = useSearchParams();
   const [flowStep, setFlowStep] = useState<FlowStep>('path');
   const [selectedSport, setSelectedSport] = useState<SportKey | null>(null);
   const [quote, setQuote] = useState<EquipmentQuote | null>(null);
+
+  // Initialize flow based on URL parameters
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    if (mode === 'equipment') {
+      setFlowStep('sport');
+    } else if (mode === 'facility') {
+      setFlowStep('facility');
+    }
+  }, [searchParams]);
 
   const handleChatSend = (message: string) => {
     clearChatHistory();
