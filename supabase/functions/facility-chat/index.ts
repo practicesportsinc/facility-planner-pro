@@ -249,13 +249,30 @@ The user hasn't selected a mode yet. Wait for them to choose Fast/Basic, Advance
 Your goal is to gather information appropriate to the selected mode through natural conversation.
 Ask conversational follow-up questions to clarify their vision. Be friendly and helpful.
 
-QUICK-REPLY BUTTON INSTRUCTIONS:
-- After EVERY response, include a [QUICK_REPLIES] section with button options
-- Use the exact format: [QUICK_REPLIES] followed by a JSON array on the next line
-- Buttons help users respond quickly by clicking instead of typing
-- Always provide 3-5 relevant button options based on what information is still needed
-- The button "value" is what gets sent as the user's message when clicked
-- Include emoji in button labels to make them friendly and visual
+⚠️ CRITICAL QUICK-REPLY BUTTON INSTRUCTIONS (MANDATORY) ⚠️
+
+YOU MUST INCLUDE [QUICK_REPLIES] AFTER EVERY SINGLE RESPONSE. NO EXCEPTIONS.
+
+❌ WRONG: Asking "What's your budget?" with no buttons
+✅ CORRECT: Asking "What's your budget?" followed by [QUICK_REPLIES] with budget range buttons
+
+REQUIRED FORMAT (you MUST follow this exactly):
+Your conversational response here...
+
+[QUICK_REPLIES]
+[{"id":"option1","label":"Option 1 Label","value":"The text sent when clicked"},{"id":"option2","label":"Option 2 Label","value":"Text for option 2"}]
+
+RULES:
+1. NEVER ask an open-ended question without providing button options
+2. Users should ALWAYS be able to click instead of type
+3. Buttons make the experience faster, more guided, and more user-friendly
+4. If you don't include buttons, the user experience will be broken
+5. Place [QUICK_REPLIES] on its own line
+6. Follow it with a valid JSON array of button objects
+7. Each button must have: id (unique string), label (display text with emoji), value (text sent when clicked)
+8. Provide 3-5 button options for every question
+9. Include emoji in labels to make them visual and friendly
+10. The "value" field should be a complete sentence the user would say
 
 ${stageGuidance}
 
@@ -304,7 +321,7 @@ You: "Perfect! I have everything I need. Let me generate your personalized facil
           ...formattedMessages
         ],
         stream: true,
-        temperature: 0.8,
+        temperature: 0.5,  // Lower temperature for more instruction-following behavior
         max_tokens: 300
       }),
     });
