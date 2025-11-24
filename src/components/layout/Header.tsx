@@ -99,11 +99,17 @@ const Header = () => {
               <NavigationMenuItem>
                 <Button
                   size="sm"
-                  onClick={() => openChat()}
-                  className="bg-gradient-primary/60 text-white/80 shadow-glow hover:bg-gradient-primary/80 hover:text-white transition-all"
+                  asChild
+                  className={`shadow-glow transition-all ${
+                    isActive('/', 'facility')
+                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                  }`}
                 >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Chat
+                  <Link to="/?mode=facility" className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4" />
+                    Chat
+                  </Link>
                 </Button>
               </NavigationMenuItem>
             </NavigationMenuList>
@@ -175,14 +181,18 @@ const Header = () => {
 
                 <Button
                   size="lg"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    openChat();
-                  }}
-                  className="w-full justify-start bg-gradient-primary/60 text-white/80 shadow-glow hover:bg-gradient-primary/80 hover:text-white transition-all"
+                  asChild
+                  className={`w-full justify-start shadow-glow ${
+                    isActive('/', 'facility')
+                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
                 >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Chat with AI
+                  <Link to="/?mode=facility" className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5" />
+                    Chat
+                  </Link>
                 </Button>
               </nav>
             </SheetContent>
