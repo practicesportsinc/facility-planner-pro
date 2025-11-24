@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,15 +9,75 @@ import { FacilityPresetGallery } from "@/components/home/FacilityPresetGallery";
 import { InlineChatInput } from "@/components/home/InlineChatInput";
 import { clearChatHistory } from "@/utils/chatHelpers";
 import { useChat } from "@/contexts/ChatContext";
+import { PathSelector } from "@/components/equipment/PathSelector";
+import { SportSelector } from "@/components/equipment/SportSelector";
+import { SportQuestionnaire } from "@/components/equipment/SportQuestionnaire";
+import { EquipmentQuoteDisplay } from "@/components/equipment/EquipmentQuote";
+import { SportKey } from "@/components/home/SportIcons";
+import { EquipmentInputs, EquipmentQuote } from "@/types/equipment";
+import { calculateEquipmentQuote } from "@/utils/equipmentCalculator";
+import useAnalytics from "@/hooks/useAnalytics";
 
+type FlowStep = 'path' | 'sport' | 'questionnaire' | 'quote' | 'facility';
 
 const Home = () => {
   const navigate = useNavigate();
   const { openChat } = useChat();
+  const { track } = useAnalytics();
+  const [flowStep, setFlowStep] = useState<FlowStep>('path');
+  const [selectedSport, setSelectedSport] = useState<SportKey | null>(null);
+  const [quote, setQuote] = useState<EquipmentQuote | null>(null);
 
   const handleChatSend = (message: string) => {
     clearChatHistory();
     openChat(message);
+  };
+
+  const handlePathSelect = (path: 'equipment' | 'facility') => {
+    if (path === 'equipment') {
+      setFlowStep('sport');
+    } else {
+      setFlowStep('facility');
+    }
+  };
+
+  const handleSportSelect = (sport: SportKey) => {
+    setSelectedSport(sport);
+    setFlowStep('questionnaire');
+  };
+
+  const handleQuestionnaireSubmit = (inputs: EquipmentInputs) => {
+    const generatedQuote = calculateEquipmentQuote(inputs);
+    setQuote(generatedQuote);
+    setFlowStep('quote');
+    track('equipment_quote_generated', { 
+      sport: inputs.sport,
+      units: inputs.units,
+      total: generatedQuote.totals.grandTotal 
+    });
+  };
+
+  const handleRequestReview = () => {
+    openChat("I'd like an expert to review my equipment quote");
+  };
+
+  const handleUpgradeToFull = () => {
+    setFlowStep('facility');
+  };
+
+  const handleStartOver = () => {
+    setFlowStep('path');
+    setSelectedSport(null);
+    setQuote(null);
+  };
+
+  const handleBackToPath = () => {
+    setFlowStep('path');
+    setSelectedSport(null);
+  };
+
+  const handleBackToSport = () => {
+    setFlowStep('sport');
   };
   
   return (
@@ -31,26 +92,55 @@ const Home = () => {
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             </p>
             <div className="mt-12">
-              <InlineChatInput onSend={handleChatSend} />
+              {flowStep === 'path' && (
+                <PathSelector onSelectPath={handlePathSelect} />
+              )}
+              
+              {flowStep === 'sport' && (
+                <SportSelector onSelectSport={handleSportSelect} onBack={handleBackToPath} />
+              )}
+              
+              {flowStep === 'questionnaire' && selectedSport && (
+                <SportQuestionnaire 
+                  sport={selectedSport} 
+                  onSubmit={handleQuestionnaireSubmit}
+                  onBack={handleBackToSport}
+                />
+              )}
+              
+              {flowStep === 'quote' && quote && (
+                <EquipmentQuoteDisplay 
+                  quote={quote}
+                  onRequestReview={handleRequestReview}
+                  onUpgradeToFull={handleUpgradeToFull}
+                  onStartOver={handleStartOver}
+                />
+              )}
+              
+              {flowStep === 'facility' && (
+                <InlineChatInput onSend={handleChatSend} />
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Facility Preset Gallery Section */}
-      <section className="pt-8 pb-16 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Or Start with a Proven Layout
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Click any facility for instant rough estimates and customize to fit
-            </p>
+      {/* Facility Preset Gallery Section - Only show for facility flow */}
+      {flowStep === 'facility' && (
+        <section className="pt-8 pb-16 px-4">
+          <div className="container mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Or Start with a Proven Layout
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Click any facility for instant rough estimates and customize to fit
+              </p>
+            </div>
+            <FacilityPresetGallery />
           </div>
-          <FacilityPresetGallery />
-        </div>
-      </section>
+        </section>
+      )}
 
 
       {/* Features Section */}
