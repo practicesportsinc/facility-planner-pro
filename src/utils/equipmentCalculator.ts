@@ -50,25 +50,21 @@ const calculateCoreEquipment = (inputs: EquipmentInputs): EquipmentCategory => {
 
   switch (inputs.sport) {
     case 'baseball_softball':
-      const cageItem = COST_LIBRARY['batting-cage'];
-      if (cageItem) {
-        items.push({
-          name: 'Batting Cages (70ft premium)',
-          quantity: inputs.units,
-          unitCost: cageItem.costTiers.mid,
-          totalCost: inputs.units * cageItem.costTiers.mid,
-        });
-      }
+      const cageItem = COST_LIBRARY.shell_cage;
+      items.push({
+        name: 'Batting Cages (70ft)',
+        quantity: inputs.units,
+        unitCost: cageItem.costTiers.mid,
+        totalCost: inputs.units * cageItem.costTiers.mid,
+      });
 
-      const netItem = COST_LIBRARY['baseball-netting'];
-      if (netItem) {
-        items.push({
-          name: 'Protective Netting',
-          quantity: inputs.units * 2,
-          unitCost: netItem.costTiers.mid,
-          totalCost: inputs.units * 2 * netItem.costTiers.mid,
-        });
-      }
+      const netItem = COST_LIBRARY.tunnel_net;
+      items.push({
+        name: 'Protective Netting',
+        quantity: inputs.units * 2,
+        unitCost: netItem.costTiers.mid,
+        totalCost: inputs.units * 2 * netItem.costTiers.mid,
+      });
 
       if (inputs.specialFeatures?.includes('Pitching mounds')) {
         items.push({
