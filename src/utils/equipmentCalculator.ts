@@ -281,23 +281,27 @@ const calculateSafety = (inputs: EquipmentInputs): EquipmentCategory => {
   const items: EquipmentCategory['items'] = [];
 
   // Add basic safety equipment based on sport
+  const paddingCost = COST_LIBRARY.safety_padding;
+  
   switch (inputs.sport) {
     case 'baseball_softball':
+      const baseballLinearFeet = inputs.units * 100;
       items.push({
         name: 'Wall Padding & Protection',
-        quantity: inputs.units * 100, // linear feet
-        unitCost: 25,
-        totalCost: inputs.units * 100 * 25,
+        quantity: baseballLinearFeet,
+        unitCost: paddingCost.costTiers.mid,
+        totalCost: baseballLinearFeet * paddingCost.costTiers.mid,
       });
       break;
 
     case 'basketball':
     case 'volleyball':
+      const courtLinearFeet = inputs.units * 80;
       items.push({
         name: 'Wall Padding',
-        quantity: inputs.units * 80,
-        unitCost: 20,
-        totalCost: inputs.units * 80 * 20,
+        quantity: courtLinearFeet,
+        unitCost: paddingCost.costTiers.mid,
+        totalCost: courtLinearFeet * paddingCost.costTiers.mid,
       });
       break;
 

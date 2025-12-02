@@ -194,14 +194,14 @@ export const COST_LIBRARY: Record<string, CostItem> = {
   // Safety & Accessories
   safety_padding: {
     id: "safety_padding",
-    name: "Safety padding",
+    name: "Wall Padding",
     category: "safety",
     unit: "lf",
-    costTiers: { low: 18, mid: 26, high: 40 },
+    costTiers: { low: 50, mid: 60, high: 75 },
     installFactorPct: 10,
-    description: "Wall and column safety padding",
+    description: "Indoor wall padding for safety",
     userAdjustable: true,
-    marketNote: "User-adjustable; varies by market"
+    marketNote: "Based on Practice Sports pricing - practicesports.com"
   },
 
   // Technology
