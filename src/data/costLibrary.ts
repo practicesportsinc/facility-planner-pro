@@ -92,14 +92,14 @@ export const COST_LIBRARY: Record<string, CostItem> = {
 
   shell_cage: {
     id: "shell_cage", 
-    name: "ShellCage (Multi-Lane)",
+    name: "Batting Cage (Per Lane)",
     category: "baseball",
     unit: "lane",
-    costTiers: { low: 1700, mid: 2000, high: 2300 },
+    costTiers: { low: 2500, mid: 3000, high: 3500 },
     installFactorPct: 20,
-    description: "Multi-lane shell cage system, mid-tier option with enhanced durability",
+    description: "Professional batting cage system per lane",
     userAdjustable: true,
-    marketNote: "Professional-grade, priced per lane"
+    marketNote: "Based on Practice Sports pricing - practicesports.com"
   },
 
   air_cage: {
