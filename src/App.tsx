@@ -26,6 +26,7 @@ import B2B from "./pages/b2b/B2B";
 import Partnerships from "./pages/b2b/Partnerships";
 import B2BContact from "./pages/b2b/Contact";
 import B2BPricing from "./pages/b2b/Pricing";
+import BuildingConfig from "./pages/BuildingConfig";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/b2b/partnerships" element={<Partnerships />} />
               <Route path="/b2b/contact" element={<B2BContact />} />
               <Route path="/b2b/pricing" element={<B2BPricing />} />
+              <Route path="/building-config" element={<BuildingConfig />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <GlobalChatWidget />

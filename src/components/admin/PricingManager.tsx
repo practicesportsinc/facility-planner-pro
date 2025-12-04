@@ -24,7 +24,10 @@ const CATEGORY_GROUPS: Record<string, { label: string; categories: string[] }> =
   "pickleball": { label: "🏓 Pickleball", categories: ["pickleball"] },
   "soccer": { label: "⚽ Soccer", categories: ["soccer"] },
   "flooring": { label: "🏗️ Flooring & Surfaces", categories: ["flooring"] },
-  "building": { label: "⚡ Building Infrastructure", categories: ["building_systems", "technology", "fixtures"] },
+  "building_structure": { label: "🏢 Building Structure", categories: ["building_structure"] },
+  "doors_openings": { label: "🚪 Doors & Openings", categories: ["doors_openings"] },
+  "site_work": { label: "🅿️ Site Work", categories: ["site_work"] },
+  "building_systems": { label: "⚡ Building Systems", categories: ["building_systems", "technology", "fixtures"] },
   "safety": { label: "🛡️ Safety & Accessories", categories: ["safety", "netting", "protection", "equipment"] },
 };
 
