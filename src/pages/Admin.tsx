@@ -8,6 +8,7 @@ import { Settings, Database, Users, Download, Mail, RefreshCw } from "lucide-rea
 import { MakeWebhookSettings } from "@/components/admin/MakeWebhookSettings";
 import { LeadSyncMonitor } from "@/components/admin/LeadSyncMonitor";
 import { LeadSyncSettings } from "@/components/admin/LeadSyncSettings";
+import { PricingManager } from "@/components/admin/PricingManager";
 
 const Admin = () => {
   const { user, signOut } = useAuth();
@@ -95,33 +96,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="costs" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cost Library Management</CardTitle>
-                <CardDescription>
-                  Manage equipment costs, labor rates, and regional multipliers
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">Equipment Categories</h3>
-                    <Button variant="outline">Add Category</Button>
-                  </div>
-                  <div className="grid gap-4">
-                    {['Baseball Equipment', 'Basketball Equipment', 'General Facility'].map((category) => (
-                      <div key={category} className="flex items-center justify-between p-4 border rounded-lg">
-                        <span className="font-medium">{category}</span>
-                        <div className="space-x-2">
-                          <Button variant="ghost" size="sm">Edit</Button>
-                          <Button variant="ghost" size="sm">Delete</Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <PricingManager />
           </TabsContent>
 
           <TabsContent value="leads" className="space-y-6">
