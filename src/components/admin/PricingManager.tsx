@@ -4,13 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { RefreshCw, CheckCircle, XCircle, Clock, ExternalLink, Loader2 } from "lucide-react";
+import { RefreshCw, CheckCircle, XCircle, Clock, ExternalLink, Loader2, Pencil } from "lucide-react";
 import { COST_LIBRARY } from "@/data/costLibrary";
 import { 
   fetchAllLivePricing, 
   syncPricing, 
   updateProductMapping,
   toggleProductActive,
+  updateFallbackPrices,
   LivePriceData 
 } from "@/services/pricingService";
 
@@ -21,6 +22,8 @@ export function PricingManager() {
   const [syncingItem, setSyncingItem] = useState<string | null>(null);
   const [editingUrl, setEditingUrl] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState("");
+  const [editingFallback, setEditingFallback] = useState<string | null>(null);
+  const [fallbackInputs, setFallbackInputs] = useState({ low: "", mid: "", high: "" });
 
   useEffect(() => {
     loadPricing();
@@ -87,6 +90,26 @@ export function PricingManager() {
     }
   }
 
+  async function handleSaveFallback(costLibraryId: string) {
+    const prices = {
+      low: fallbackInputs.low ? parseFloat(fallbackInputs.low) : null,
+      mid: fallbackInputs.mid ? parseFloat(fallbackInputs.mid) : null,
+      high: fallbackInputs.high ? parseFloat(fallbackInputs.high) : null,
+    };
+
+    const success = await updateFallbackPrices(costLibraryId, prices);
+    
+    if (success) {
+      toast.success("Fallback prices updated");
+      await loadPricing();
+    } else {
+      toast.error("Failed to update fallback prices");
+    }
+    
+    setEditingFallback(null);
+    setFallbackInputs({ low: "", mid: "", high: "" });
+  }
+
   function getStatusBadge(status: string) {
     switch (status) {
       case 'success':
@@ -118,7 +141,12 @@ export function PricingManager() {
       name: item.name,
       category: item.category,
       unit: item.unit,
-      fallbackPrice: item.costTiers.mid,
+      fallbackDefault: item.costTiers,
+      fallbackOverride: {
+        low: liveData?.fallback_override_low ?? null,
+        mid: liveData?.fallback_override_mid ?? null,
+        high: liveData?.fallback_override_high ?? null,
+      },
       livePrice: liveData?.scraped_price || null,
       sourceUrl: liveData?.source_url || null,
       lastSynced: liveData?.last_synced_at || null,
@@ -126,6 +154,9 @@ export function PricingManager() {
       syncError: liveData?.sync_error || null,
       isActive: liveData?.is_active ?? false,
       hasLiveConfig: !!liveData,
+      hasOverride: liveData?.fallback_override_low !== null || 
+                   liveData?.fallback_override_mid !== null || 
+                   liveData?.fallback_override_high !== null,
     };
   });
 
@@ -186,16 +217,93 @@ export function PricingManager() {
                     </div>
                     
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <div className="flex gap-4">
-                        <span>
-                          <strong>Fallback:</strong> {formatPrice(item.fallbackPrice)}/{item.unit}
-                        </span>
-                        {item.livePrice && (
-                          <span className="text-green-600">
-                            <strong>Live:</strong> {formatPrice(item.livePrice)}/{item.unit}
+                      {/* Fallback Prices Section */}
+                      {editingFallback === item.id ? (
+                        <div className="bg-muted/50 p-3 rounded-lg space-y-2">
+                          <div className="text-xs font-medium">Edit Fallback Prices (per {item.unit})</div>
+                          <div className="flex gap-2 items-center">
+                            <div className="flex-1">
+                              <label className="text-xs text-muted-foreground">Low</label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={fallbackInputs.low}
+                                onChange={(e) => setFallbackInputs(prev => ({ ...prev, low: e.target.value }))}
+                                placeholder={item.fallbackDefault.low.toString()}
+                                className="h-8 text-sm"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label className="text-xs text-muted-foreground">Mid</label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={fallbackInputs.mid}
+                                onChange={(e) => setFallbackInputs(prev => ({ ...prev, mid: e.target.value }))}
+                                placeholder={item.fallbackDefault.mid.toString()}
+                                className="h-8 text-sm"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label className="text-xs text-muted-foreground">High</label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={fallbackInputs.high}
+                                onChange={(e) => setFallbackInputs(prev => ({ ...prev, high: e.target.value }))}
+                                placeholder={item.fallbackDefault.high.toString()}
+                                className="h-8 text-sm"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => handleSaveFallback(item.id)}>Save</Button>
+                            <Button size="sm" variant="outline" onClick={() => {
+                              setEditingFallback(null);
+                              setFallbackInputs({ low: "", mid: "", high: "" });
+                            }}>Cancel</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span>
+                            <strong>Fallback:</strong>{" "}
+                            {item.hasOverride ? (
+                              <span className="text-amber-600">
+                                ${item.fallbackOverride.low ?? item.fallbackDefault.low} / 
+                                ${item.fallbackOverride.mid ?? item.fallbackDefault.mid} / 
+                                ${item.fallbackOverride.high ?? item.fallbackDefault.high}
+                                <Badge variant="outline" className="ml-1 text-xs">override</Badge>
+                              </span>
+                            ) : (
+                              <span>
+                                ${item.fallbackDefault.low} / ${item.fallbackDefault.mid} / ${item.fallbackDefault.high}
+                              </span>
+                            )}
+                            /{item.unit}
                           </span>
-                        )}
-                      </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setEditingFallback(item.id);
+                              setFallbackInputs({
+                                low: item.fallbackOverride.low?.toString() || "",
+                                mid: item.fallbackOverride.mid?.toString() || "",
+                                high: item.fallbackOverride.high?.toString() || "",
+                              });
+                            }}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {item.livePrice && (
+                        <div className="text-green-600">
+                          <strong>Live:</strong> {formatPrice(item.livePrice)}/{item.unit}
+                        </div>
+                      )}
                       
                       {editingUrl === item.id ? (
                         <div className="flex gap-2 mt-2">
