@@ -301,6 +301,190 @@ export const COST_LIBRARY: Record<string, CostItem> = {
     description: "Professional radar speed measurement device",
     userAdjustable: true,
     marketNote: "User-adjustable; varies by market"
+  },
+
+  // ==========================================
+  // BUILDING STRUCTURE
+  // ==========================================
+  
+  metal_building_shell: {
+    id: "metal_building_shell",
+    name: "Pre-Engineered Metal Building Shell",
+    category: "building_structure",
+    unit: "sf",
+    costTiers: { low: 35, mid: 45, high: 60 },
+    installFactorPct: 30,
+    description: "Complete pre-engineered metal building shell including frame, roofing, and wall panels",
+    userAdjustable: true,
+    marketNote: "Varies by region and steel prices"
+  },
+
+  concrete_foundation: {
+    id: "concrete_foundation",
+    name: "Concrete Foundation (6\" slab)",
+    category: "building_structure",
+    unit: "sf",
+    costTiers: { low: 8, mid: 10, high: 14 },
+    installFactorPct: 0,
+    description: "6-inch reinforced concrete slab with vapor barrier and wire mesh",
+    userAdjustable: true,
+    marketNote: "Includes standard site prep"
+  },
+
+  insulation_package: {
+    id: "insulation_package",
+    name: "Insulation Package",
+    category: "building_structure",
+    unit: "sf",
+    costTiers: { low: 2, mid: 3, high: 5 },
+    installFactorPct: 15,
+    description: "Wall and roof insulation package (R-19 to R-30)",
+    userAdjustable: true,
+    marketNote: "Higher tier includes enhanced R-value"
+  },
+
+  // ==========================================
+  // DOORS & OPENINGS
+  // ==========================================
+
+  rollup_door_12x14: {
+    id: "rollup_door_12x14",
+    name: "Roll-Up Door 12'x14'",
+    category: "doors_openings",
+    unit: "each",
+    costTiers: { low: 4500, mid: 5500, high: 7000 },
+    installFactorPct: 15,
+    description: "Insulated steel roll-up overhead door 12' wide x 14' tall",
+    userAdjustable: true,
+    marketNote: "Includes motor and controls"
+  },
+
+  rollup_door_10x12: {
+    id: "rollup_door_10x12",
+    name: "Roll-Up Door 10'x12'",
+    category: "doors_openings",
+    unit: "each",
+    costTiers: { low: 3500, mid: 4500, high: 5500 },
+    installFactorPct: 15,
+    description: "Insulated steel roll-up overhead door 10' wide x 12' tall",
+    userAdjustable: true,
+    marketNote: "Includes motor and controls"
+  },
+
+  man_door: {
+    id: "man_door",
+    name: "Steel Man Door (3'x7')",
+    category: "doors_openings",
+    unit: "each",
+    costTiers: { low: 800, mid: 1200, high: 1800 },
+    installFactorPct: 10,
+    description: "Commercial steel personnel door with hardware",
+    userAdjustable: true,
+    marketNote: "Includes frame and hardware"
+  },
+
+  storefront_entry: {
+    id: "storefront_entry",
+    name: "Glass Storefront Entry",
+    category: "doors_openings",
+    unit: "each",
+    costTiers: { low: 6000, mid: 8500, high: 12000 },
+    installFactorPct: 15,
+    description: "Double-door aluminum storefront entry with glass",
+    userAdjustable: true,
+    marketNote: "ADA compliant"
+  },
+
+  window_4x4: {
+    id: "window_4x4",
+    name: "Window 4'x4' (insulated)",
+    category: "doors_openings",
+    unit: "each",
+    costTiers: { low: 600, mid: 900, high: 1400 },
+    installFactorPct: 10,
+    description: "Fixed insulated window 4' x 4'",
+    userAdjustable: true,
+    marketNote: "Commercial grade"
+  },
+
+  // ==========================================
+  // SITE WORK
+  // ==========================================
+
+  site_prep: {
+    id: "site_prep",
+    name: "Site Preparation & Grading",
+    category: "site_work",
+    unit: "sf",
+    costTiers: { low: 2, mid: 3, high: 5 },
+    installFactorPct: 0,
+    description: "Clearing, grading, and compaction for building pad",
+    userAdjustable: true,
+    marketNote: "Varies by site conditions"
+  },
+
+  parking_asphalt: {
+    id: "parking_asphalt",
+    name: "Asphalt Parking Lot",
+    category: "site_work",
+    unit: "sf",
+    costTiers: { low: 4, mid: 5, high: 7 },
+    installFactorPct: 0,
+    description: "Asphalt parking lot with striping",
+    userAdjustable: true,
+    marketNote: "Includes base and striping"
+  },
+
+  utilities_connection: {
+    id: "utilities_connection",
+    name: "Utilities Connection",
+    category: "site_work",
+    unit: "lump sum",
+    costTiers: { low: 15000, mid: 25000, high: 40000 },
+    installFactorPct: 0,
+    description: "Water, sewer, and gas connections to site",
+    userAdjustable: true,
+    marketNote: "Varies by distance to mains"
+  },
+
+  // ==========================================
+  // BUILDING SYSTEMS (additions)
+  // ==========================================
+
+  electrical_service: {
+    id: "electrical_service",
+    name: "Electrical Service (400A)",
+    category: "building_systems",
+    unit: "lump sum",
+    costTiers: { low: 25000, mid: 35000, high: 50000 },
+    installFactorPct: 0,
+    description: "400A electrical service with panel and distribution",
+    userAdjustable: true,
+    marketNote: "Includes panel, meter, and main distribution"
+  },
+
+  plumbing_roughin: {
+    id: "plumbing_roughin",
+    name: "Plumbing Rough-in",
+    category: "building_systems",
+    unit: "lump sum",
+    costTiers: { low: 12000, mid: 18000, high: 28000 },
+    installFactorPct: 0,
+    description: "Plumbing rough-in for restrooms and utilities",
+    userAdjustable: true,
+    marketNote: "2-4 fixture rough-in"
+  },
+
+  fire_sprinkler: {
+    id: "fire_sprinkler",
+    name: "Fire Sprinkler System",
+    category: "building_systems",
+    unit: "sf",
+    costTiers: { low: 3, mid: 4, high: 6 },
+    installFactorPct: 0,
+    description: "NFPA-compliant fire sprinkler system",
+    userAdjustable: true,
+    marketNote: "Required in most jurisdictions"
   }
 };
 
