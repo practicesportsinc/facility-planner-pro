@@ -37,6 +37,7 @@ import {
 } from "@/utils/calculations";
 import { formatCurrency } from "@/lib/utils";
 import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
+import { COST_LIBRARY, calculateItemTotal } from "@/data/costLibrary";
 
 const WizardResults = () => {
   const navigate = useNavigate();
@@ -195,7 +196,7 @@ const WizardResults = () => {
     return baseMembers * avgMembershipPrice;
   };
 
-  // Generate detailed equipment breakdown
+  // Generate detailed equipment breakdown using COST_LIBRARY
   const generateEquipmentBreakdown = (sports: string[], quantities: any, facilitySize: string) => {
     const equipmentCategories: any = {
       'Courts & Playing Surfaces': [],
@@ -206,72 +207,203 @@ const WizardResults = () => {
       'Facility Infrastructure': []
     };
 
-    // Sport-specific equipment based on selections
+    // Get facility square footage for per-SF calculations
+    const facilitySqft = facilitySize === 'small' ? 5000 : facilitySize === 'medium' ? 10000 : 20000;
+
+    // Sport-specific equipment using COST_LIBRARY
     sports.forEach(sport => {
       switch (sport) {
-        case 'basketball':
-          equipmentCategories['Courts & Playing Surfaces'].push(
-            { item: 'Basketball Court Flooring', quantity: 2, unitCost: 8500, total: 17000, description: 'Professional hardwood flooring' }
-          );
-          equipmentCategories['Goals & Net Systems'].push(
-            { item: 'Basketball Goals (Adjustable)', quantity: 4, unitCost: 1200, total: 4800, description: 'NCAA regulation goals' }
-          );
+        case 'basketball': {
+          const courtCount = quantities?.basketball_courts || 2;
+          const courtSqft = 4700; // Standard basketball court
+          const hoopCount = courtCount * 2;
+          
+          const hardwood = COST_LIBRARY.hardwood_installed;
+          const hoops = COST_LIBRARY.competition_hoops;
+          
+          const floorTotal = calculateItemTotal(hardwood, courtCount * courtSqft, 'mid');
+          const hoopTotal = calculateItemTotal(hoops, hoopCount, 'mid');
+          
+          equipmentCategories['Courts & Playing Surfaces'].push({
+            item: hardwood.name,
+            quantity: courtCount * courtSqft,
+            unitCost: hardwood.costTiers.mid,
+            total: Math.round(floorTotal),
+            description: hardwood.description
+          });
+          equipmentCategories['Goals & Net Systems'].push({
+            item: hoops.name,
+            quantity: hoopCount,
+            unitCost: hoops.costTiers.mid,
+            total: Math.round(hoopTotal),
+            description: hoops.description
+          });
           break;
+        }
         
-        case 'volleyball':
-          equipmentCategories['Courts & Playing Surfaces'].push(
-            { item: 'Volleyball Court Flooring', quantity: 2, unitCost: 6500, total: 13000, description: 'Competition-grade flooring' }
-          );
-          equipmentCategories['Goals & Net Systems'].push(
-            { item: 'Volleyball Net Systems', quantity: 4, unitCost: 450, total: 1800, description: 'Official height net systems' }
-          );
+        case 'volleyball': {
+          const courtCount = quantities?.volleyball_courts || 2;
+          const courtSqft = 1800; // Standard volleyball court
+          const netCount = courtCount;
+          
+          const flooring = COST_LIBRARY.sport_tile_installed;
+          const nets = COST_LIBRARY.volleyball_net_systems;
+          
+          const floorTotal = calculateItemTotal(flooring, courtCount * courtSqft, 'mid');
+          const netTotal = calculateItemTotal(nets, netCount, 'mid');
+          
+          equipmentCategories['Courts & Playing Surfaces'].push({
+            item: flooring.name,
+            quantity: courtCount * courtSqft,
+            unitCost: flooring.costTiers.mid,
+            total: Math.round(floorTotal),
+            description: 'Competition-grade sport tile flooring'
+          });
+          equipmentCategories['Goals & Net Systems'].push({
+            item: nets.name,
+            quantity: netCount,
+            unitCost: nets.costTiers.mid,
+            total: Math.round(netTotal),
+            description: nets.description
+          });
           break;
+        }
         
-        case 'baseball_softball':
+        case 'baseball_softball': {
+          const cageCount = quantities?.batting_cages || 4;
+          const machineCount = Math.ceil(cageCount / 2);
+          
+          const cages = COST_LIBRARY.shell_cage;
+          const netting = COST_LIBRARY.tunnel_net;
+          const machines = COST_LIBRARY.pitching_machines;
+          
+          const cageTotal = calculateItemTotal(cages, cageCount, 'mid');
+          const netTotal = calculateItemTotal(netting, cageCount * 2, 'mid');
+          const machineTotal = calculateItemTotal(machines, machineCount, 'mid');
+          
           equipmentCategories['Protective Equipment'].push(
-            { item: 'Batting Cage Netting', quantity: 4, unitCost: 2800, total: 11200, description: '70\' x 15\' protective netting' },
-            { item: 'Pitching Machines', quantity: 2, unitCost: 3500, total: 7000, description: 'Multi-speed pitching machines' }
+            {
+              item: cages.name,
+              quantity: cageCount,
+              unitCost: cages.costTiers.mid,
+              total: Math.round(cageTotal),
+              description: cages.description
+            },
+            {
+              item: netting.name,
+              quantity: cageCount * 2,
+              unitCost: netting.costTiers.mid,
+              total: Math.round(netTotal),
+              description: netting.description
+            },
+            {
+              item: machines.name,
+              quantity: machineCount,
+              unitCost: machines.costTiers.mid,
+              total: Math.round(machineTotal),
+              description: machines.description
+            }
           );
           break;
+        }
         
-        case 'soccer':
-          equipmentCategories['Courts & Playing Surfaces'].push(
-            { item: 'Artificial Turf System', quantity: 1, unitCost: 45000, total: 45000, description: '6000 sq ft turf installation' }
-          );
-          equipmentCategories['Goals & Net Systems'].push(
-            { item: 'Soccer Goals', quantity: 4, unitCost: 800, total: 3200, description: 'Regulation size goals' }
-          );
+        case 'soccer': {
+          const fieldSqft = quantities?.soccer_sqft || 6000;
+          const goalPairs = quantities?.soccer_goals || 2;
+          
+          const turf = COST_LIBRARY.turf_installed;
+          const goals = COST_LIBRARY.soccer_goals;
+          
+          const turfTotal = calculateItemTotal(turf, fieldSqft, 'mid');
+          const goalTotal = calculateItemTotal(goals, goalPairs, 'mid');
+          
+          equipmentCategories['Courts & Playing Surfaces'].push({
+            item: turf.name,
+            quantity: fieldSqft,
+            unitCost: turf.costTiers.mid,
+            total: Math.round(turfTotal),
+            description: turf.description
+          });
+          equipmentCategories['Goals & Net Systems'].push({
+            item: goals.name,
+            quantity: goalPairs,
+            unitCost: goals.costTiers.mid,
+            total: Math.round(goalTotal),
+            description: goals.description
+          });
           break;
+        }
         
-        case 'pickleball':
-          equipmentCategories['Courts & Playing Surfaces'].push(
-            { item: 'Pickleball Court Surface', quantity: 4, unitCost: 3500, total: 14000, description: 'Non-slip court surface' }
-          );
-          equipmentCategories['Goals & Net Systems'].push(
-            { item: 'Pickleball Net Systems', quantity: 4, unitCost: 250, total: 1000, description: 'Portable net systems' }
-          );
+        case 'pickleball': {
+          const courtCount = quantities?.pickleball_courts || 4;
+          const courtSqft = 880; // Standard pickleball court
+          
+          const flooring = COST_LIBRARY.sport_tile_installed;
+          const nets = COST_LIBRARY.pickleball_nets;
+          
+          const floorTotal = calculateItemTotal(flooring, courtCount * courtSqft, 'mid');
+          const netTotal = calculateItemTotal(nets, courtCount, 'mid');
+          
+          equipmentCategories['Courts & Playing Surfaces'].push({
+            item: flooring.name,
+            quantity: courtCount * courtSqft,
+            unitCost: flooring.costTiers.mid,
+            total: Math.round(floorTotal),
+            description: 'Non-slip court surface'
+          });
+          equipmentCategories['Goals & Net Systems'].push({
+            item: nets.name,
+            quantity: courtCount,
+            unitCost: nets.costTiers.mid,
+            total: Math.round(netTotal),
+            description: nets.description
+          });
           break;
+        }
       }
     });
 
-    // Common facility equipment based on size
-    const baseEquipment = [
-      { category: 'Lighting & Infrastructure', item: 'LED Sports Lighting', quantity: 20, unitCost: 450, total: 9000, description: 'Energy-efficient LED fixtures' },
-      { category: 'Safety & Training', item: 'First Aid Stations', quantity: 2, unitCost: 350, total: 700, description: 'Fully stocked first aid stations' },
-      { category: 'Facility Infrastructure', item: 'Sound System', quantity: 1, unitCost: 8500, total: 8500, description: 'Facility-wide audio system' },
-      { category: 'Facility Infrastructure', item: 'HVAC Equipment', quantity: 1, unitCost: 25000, total: 25000, description: 'Climate control system' },
-      { category: 'Safety & Training', item: 'Storage Systems', quantity: 1, unitCost: 4500, total: 4500, description: 'Equipment storage solutions' }
-    ];
+    // Common facility equipment using COST_LIBRARY
+    const lighting = COST_LIBRARY.led_lighting;
+    const hvac = COST_LIBRARY.hvac_installed;
+    const itSecurity = COST_LIBRARY.it_security;
+    
+    const lightingTotal = calculateItemTotal(lighting, facilitySqft, 'mid');
+    const hvacTotal = calculateItemTotal(hvac, facilitySqft, 'mid');
+    const itTotal = calculateItemTotal(itSecurity, 1, 'mid');
 
-    baseEquipment.forEach(item => {
-      equipmentCategories[item.category].push({
-        item: item.item,
-        quantity: item.quantity,
-        unitCost: item.unitCost,
-        total: item.total,
-        description: item.description
-      });
+    equipmentCategories['Lighting & Infrastructure'].push({
+      item: lighting.name,
+      quantity: facilitySqft,
+      unitCost: lighting.costTiers.mid,
+      total: Math.round(lightingTotal),
+      description: lighting.description
     });
+    
+    equipmentCategories['Safety & Training'].push({
+      item: 'First Aid Stations',
+      quantity: 2,
+      unitCost: 350,
+      total: 700,
+      description: 'Fully stocked first aid stations'
+    });
+    
+    equipmentCategories['Facility Infrastructure'].push(
+      {
+        item: itSecurity.name,
+        quantity: 1,
+        unitCost: itSecurity.costTiers.mid,
+        total: Math.round(itTotal),
+        description: itSecurity.description
+      },
+      {
+        item: hvac.name,
+        quantity: facilitySqft,
+        unitCost: hvac.costTiers.mid,
+        total: Math.round(hvacTotal),
+        description: hvac.description
+      }
+    );
 
     // Calculate category totals
     Object.keys(equipmentCategories).forEach(category => {
