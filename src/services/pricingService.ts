@@ -13,6 +13,9 @@ export interface LivePriceData {
   sync_status: string;
   sync_error: string | null;
   is_active: boolean;
+  fallback_override_low: number | null;
+  fallback_override_mid: number | null;
+  fallback_override_high: number | null;
 }
 
 export interface PriceResult {
@@ -20,6 +23,7 @@ export interface PriceResult {
   isLive: boolean;
   tier: 'low' | 'mid' | 'high';
   lastSynced?: string;
+  isOverride?: boolean;
 }
 
 // Cache for live pricing data
@@ -69,6 +73,17 @@ export async function getLivePrice(
       isLive: true,
       tier,
       lastSynced: liveData.last_synced_at,
+    };
+  }
+
+  // Check for fallback override in database
+  const overrideKey = `fallback_override_${tier}` as keyof LivePriceData;
+  if (liveData && liveData[overrideKey] !== null) {
+    return {
+      price: liveData[overrideKey] as number,
+      isLive: false,
+      tier,
+      isOverride: true,
     };
   }
 
@@ -164,6 +179,33 @@ export async function toggleProductActive(
   return true;
 }
 
+export async function updateFallbackPrices(
+  costLibraryId: string,
+  prices: { low: number | null; mid: number | null; high: number | null }
+): Promise<boolean> {
+  const { error } = await (supabase as any)
+    .from('product_pricing')
+    .upsert({
+      cost_library_id: costLibraryId,
+      product_name: COST_LIBRARY[costLibraryId]?.name || costLibraryId,
+      fallback_override_low: prices.low,
+      fallback_override_mid: prices.mid,
+      fallback_override_high: prices.high,
+      is_active: true,
+    }, {
+      onConflict: 'cost_library_id',
+    });
+
+  if (error) {
+    console.error('[pricingService] Update fallback prices error:', error);
+    return false;
+  }
+
+  // Invalidate cache
+  lastCacheUpdate = null;
+  return true;
+}
+
 // Hook for React components
 export function useLivePricing() {
   return {
@@ -172,5 +214,6 @@ export function useLivePricing() {
     syncPricing,
     updateProductMapping,
     toggleProductActive,
+    updateFallbackPrices,
   };
 }
