@@ -2,12 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { BuildingConfig, BuildingEstimate, calculateBuildingEstimate, DEFAULT_BUILDING_CONFIG } from "@/utils/buildingCalculator";
+import { generateBuildingEstimatePDF } from "@/utils/buildingEstimatePdf";
 import { DimensionsStep } from "./steps/DimensionsStep";
 import { DoorsStep } from "./steps/DoorsStep";
 import { FinishLevelStep } from "./steps/FinishLevelStep";
 import { SiteOptionsStep } from "./steps/SiteOptionsStep";
 import { BuildingEstimateStep } from "./steps/BuildingEstimateStep";
 import { Progress } from "@/components/ui/progress";
+import LeadGate from "@/components/shared/LeadGate";
+import { supabase } from "@/integrations/supabase/client";
 
 type WizardStep = 'dimensions' | 'doors' | 'finish' | 'site' | 'estimate';
 
@@ -19,10 +22,21 @@ const STEPS: { id: WizardStep; label: string }[] = [
   { id: 'estimate', label: 'Estimate' },
 ];
 
+interface LeadData {
+  name: string;
+  email: string;
+  phone?: string;
+  city?: string;
+  state?: string;
+  wantsOutreach?: boolean;
+}
+
 export function BuildingConfigWizard() {
   const navigate = useNavigate();
   const [step, setStep] = useState<WizardStep>('dimensions');
   const [config, setConfig] = useState<BuildingConfig>(DEFAULT_BUILDING_CONFIG);
+  const [leadGateOpen, setLeadGateOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const currentStepIndex = STEPS.findIndex(s => s.id === step);
   const progress = ((currentStepIndex + 1) / STEPS.length) * 100;
@@ -34,12 +48,101 @@ export function BuildingConfigWizard() {
   const estimate: BuildingEstimate = calculateBuildingEstimate(config);
   
   const handleDownload = () => {
-    // TODO: Implement PDF download with lead gate
-    toast.info("PDF download coming soon!");
+    setLeadGateOpen(true);
+  };
+
+  const handleLeadSubmit = async (leadData: LeadData) => {
+    setIsSubmitting(true);
+    
+    try {
+      // Prepare building summary for source_detail
+      const buildingSummary = `${config.width}x${config.length}-${config.eaveHeight}ft-${config.finishLevel}`;
+      
+      // Prepare payload for Google Sheets
+      const sheetPayload = {
+        name: leadData.name,
+        email: leadData.email,
+        phone: leadData.phone || '',
+        city: leadData.city || '',
+        state: leadData.state || '',
+        source: 'building-estimate',
+        source_detail: buildingSummary,
+        estimatedSquareFootage: estimate.grossSF,
+        estimatedBudget: estimate.total,
+        referrer: document.referrer || window.location.href,
+        userAgent: navigator.userAgent,
+      };
+
+      // Sync to Google Sheets
+      console.log('[BuildingWizard] Syncing lead to Google Sheets:', { email: leadData.email, source: 'building-estimate' });
+      const { error: sheetError } = await supabase.functions.invoke('sync-lead-to-sheets', {
+        body: sheetPayload
+      });
+      
+      if (sheetError) {
+        console.error('[BuildingWizard] Google Sheets sync error:', sheetError);
+      }
+
+      // Prepare site options summary
+      const siteOptions = [];
+      if (config.sitePrep) siteOptions.push("Site Prep");
+      if (config.concreteFoundation) siteOptions.push("Foundation");
+      if (config.parking) siteOptions.push("Parking");
+      if (config.utilities) siteOptions.push("Utilities");
+      if (config.sprinklerSystem) siteOptions.push("Sprinklers");
+
+      // Send confirmation emails
+      console.log('[BuildingWizard] Sending confirmation emails');
+      const { error: emailError } = await supabase.functions.invoke('send-lead-emails', {
+        body: {
+          customerEmail: leadData.email,
+          customerName: leadData.name,
+          leadData: {
+            name: leadData.name,
+            email: leadData.email,
+            phone: leadData.phone || '',
+            city: leadData.city || '',
+            state: leadData.state || '',
+            wantsOutreach: leadData.wantsOutreach || false,
+          },
+          facilityDetails: {
+            presetName: `${config.width}' x ${config.length}' Metal Building`,
+            squareFootage: estimate.grossSF,
+            projectType: 'Building Configuration',
+            additionalInfo: `Eave Height: ${config.eaveHeight}' | Finish: ${config.finishLevel} | ${siteOptions.length > 0 ? 'Site Work: ' + siteOptions.join(', ') : 'No site work included'}`,
+          },
+          estimates: {
+            totalCapEx: estimate.total,
+            buildingSubtotal: estimate.subtotals.structure + estimate.subtotals.doors + estimate.subtotals.systems + estimate.subtotals.siteWork,
+            softCosts: estimate.softCosts,
+            contingency: estimate.contingency,
+          },
+          source: 'building-estimate',
+        }
+      });
+
+      if (emailError) {
+        console.error('[BuildingWizard] Email send error:', emailError);
+      }
+
+      // Generate and download PDF
+      generateBuildingEstimatePDF(config, estimate, leadData);
+      
+      toast.success("Your building estimate PDF has been downloaded!");
+      setLeadGateOpen(false);
+      
+    } catch (error) {
+      console.error('[BuildingWizard] Lead submission error:', error);
+      toast.error("There was an issue processing your request. Your PDF will still download.");
+      // Still generate PDF even if sync fails
+      generateBuildingEstimatePDF(config, estimate, leadData);
+      setLeadGateOpen(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const handleContinueToCalculator = () => {
-    // Pass building estimate data to calculator
     navigate('/calculator', { 
       state: { 
         buildingData: {
@@ -122,6 +225,23 @@ export function BuildingConfigWizard() {
           onContinueToCalculator={handleContinueToCalculator}
         />
       )}
+
+      {/* Lead Gate Modal */}
+      <LeadGate
+        isOpen={leadGateOpen}
+        onClose={() => setLeadGateOpen(false)}
+        onSubmit={handleLeadSubmit}
+        mode="modal"
+        title="Get Your Building Estimate PDF"
+        description="Enter your details to download the complete itemized construction estimate."
+        showOptionalFields={true}
+        showMessageField={false}
+        showPartnershipField={false}
+        showOutreachField={true}
+        submitButtonText={isSubmitting ? "Processing..." : "Download Estimate PDF"}
+        showCancelButton={true}
+        cancelButtonText="Cancel"
+      />
     </div>
   );
 }
