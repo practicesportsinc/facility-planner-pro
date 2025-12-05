@@ -21,8 +21,17 @@ import {
   DollarSign
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { InlineChatInput } from "@/components/home/InlineChatInput";
+import { useChat } from "@/contexts/ChatContext";
+import { clearChatHistory } from "@/utils/chatHelpers";
 
 const FAQ = () => {
+  const { openChat } = useChat();
+
+  const handleChatSend = (message: string) => {
+    clearChatHistory();
+    openChat(message);
+  };
   const faqs = [
     {
       category: "Facility Size & Space Planning",
@@ -378,6 +387,14 @@ const FAQ = () => {
           <Badge variant="secondary" className="text-sm">
             {totalQuestions} Questions Answered
           </Badge>
+        </div>
+
+        {/* AI Chat Input */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <p className="text-center text-muted-foreground mb-4">
+            Can't find your answer? Ask our AI assistant anything about sports facility planning.
+          </p>
+          <InlineChatInput onSend={handleChatSend} />
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
