@@ -84,14 +84,14 @@ const Header = () => {
                   size="sm"
                   asChild
                   className={`shadow-glow transition-all ${
-                    isActive('/', 'facility')
+                    location.pathname === '/building-config'
                       ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
                       : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
                   }`}
                 >
-                  <Link to="/?mode=facility" className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    Full Facility
+                  <Link to="/building-config" className="flex items-center gap-2">
+                    <HardHat className="h-4 w-4" />
+                    Building Only
                   </Link>
                 </Button>
               </NavigationMenuItem>
@@ -101,14 +101,14 @@ const Header = () => {
                   size="sm"
                   asChild
                   className={`shadow-glow transition-all ${
-                    location.pathname === '/building-config'
+                    isActive('/', 'facility')
                       ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
                       : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
                   }`}
                 >
-                  <Link to="/building-config" className="flex items-center gap-2">
-                    <HardHat className="h-4 w-4" />
-                    Building Config
+                  <Link to="/?mode=facility" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Full Facility
                   </Link>
                 </Button>
               </NavigationMenuItem>
@@ -192,7 +192,7 @@ const Header = () => {
                 >
                   <Link to="/building-config" className="flex items-center gap-2">
                     <HardHat className="h-5 w-5" />
-                    Building Config
+                    Building Only
                   </Link>
                 </Button>
 
