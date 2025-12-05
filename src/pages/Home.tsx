@@ -138,7 +138,10 @@ const Home = () => {
             </p>
             <div className="mt-12">
               {flowStep === 'path' && (
-                <PathSelector onSelectPath={handlePathSelect} />
+                <>
+                  <PathSelector onSelectPath={handlePathSelect} />
+                  <InlineChatInput onSend={handleChatSend} />
+                </>
               )}
               
               {flowStep === 'sport' && (
