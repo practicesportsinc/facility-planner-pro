@@ -310,16 +310,28 @@ export default function ReviewGenerateStep() {
       )}
 
       {/* Lead Gate Modal */}
-      {showLeadGate && (
-        <LeadGate
-          title="Download Your Business Plan"
-          description="Enter your information to receive your comprehensive business plan"
-          source="business-plan-builder"
-          sourceDetail={`${data.projectOverview.facilityName}-${data.scenario}`}
-          onSubmitSuccess={onLeadSubmitted}
-          onClose={() => setShowLeadGate(false)}
-        />
-      )}
+      <LeadGate
+        isOpen={showLeadGate}
+        onClose={() => setShowLeadGate(false)}
+        onSubmit={async (leadData) => {
+          // Sync to Google Sheets
+          try {
+            await supabase.functions.invoke('sync-lead-to-sheets', {
+              body: {
+                ...leadData,
+                source: 'business-plan-builder',
+                source_detail: `${data.projectOverview.facilityName}-${data.scenario}`,
+              },
+            });
+          } catch (error) {
+            console.error('Lead sync error:', error);
+          }
+          await onLeadSubmitted();
+        }}
+        title="Download Your Business Plan"
+        description="Enter your information to receive your comprehensive business plan"
+        showOutreachField={false}
+      />
     </div>
   );
 }

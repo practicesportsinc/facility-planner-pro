@@ -29,3 +29,9 @@ verify_jwt = false
 
 [functions.faq-chat]
 verify_jwt = false
+
+[functions.analyze-location]
+verify_jwt = false
+
+[functions.generate-full-business-plan]
+verify_jwt = false
