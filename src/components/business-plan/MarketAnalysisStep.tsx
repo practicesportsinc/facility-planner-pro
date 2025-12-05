@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import { Users, TrendingUp, DollarSign, Baby, Loader2, MapPin } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Users, TrendingUp, DollarSign, Baby, Loader2, MapPin, Database, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -21,10 +22,17 @@ const CUSTOMER_SEGMENTS = [
   { id: 'corporate_events', label: 'Corporate Events', description: 'Team building events' },
 ];
 
+interface DataSourceInfo {
+  source: 'census' | 'estimated';
+  year: string;
+  description: string;
+}
+
 export default function MarketAnalysisStep() {
   const { data, updateData } = useBusinessPlan();
   const { marketAnalysis, projectOverview } = data;
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [dataSource, setDataSource] = useState<DataSourceInfo | null>(null);
 
   const handleSegmentToggle = (segmentId: string) => {
     const current = marketAnalysis.customerSegments;
@@ -55,20 +63,32 @@ export default function MarketAnalysisStep() {
 
       if (result) {
         updateData('marketAnalysis', {
-          population10Min: result.population10Min || 0,
-          population15Min: result.population15Min || 0,
-          population20Min: result.population20Min || 0,
-          medianHouseholdIncome: result.medianHouseholdIncome || 0,
-          youthPopulation: result.youthPopulation || 0,
-          familiesWithChildren: result.familiesWithChildren || 0,
-          populationGrowthRate: result.populationGrowthRate || 0,
+          population10Min: result.demographics?.population10Min || 0,
+          population15Min: result.demographics?.population15Min || 0,
+          population20Min: result.demographics?.population20Min || 0,
+          medianHouseholdIncome: result.demographics?.medianHouseholdIncome || 0,
+          youthPopulation: result.demographics?.youthPopulation || 0,
+          familiesWithChildren: result.demographics?.familiesWithChildren || 0,
+          populationGrowthRate: result.demographics?.populationGrowthRate || 0,
         });
-        toast.success('Market data loaded successfully');
+        
+        if (result.dataSource) {
+          setDataSource(result.dataSource);
+        }
+        
+        const sourceLabel = result.dataSource?.source === 'census' 
+          ? 'Census Bureau data' 
+          : 'estimated data';
+        toast.success(`Market data loaded (${sourceLabel})`);
       }
     } catch (error) {
       console.error('Location analysis error:', error);
       toast.error('Could not analyze location. Using estimated data.');
-      // Set estimated defaults
+      setDataSource({
+        source: 'estimated',
+        year: 'N/A',
+        description: 'Regional estimates based on state averages',
+      });
       updateData('marketAnalysis', {
         population10Min: 75000,
         population15Min: 150000,
@@ -105,18 +125,62 @@ export default function MarketAnalysisStep() {
       </div>
 
       {/* Analyze Button */}
-      <Button
-        onClick={analyzeLocation}
-        disabled={isAnalyzing}
-        className="flex items-center gap-2"
-      >
-        {isAnalyzing ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <MapPin className="w-4 h-4" />
+      <div className="flex items-center gap-4">
+        <Button
+          onClick={analyzeLocation}
+          disabled={isAnalyzing}
+          className="flex items-center gap-2"
+        >
+          {isAnalyzing ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <MapPin className="w-4 h-4" />
+          )}
+          {isAnalyzing ? 'Analyzing...' : 'Analyze Location'}
+        </Button>
+        
+        {/* Data Source Indicator */}
+        {dataSource && (
+          <div className="flex items-center gap-2">
+            <Badge 
+              variant={dataSource.source === 'census' ? 'default' : 'secondary'}
+              className="flex items-center gap-1"
+            >
+              <Database className="w-3 h-3" />
+              {dataSource.source === 'census' ? 'Census Data' : 'Estimated'}
+            </Badge>
+            {dataSource.source === 'census' && (
+              <span className="text-xs text-muted-foreground">
+                ACS {dataSource.year}
+              </span>
+            )}
+          </div>
         )}
-        {isAnalyzing ? 'Analyzing...' : 'Analyze Location'}
-      </Button>
+      </div>
+
+      {/* Data Source Notice */}
+      {dataSource && (
+        <div className={`flex items-start gap-2 p-3 rounded-lg text-sm ${
+          dataSource.source === 'census' 
+            ? 'bg-primary/10 text-primary' 
+            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+        }`}>
+          {dataSource.source === 'census' ? (
+            <Database className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          )}
+          <div>
+            <span className="font-medium">Data Source: </span>
+            {dataSource.description}
+            {dataSource.source === 'estimated' && (
+              <span className="block mt-1 text-xs opacity-80">
+                For more accurate data, ensure a valid 5-digit ZIP code is entered in Step 1.
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Demographics Display */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
