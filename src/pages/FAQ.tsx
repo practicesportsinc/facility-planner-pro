@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import {
   Accordion,
@@ -21,16 +22,16 @@ import {
   DollarSign
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { InlineChatInput } from "@/components/home/InlineChatInput";
-import { useChat } from "@/contexts/ChatContext";
-import { clearChatHistory } from "@/utils/chatHelpers";
+import { FAQChatInput } from "@/components/faq/FAQChatInput";
+import { useFAQChat } from "@/hooks/useFAQChat";
 
 const FAQ = () => {
-  const { openChat } = useChat();
+  const { messages, isLoading, sendMessage, clearChat } = useFAQChat();
+  const [showAnswer, setShowAnswer] = useState(false);
 
   const handleChatSend = (message: string) => {
-    clearChatHistory();
-    openChat(message);
+    setShowAnswer(true);
+    sendMessage(message);
   };
   const faqs = [
     {
@@ -394,7 +395,41 @@ const FAQ = () => {
           <p className="text-center text-muted-foreground mb-4">
             Can't find your answer? Ask our AI assistant anything about sports facility planning.
           </p>
-          <InlineChatInput onSend={handleChatSend} />
+          <FAQChatInput onSend={handleChatSend} isLoading={isLoading} />
+          
+          {/* AI Answer Display */}
+          {showAnswer && messages.length > 0 && (
+            <Card className="mt-6 p-6 bg-card/50 border-primary/20">
+              <div className="space-y-4">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={msg.role === "user" ? "text-muted-foreground" : ""}>
+                    {msg.role === "user" ? (
+                      <p className="text-sm italic">"{msg.content}"</p>
+                    ) : (
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <div dangerouslySetInnerHTML={{ 
+                          __html: msg.content
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\n/g, '<br/>') 
+                        }} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {isLoading && messages[messages.length - 1]?.role === "user" && (
+                  <p className="text-muted-foreground animate-pulse">Thinking...</p>
+                )}
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="mt-4"
+                onClick={() => { clearChat(); setShowAnswer(false); }}
+              >
+                Clear & Ask Another Question
+              </Button>
+            </Card>
+          )}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
