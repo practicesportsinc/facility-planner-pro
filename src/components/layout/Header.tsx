@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, MessageCircle, Home as HomeIcon, Wrench, Building2 } from "lucide-react";
+import { Menu, MessageCircle, Home as HomeIcon, Wrench, Building2, HardHat } from "lucide-react";
 import { useChat } from "@/contexts/ChatContext";
 import {
   NavigationMenu,
@@ -101,6 +101,23 @@ const Header = () => {
                   size="sm"
                   asChild
                   className={`shadow-glow transition-all ${
+                    location.pathname === '/building-config'
+                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                  }`}
+                >
+                  <Link to="/building-config" className="flex items-center gap-2">
+                    <HardHat className="h-4 w-4" />
+                    Building Config
+                  </Link>
+                </Button>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <Button
+                  size="sm"
+                  asChild
+                  className={`shadow-glow transition-all ${
                     isActive('/', 'facility')
                       ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
                       : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
@@ -160,6 +177,22 @@ const Header = () => {
                   <Link to="/?mode=equipment" className="flex items-center gap-2">
                     <Wrench className="h-5 w-5" />
                     Equipment Only
+                  </Link>
+                </Button>
+
+                <Button
+                  size="lg"
+                  asChild
+                  className={`w-full justify-start shadow-glow ${
+                    location.pathname === '/building-config'
+                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Link to="/building-config" className="flex items-center gap-2">
+                    <HardHat className="h-5 w-5" />
+                    Building Config
                   </Link>
                 </Button>
 
