@@ -5,7 +5,7 @@ interface Message {
   content: string;
 }
 
-const FAQ_CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/faq-chat`;
+const FAQ_CHAT_URL = "https://apdxtdarwacdcuhvtaag.supabase.co/functions/v1/faq-chat";
 
 export function useFAQChat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -25,7 +25,7 @@ export function useFAQChat() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwZHh0ZGFyd2FjZGN1aHZ0YWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyMDI1NjksImV4cCI6MjA3MDc3ODU2OX0.flGfUtz-B-RXJdPX4fnbUil8I23khgtyK29h3AnF0n0",
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
