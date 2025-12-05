@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, MessageCircle, Home as HomeIcon, Wrench, Building2, HardHat } from "lucide-react";
+import { Menu, MessageCircle, Home as HomeIcon, Wrench, Building2, HardHat, FileText } from "lucide-react";
 import { useChat } from "@/contexts/ChatContext";
 import {
   NavigationMenu,
@@ -118,14 +118,14 @@ const Header = () => {
                   size="sm"
                   asChild
                   className={`shadow-glow transition-all ${
-                    isActive('/', 'facility')
+                    location.pathname === '/business-plan'
                       ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
                       : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
                   }`}
                 >
-                  <Link to="/?mode=facility" className="flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4" />
-                    Chat
+                  <Link to="/business-plan" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Business Plan
                   </Link>
                 </Button>
               </NavigationMenuItem>
@@ -216,15 +216,15 @@ const Header = () => {
                   size="lg"
                   asChild
                   className={`w-full justify-start shadow-glow ${
-                    isActive('/', 'facility')
+                    location.pathname === '/business-plan'
                       ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
                       : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <Link to="/?mode=facility" className="flex items-center gap-2">
-                    <MessageCircle className="h-5 w-5" />
-                    Chat
+                  <Link to="/business-plan" className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Business Plan
                   </Link>
                 </Button>
               </nav>
