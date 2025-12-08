@@ -1,20 +1,22 @@
 import { Card } from "@/components/ui/card";
-import { Wrench, Building2, HardHat } from "lucide-react";
+import { Wrench, Building2, HardHat, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useAnalytics from "@/hooks/useAnalytics";
 
 interface PathSelectorProps {
-  onSelectPath: (path: 'equipment' | 'facility' | 'building') => void;
+  onSelectPath: (path: 'equipment' | 'facility' | 'building' | 'market') => void;
 }
 
 export const PathSelector = ({ onSelectPath }: PathSelectorProps) => {
   const { track } = useAnalytics();
   const navigate = useNavigate();
 
-  const handlePathSelect = (path: 'equipment' | 'facility' | 'building') => {
+  const handlePathSelect = (path: 'equipment' | 'facility' | 'building' | 'market') => {
     track('path_selected', { path });
     if (path === 'building') {
       navigate('/building-config');
+    } else if (path === 'market') {
+      navigate('/market-analysis');
     } else {
       onSelectPath(path);
     }
@@ -27,7 +29,7 @@ export const PathSelector = ({ onSelectPath }: PathSelectorProps) => {
         <p className="text-muted-foreground text-lg">Choose the path that fits your needs</p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card 
           className="p-8 cursor-pointer hover:shadow-xl transition-all duration-300 border-2 hover:border-primary group"
           onClick={() => handlePathSelect('equipment')}
@@ -110,6 +112,35 @@ export const PathSelector = ({ onSelectPath }: PathSelectorProps) => {
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
                 Revenue & operating projections
+              </li>
+            </ul>
+          </div>
+        </Card>
+
+        <Card 
+          className="p-8 cursor-pointer hover:shadow-xl transition-all duration-300 border-2 hover:border-green-500 group"
+          onClick={() => handlePathSelect('market')}
+        >
+          <div className="text-center">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
+              <TrendingUp className="w-10 h-10 text-green-500" />
+            </div>
+            <h3 className="text-2xl font-bold mb-3">Market Analysis</h3>
+            <p className="text-muted-foreground mb-4">
+              Check if your area can support a sports facility with instant market data.
+            </p>
+            <ul className="text-sm text-left space-y-2 text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                ZIP code demographics
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                Sports demand ranking
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                Results in 30 seconds
               </li>
             </ul>
           </div>
