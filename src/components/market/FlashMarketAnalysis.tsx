@@ -86,9 +86,13 @@ export const FlashMarketAnalysis = () => {
       if (error) throw error;
 
       setMarketData(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error analyzing location:', error);
-      toast.error("Failed to analyze location. Please try again.");
+      if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError')) {
+        toast.error("Service temporarily unavailable. Please try again in a moment.");
+      } else {
+        toast.error("Failed to analyze location. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
