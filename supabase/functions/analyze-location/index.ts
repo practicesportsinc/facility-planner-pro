@@ -216,6 +216,8 @@ function getRegion(state: string): string {
 }
 
 serve(async (req) => {
+  console.log('analyze-location function invoked at:', new Date().toISOString());
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
