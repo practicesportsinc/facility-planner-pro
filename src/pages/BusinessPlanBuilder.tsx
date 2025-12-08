@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BusinessPlanProvider, useBusinessPlan } from '@/contexts/BusinessPlanContext';
 import Layout from '@/components/layout/Layout';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronLeft, ChevronRight, FileText, ExternalLink } from 'lucide-react';
+import LeadGate from '@/components/shared/LeadGate';
+import { supabase } from '@/integrations/supabase/client';
 import ProjectOverviewStep from '@/components/business-plan/ProjectOverviewStep';
 import MarketAnalysisStep from '@/components/business-plan/MarketAnalysisStep';
 import SportSelectionStep from '@/components/business-plan/SportSelectionStep';
@@ -31,6 +33,23 @@ const STEPS = [
 function WizardContent() {
   const { currentStep, setCurrentStep, goToNext, goToPrevious, isStepComplete } = useBusinessPlan();
   const progress = ((currentStep + 1) / STEPS.length) * 100;
+  const [showSamplePlanGate, setShowSamplePlanGate] = useState(false);
+
+  const handleSamplePlanSubmit = async (leadData: any) => {
+    try {
+      await supabase.functions.invoke('sync-lead-to-sheets', {
+        body: {
+          ...leadData,
+          source: 'business-plan-builder',
+          source_detail: 'sample-plan-download',
+        },
+      });
+      window.open('/samples/diamond-performance-center-business-plan.pdf', '_blank');
+    } catch (error) {
+      console.error('Error syncing lead:', error);
+      window.open('/samples/diamond-performance-center-business-plan.pdf', '_blank');
+    }
+  };
 
   const renderStep = () => {
     switch (currentStep) {
@@ -59,11 +78,9 @@ function WizardContent() {
           </div>
 
           {/* Sample Business Plan Banner */}
-          <a
-            href="/samples/diamond-performance-center-business-plan.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 mb-6 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors group"
+          <button
+            onClick={() => setShowSamplePlanGate(true)}
+            className="w-full flex items-center gap-3 p-4 mb-6 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors group text-left"
           >
             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <FileText className="w-5 h-5 text-primary" />
@@ -76,7 +93,17 @@ function WizardContent() {
               View Sample
               <ExternalLink className="w-4 h-4" />
             </div>
-          </a>
+          </button>
+
+          {/* Sample Plan Lead Gate */}
+          <LeadGate
+            isOpen={showSamplePlanGate}
+            onClose={() => setShowSamplePlanGate(false)}
+            onSubmit={handleSamplePlanSubmit}
+            title="Download Sample Business Plan"
+            description="Enter your information to view our professional sample business plan"
+            showOutreachField={false}
+          />
 
           {/* Progress Bar */}
           <div className="mb-6">
