@@ -1,4 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+
+// Function version for deployment tracking
+const VERSION = '1.0.2';
+
+console.log(`analyze-location function loaded - Version ${VERSION} at ${new Date().toISOString()}`);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -270,16 +275,34 @@ function getRegion(state: string): string {
 
 serve(async (req) => {
   console.log('=== analyze-location function START ===');
+  console.log(`Version: ${VERSION}`);
   console.log('Timestamp:', new Date().toISOString());
   console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
   
   if (req.method === 'OPTIONS') {
     console.log('Handling CORS preflight request');
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: { ...corsHeaders, 'X-Function-Version': VERSION } 
+    });
   }
 
   try {
-    const body = await req.json();
+    // Parse request body with error handling
+    let body;
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      console.error('Failed to parse request body:', parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body', version: VERSION }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Function-Version': VERSION } 
+        }
+      );
+    }
+    
     console.log('Request body received:', JSON.stringify(body));
     
     let { zipCode, city, state, radius = 15 } = body;
@@ -407,16 +430,33 @@ serve(async (req) => {
       dataSource: result.dataSource,
       population15Min: result.demographics.population15Min,
     });
+    console.log('=== analyze-location function END (success) ===');
 
     return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'application/json',
+        'X-Function-Version': VERSION
+      },
     });
 
   } catch (error) {
+    console.error('=== analyze-location function END (error) ===');
     console.error('Location analysis error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Analysis failed' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Analysis failed',
+        version: VERSION 
+      }),
+      { 
+        status: 500, 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'X-Function-Version': VERSION
+        } 
+      }
     );
   }
 });
