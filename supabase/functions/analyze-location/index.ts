@@ -5,10 +5,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-console.log('[analyze-location] MINIMAL TEST VERSION loaded');
+console.log('[analyze-location] Function loaded - v2 deployment test');
 
 serve(async (req) => {
-  console.log('[analyze-location] Request received');
+  console.log('[analyze-location] Request received:', req.method);
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -16,10 +16,11 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { zipCode } = body;
-    console.log('[analyze-location] ZIP:', zipCode);
+    const { zipCode, radius = 10 } = body;
+    console.log('[analyze-location] Processing ZIP:', zipCode, 'Radius:', radius);
 
-    return new Response(JSON.stringify({
+    // Test data - will be replaced with Census API integration
+    const responseData = {
       location: { 
         zipCode: zipCode || '68138', 
         city: 'Omaha', 
@@ -54,10 +55,14 @@ serve(async (req) => {
       dataSource: {
         source: 'test',
         year: 2024,
-        description: 'Test data - deployment diagnostic'
+        description: 'Test data - v2 deployment verification'
       },
       regionalCostAdjustment: 0.95,
-    }), {
+    };
+
+    console.log('[analyze-location] Returning response for ZIP:', zipCode);
+    
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
