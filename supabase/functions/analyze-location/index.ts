@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 // Function version for deployment tracking
 const VERSION = '1.0.2';
@@ -398,7 +398,7 @@ serve(async (req) => {
         population15Min,
         population20Min,
         medianIncome: censusData.medianIncome,
-        youthPopulation: youthPercentage,
+        youthPercentage: youthPercentage,
         youthPopulationCount: tradeAreaYouth,
         familiesWithChildren: familiesWithChildrenPct,
         populationGrowthRate: regional.growthRate,
