@@ -86,6 +86,48 @@ export type Database = {
         }
         Relationships: []
       }
+      product_pricing: {
+        Row: {
+          cost_library_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_synced_at: string | null
+          price_tier: string | null
+          product_name: string
+          scraped_price: number | null
+          source_url: string | null
+          sync_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cost_library_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          price_tier?: string | null
+          product_name: string
+          scraped_price?: number | null
+          source_url?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cost_library_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          price_tier?: string | null
+          product_name?: string
+          scraped_price?: number | null
+          source_url?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
