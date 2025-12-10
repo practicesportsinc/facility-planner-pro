@@ -6,8 +6,16 @@ import { MapPin, Loader2, TrendingUp, Users, DollarSign, Baby, Download, ArrowRi
 import { supabase } from "@/integrations/supabase/client";
 import { MarketScoreCard } from "./MarketScoreCard";
 import { SportDemandList } from "./SportDemandList";
+import { CompetitiveLandscape } from "./CompetitiveLandscape";
 import LeadGate from "@/components/shared/LeadGate";
 import { toast } from "sonner";
+
+interface CompetitiveAnalysis {
+  competitionScore: number;
+  facilityEstimates: Record<string, { count: number; saturation: 'underserved' | 'balanced' | 'saturated' }>;
+  marketGaps: Array<{ sport: string; opportunity: number; reason: string }>;
+  insights: string[];
+}
 
 interface MarketData {
   location: {
@@ -33,6 +41,7 @@ interface MarketData {
     football: number;
   };
   sportDemandScores: Record<string, number>;
+  competitiveAnalysis?: CompetitiveAnalysis;
 }
 
 function calculateMarketScore(data: MarketData): number {
@@ -225,6 +234,16 @@ export const FlashMarketAnalysis = () => {
           {/* Sport Demand */}
           <SportDemandList sports={sportDemandArray} className="lg:col-span-2" />
         </div>
+
+        {/* Competitive Analysis Section */}
+        {marketData.competitiveAnalysis && (
+          <div className="pt-4">
+            <h3 className="text-xl font-semibold mb-4">Competitive Landscape</h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <CompetitiveLandscape data={marketData.competitiveAnalysis} />
+            </div>
+          </div>
+        )}
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 pt-4">
