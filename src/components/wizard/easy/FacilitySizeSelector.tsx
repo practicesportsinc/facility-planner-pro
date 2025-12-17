@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { TopViewLayout } from "@/components/layout/TopViewLayout";
+import { Ruler } from "lucide-react";
 
 interface SizeOption {
   key: string;
@@ -45,6 +48,8 @@ export const FacilitySizeSelector = ({
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [hoveredHotspot, setHoveredHotspot] = useState<string | null>(null);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  const [customWidth, setCustomWidth] = useState<string>("");
+  const [customLength, setCustomLength] = useState<string>("");
 
   const handleSizeSelect = (sizeKey: string) => {
     setSelectedSize(sizeKey);
@@ -64,6 +69,20 @@ export const FacilitySizeSelector = ({
   };
 
   const handleContinue = () => {
+    if (selectedSize === 'custom' && customWidth && customLength) {
+      const width = parseInt(customWidth);
+      const length = parseInt(customLength);
+      const totalSqft = width * length;
+      
+      const facilityData = {
+        key: 'custom',
+        shell_dims_ft: [width, length] as [number, number],
+        total_sqft: totalSqft,
+        court_or_cage_counts: {}
+      };
+      localStorage.setItem('wizard-facility-size', JSON.stringify(facilityData));
+      console.log("Custom size selected:", facilityData);
+    }
     navigate(primaryCta.route);
   };
 
@@ -177,12 +196,78 @@ export const FacilitySizeSelector = ({
               </Card>
             );
           })}
+          {/* Custom Size Card */}
+          <Card
+            className={`ps-card ${selectedSize === 'custom' ? 'ring-2 ring-ps-blue' : ''} cursor-pointer overflow-hidden hover:scale-105 transition-smooth`}
+            onClick={() => setSelectedSize('custom')}
+          >
+            <div className="relative bg-muted">
+              {selectedSize === 'custom' ? (
+                <div className="w-full h-48 p-4 flex flex-col justify-center" onClick={(e) => e.stopPropagation()}>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Width (ft)</Label>
+                      <Input
+                        type="number"
+                        placeholder="100"
+                        value={customWidth}
+                        onChange={(e) => setCustomWidth(e.target.value)}
+                        min={20}
+                        max={500}
+                        className="h-9"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Length (ft)</Label>
+                      <Input
+                        type="number"
+                        placeholder="150"
+                        value={customLength}
+                        onChange={(e) => setCustomLength(e.target.value)}
+                        min={20}
+                        max={500}
+                        className="h-9"
+                      />
+                    </div>
+                  </div>
+                  
+                  {customWidth && customLength && parseInt(customWidth) > 0 && parseInt(customLength) > 0 && (
+                    <div className="bg-background rounded-lg p-2 text-center border">
+                      <span className="text-xl font-bold text-primary">
+                        {(parseInt(customWidth) * parseInt(customLength)).toLocaleString()}
+                      </span>
+                      <span className="text-sm text-muted-foreground ml-1">sq ft</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full h-48 flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                  <div className="text-center">
+                    <Ruler className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+                    <span className="text-muted-foreground">Enter your own dimensions</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xl font-bold text-ps-text">Custom Size</h3>
+                <Badge variant="outline" className="text-sm">
+                  Any size
+                </Badge>
+              </div>
+              
+              <p className="text-sm muted mb-3">Your dimensions</p>
+              <p className="text-sm text-ps-text">Know your exact facility size? Enter width × length.</p>
+            </div>
+          </Card>
         </div>
 
         <div className="text-center">
           <Button
             onClick={handleContinue}
-            disabled={!selectedSize}
+            disabled={!selectedSize || (selectedSize === 'custom' && (!customWidth || !customLength || parseInt(customWidth) < 20 || parseInt(customLength) < 20))}
             className="ps-btn primary text-lg px-8 py-4 min-w-64"
           >
             {primaryCta.label}
