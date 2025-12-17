@@ -5,12 +5,17 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+interface ChipOption {
+  key: string;
+  label: string;
+}
+
 interface ContextField {
   key: string;
   label: string;
   type: "text" | "chips";
   default?: string;
-  options?: string[];
+  options?: (string | ChipOption)[];
 }
 
 interface EasyContextProps {
@@ -95,15 +100,20 @@ export const EasyContext = ({
                 
                 {field.type === "chips" && field.options && (
                   <div className="flex flex-wrap gap-2">
-                    {field.options.map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => handleChipSelect(field.key, option)}
-                        className={`ps-chip ${values[field.key] === option ? 'on' : ''}`}
-                      >
-                        {option}
-                      </button>
-                    ))}
+                    {field.options.map((option) => {
+                      const optionKey = typeof option === 'string' ? option : option.key;
+                      const optionLabel = typeof option === 'string' ? option : option.label;
+                      
+                      return (
+                        <button
+                          key={optionKey}
+                          onClick={() => handleChipSelect(field.key, optionKey)}
+                          className={`ps-chip ${values[field.key] === optionKey ? 'on' : ''}`}
+                        >
+                          {optionLabel}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
