@@ -51,10 +51,10 @@ export const FullFacilitySelector = ({ onBack, equipmentQuote }: FullFacilitySel
               </Badge>
             </div>
             <CardTitle className="text-2xl group-hover:text-primary transition-smooth">
-              Easy Wizard
+              Quick Start
             </CardTitle>
             <CardDescription className="text-base">
-              2-3 minutes
+              1-2 minutes
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -91,10 +91,10 @@ export const FullFacilitySelector = ({ onBack, equipmentQuote }: FullFacilitySel
               </Badge>
             </div>
             <CardTitle className="text-2xl group-hover:text-primary transition-smooth">
-              Wizard Builder
+              Guided Builder
             </CardTitle>
             <CardDescription className="text-base">
-              2-3 minutes
+              3-5 minutes
             </CardDescription>
           </CardHeader>
           <CardContent>
