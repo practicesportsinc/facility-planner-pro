@@ -176,7 +176,7 @@ const Home = () => {
         
         {/* Heading overlay - positioned in visible area below header */}
         <div className="absolute inset-0 flex items-center justify-center pt-36 md:pt-44">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white text-center px-4 drop-shadow-lg animate-fade-in">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white text-center px-4 drop-shadow-lg animate-enter">
             Amazing Sports Facility Idea?
           </h1>
         </div>
