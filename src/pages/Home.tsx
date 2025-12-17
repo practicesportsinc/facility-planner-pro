@@ -148,24 +148,28 @@ const Home = () => {
   
   return (
     <Layout>
-      {/* Hero Image Banner - Top 1/3 */}
+      {/* Hero Image Banner with Heading Overlay */}
       <div className="relative h-[250px] md:h-[300px] w-full overflow-hidden">
         <img 
           src="/images/home-gallery/hero-facility.jpg"
           alt="Professional sports training facility"
           className="w-full h-full object-cover object-center"
         />
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/50" />
+        {/* Dark gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60" />
+        
+        {/* Heading overlay - centered on image */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white text-center px-4 drop-shadow-lg">
+            Amazing Sports Facility Idea?
+          </h1>
+        </div>
       </div>
 
       {/* Main Content Section */}
       <section className="py-12 px-4">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-hero bg-clip-text text-transparent leading-tight py-2">
-              Amazing Sports Facility Idea?
-            </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             </p>
             <div className="mt-8">
