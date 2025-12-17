@@ -11,9 +11,10 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Sports Facility Tools</h3>
             <ul className="space-y-3">
-              <li><Link to="/start" className="text-sm text-slate-300 hover:text-white transition-colors">Quick Estimate</Link></li>
-              <li><Link to="/wizard/easy" className="text-sm text-slate-300 hover:text-white transition-colors">Easy Wizard</Link></li>
-              <li><Link to="/calculator" className="text-sm text-slate-300 hover:text-white transition-colors">Advanced Calculator</Link></li>
+              <li><Link to="/?mode=equipment" className="text-sm text-slate-300 hover:text-white transition-colors">Equipment Only</Link></li>
+              <li><Link to="/building-config" className="text-sm text-slate-300 hover:text-white transition-colors">Building Only</Link></li>
+              <li><Link to="/?mode=facility" className="text-sm text-slate-300 hover:text-white transition-colors">Full Facility</Link></li>
+              <li><Link to="/business-plan" className="text-sm text-slate-300 hover:text-white transition-colors">Business Plan</Link></li>
             </ul>
           </div>
           <div>
