@@ -136,18 +136,20 @@ export const FacilitySizeSelector = ({
                 className={`ps-card ${isSelected ? 'ring-2 ring-ps-blue' : ''} cursor-pointer overflow-hidden hover:scale-105 transition-smooth`}
                 onClick={() => handleSizeSelect(option.key)}
               >
-                <div className="relative bg-gray-50">
+                <div className="relative bg-gray-50 h-48 overflow-hidden">
                   {imageErrors.has(option.key) ? (
                     // Render TopViewLayout as fallback
-                    <div className="w-full h-48 flex items-center justify-center">
-                      <TopViewLayout
-                        grossSf={option.preload.total_sqft}
-                        aspectRatio={option.preload.shell_dims_ft[0] / option.preload.shell_dims_ft[1]}
-                        units={convertToUnits(option.preload.court_or_cage_counts)}
-                        viewWidthPx={300}
-                        showLegend={false}
-                        algo="rows"
-                      />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="transform scale-[0.6] origin-center">
+                        <TopViewLayout
+                          grossSf={option.preload.total_sqft}
+                          aspectRatio={option.preload.shell_dims_ft[0] / option.preload.shell_dims_ft[1]}
+                          units={convertToUnits(option.preload.court_or_cage_counts)}
+                          viewWidthPx={280}
+                          showLegend={false}
+                          algo="rows"
+                        />
+                      </div>
                     </div>
                   ) : (
                     <img
