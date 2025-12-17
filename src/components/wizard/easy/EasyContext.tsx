@@ -70,6 +70,7 @@ export const EasyContext = ({
     localStorage.setItem('wizard-location', JSON.stringify(locationData));
     localStorage.setItem('wizard-data', JSON.stringify(wizardData));
     localStorage.setItem('wizard-signals', JSON.stringify(signalsData));
+    window.scrollTo(0, 0);
     navigate(primaryCta.route);
   };
 
