@@ -2,7 +2,16 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, MessageCircle, Home as HomeIcon, Dumbbell, Building2, HardHat, FileText } from "lucide-react";
+import { Menu, MessageCircle, Home as HomeIcon, Building2, HardHat, FileText } from "lucide-react";
+
+// Baseball icon SVG component
+const BaseballIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M6 8c3 3 3 5 0 8" />
+    <path d="M18 8c-3 3-3 5 0 8" />
+  </svg>
+);
 import { useChat } from "@/contexts/ChatContext";
 import {
   NavigationMenu,
@@ -73,7 +82,7 @@ const Header = () => {
                   }`}
                 >
                   <Link to="/?mode=equipment" className="flex items-center gap-2">
-                    <Dumbbell className="h-4 w-4" />
+                    <BaseballIcon className="h-4 w-4" />
                     Equipment Only
                   </Link>
                 </Button>
@@ -175,7 +184,7 @@ const Header = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Link to="/?mode=equipment" className="flex items-center gap-2">
-                    <Dumbbell className="h-5 w-5" />
+                    <BaseballIcon className="h-5 w-5" />
                     Equipment Only
                   </Link>
                 </Button>
