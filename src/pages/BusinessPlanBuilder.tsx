@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { BusinessPlanProvider, useBusinessPlan } from '@/contexts/BusinessPlanContext';
 import Layout from '@/components/layout/Layout';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Check, ChevronLeft, ChevronRight, FileText, ExternalLink } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, FileText, ExternalLink, TrendingUp } from 'lucide-react';
 import LeadGate from '@/components/shared/LeadGate';
 import { supabase } from '@/integrations/supabase/client';
 import ProjectOverviewStep from '@/components/business-plan/ProjectOverviewStep';
@@ -76,6 +77,24 @@ function WizardContent() {
             <h1 className="text-3xl font-bold text-foreground mb-2">Business Plan Builder</h1>
             <p className="text-muted-foreground">Create a comprehensive, investor-ready business plan for your sports facility</p>
           </div>
+
+          {/* Quick Market Analysis Banner */}
+          <Link
+            to="/market-analysis"
+            className="w-full flex items-center gap-3 p-4 mb-4 rounded-lg border border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 transition-colors group text-left"
+          >
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-blue-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-foreground">Not sure about your location?</p>
+              <p className="text-sm text-muted-foreground">Get a quick market analysis to check demand and demographics in your area</p>
+            </div>
+            <div className="flex-shrink-0 flex items-center gap-1 text-blue-500 font-medium text-sm group-hover:underline">
+              Run Analysis
+              <ExternalLink className="w-4 h-4" />
+            </div>
+          </Link>
 
           {/* Sample Business Plan Banner */}
           <button
