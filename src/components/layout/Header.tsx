@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, MessageCircle, Home as HomeIcon, Wrench, Building2, HardHat, FileText } from "lucide-react";
+import { Menu, MessageCircle, Home as HomeIcon, Dumbbell, Building2, HardHat, FileText } from "lucide-react";
 import { useChat } from "@/contexts/ChatContext";
 import {
   NavigationMenu,
@@ -73,7 +73,7 @@ const Header = () => {
                   }`}
                 >
                   <Link to="/?mode=equipment" className="flex items-center gap-2">
-                    <Wrench className="h-4 w-4" />
+                    <Dumbbell className="h-4 w-4" />
                     Equipment Only
                   </Link>
                 </Button>
@@ -175,7 +175,7 @@ const Header = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Link to="/?mode=equipment" className="flex items-center gap-2">
-                    <Wrench className="h-5 w-5" />
+                    <Dumbbell className="h-5 w-5" />
                     Equipment Only
                   </Link>
                 </Button>
