@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
@@ -50,14 +50,23 @@ export const EasyStartSports = ({
   primaryCta,
 }: EasyStartSportsProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedSports, setSelectedSports] = useState<string[]>([]);
   const { trackPathSelected } = useAnalytics();
+  
+  const equipmentData = location.state?.equipmentData;
 
   useEffect(() => {
-    // Track path selection
     trackPathSelected('easy');
     
-    // Load existing selections
+    // Priority 1: Equipment data from upgrade flow
+    if (equipmentData?.fromEquipmentQuote && equipmentData?.sport) {
+      console.log('Pre-selecting sport from equipment quote:', equipmentData.sport);
+      setSelectedSports([equipmentData.sport]);
+      return;
+    }
+    
+    // Priority 2: Load existing selections from localStorage
     const stored = localStorage.getItem('wizard-selected-sports');
     if (stored) {
       try {
@@ -66,7 +75,7 @@ export const EasyStartSports = ({
         console.error('Failed to parse stored sports:', e);
       }
     }
-  }, [trackPathSelected]);
+  }, [trackPathSelected, equipmentData]);
 
   const handleSportToggle = (sportKey: string) => {
     if (multi) {
