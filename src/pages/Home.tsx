@@ -148,18 +148,18 @@ const Home = () => {
   
   return (
     <Layout>
-      {/* Hero Image Banner with Heading Overlay */}
-      <div className="relative h-[250px] md:h-[300px] w-full overflow-hidden">
+      {/* Hero Image Banner - Extended behind header */}
+      <div className="relative h-[calc(250px+9rem)] md:h-[calc(300px+11rem)] w-full overflow-hidden -mt-36 md:-mt-44">
         <img 
           src="/images/home-gallery/hero-facility.jpg"
           alt="Professional sports training facility"
           className="w-full h-full object-cover object-center"
         />
-        {/* Dark gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60" />
+        {/* Gradient overlay blends with header */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60" />
         
-        {/* Heading overlay - centered on image */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        {/* Heading overlay - positioned in visible area below header */}
+        <div className="absolute inset-0 flex items-center justify-center pt-36 md:pt-44">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white text-center px-4 drop-shadow-lg">
             Amazing Sports Facility Idea?
           </h1>
