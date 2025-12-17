@@ -1,5 +1,14 @@
 import { Card } from "@/components/ui/card";
-import { Wrench, Building2, HardHat, TrendingUp } from "lucide-react";
+import { Building2, HardHat, TrendingUp } from "lucide-react";
+
+// Baseball icon SVG component
+const BaseballIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M6 8c3 3 3 5 0 8" />
+    <path d="M18 8c-3 3-3 5 0 8" />
+  </svg>
+);
 import { useNavigate } from "react-router-dom";
 import useAnalytics from "@/hooks/useAnalytics";
 
@@ -34,7 +43,7 @@ export const PathSelector = ({ onSelectPath }: PathSelectorProps) => {
         >
           <div className="text-center">
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <Wrench className="w-10 h-10 text-primary" />
+              <BaseballIcon className="w-10 h-10 text-primary" />
             </div>
             <h3 className="text-2xl font-bold mb-3">Equipment Only</h3>
             <p className="text-muted-foreground mb-4">
