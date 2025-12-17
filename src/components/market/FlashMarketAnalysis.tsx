@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { MapPin, Loader2, TrendingUp, Users, DollarSign, Baby, Download, ArrowRight, RefreshCw } from "lucide-react";
+import { MapPin, Loader2, TrendingUp, Users, DollarSign, Baby, Download, ArrowRight, RefreshCw, Wrench, HardHat, Calculator, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketScoreCard } from "./MarketScoreCard";
 import { SportDemandList } from "./SportDemandList";
@@ -245,23 +246,73 @@ export const FlashMarketAnalysis = () => {
           </div>
         )}
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <Button 
-            onClick={() => setShowLeadGate(true)}
-            variant="outline"
-            className="flex-1"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Download Full Report
-          </Button>
-          <Button 
-            onClick={() => window.location.href = '/calculator'}
-            className="flex-1 bg-gradient-primary"
-          >
-            Start Full Facility Planning
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+        {/* Next Steps Section */}
+        <div className="pt-8 border-t">
+          <h3 className="text-xl font-semibold mb-2">What's Next?</h3>
+          <p className="text-muted-foreground mb-6">
+            Use your market insights to start planning your facility
+          </p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Equipment Pricing */}
+            <Link to="/?mode=equipment" className="group">
+              <Card className="p-4 h-full hover:shadow-lg transition-all hover:border-primary/50">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <Wrench className="w-6 h-6 text-primary" />
+                </div>
+                <h4 className="font-semibold mb-1">Equipment Pricing</h4>
+                <p className="text-sm text-success mb-2">~2 minutes</p>
+                <p className="text-sm text-muted-foreground">Get detailed equipment quotes for your sport</p>
+              </Card>
+            </Link>
+
+            {/* Building Configuration */}
+            <Link to="/building-config" className="group">
+              <Card className="p-4 h-full hover:shadow-lg transition-all hover:border-orange-500/50">
+                <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <HardHat className="w-6 h-6 text-orange-500" />
+                </div>
+                <h4 className="font-semibold mb-1">Building Config</h4>
+                <p className="text-sm text-success mb-2">~3 minutes</p>
+                <p className="text-sm text-muted-foreground">Estimate construction costs for your facility</p>
+              </Card>
+            </Link>
+
+            {/* Full Facility Planning */}
+            <Link to="/calculator" className="group">
+              <Card className="p-4 h-full hover:shadow-lg transition-all border-primary/30 hover:border-primary">
+                <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <Calculator className="w-6 h-6 text-secondary" />
+                </div>
+                <h4 className="font-semibold mb-1">Full Facility</h4>
+                <p className="text-sm text-success mb-2">5-10 minutes</p>
+                <p className="text-sm text-muted-foreground">Complete financial model with revenue projections</p>
+              </Card>
+            </Link>
+
+            {/* Business Plan Builder */}
+            <Link to="/business-plan" className="group">
+              <Card className="p-4 h-full hover:shadow-lg transition-all hover:border-blue-500/50">
+                <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <FileText className="w-6 h-6 text-blue-500" />
+                </div>
+                <h4 className="font-semibold mb-1">Business Plan</h4>
+                <p className="text-sm text-info mb-2">~15 minutes</p>
+                <p className="text-sm text-muted-foreground">Create investor-ready plan for this market</p>
+              </Card>
+            </Link>
+          </div>
+
+          {/* Secondary Action */}
+          <div className="flex justify-center pt-6">
+            <Button 
+              onClick={() => setShowLeadGate(true)}
+              variant="outline"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download Full Report
+            </Button>
+          </div>
         </div>
 
         {/* Lead Gate Modal */}
