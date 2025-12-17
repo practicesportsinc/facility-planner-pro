@@ -27,36 +27,56 @@ interface FacilityChatWidgetProps {
 }
 
 export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidgetProps) => {
+  const getInitialMessages = (): ChatMessage[] => [
+    {
+      role: 'assistant',
+      content: "Welcome! I can help with equipment pricing, building costs, market analysis, and facility planning.\n\n**What would you like to explore?**",
+      timestamp: new Date(),
+      quickReplies: [
+        { id: 'equipment', label: '💰 Equipment Pricing', value: 'Show me equipment pricing options', icon: '💰' },
+        { id: 'building', label: '🏗️ Building Costs', value: 'What does it cost to build a facility?', icon: '🏗️' },
+        { id: 'market', label: '📊 Market Analysis', value: 'Help me analyze my local market', icon: '📊' },
+        { id: 'business', label: '📋 Business Planning', value: 'I need help with a business plan', icon: '📋' },
+      ]
+    },
+    {
+      role: 'assistant',
+      content: "**Or pick a sport to get started:**",
+      timestamp: new Date(),
+      quickReplies: [
+        { id: 'baseball', label: '⚾ Baseball/Batting', value: 'I\'m interested in a baseball training facility with batting cages', icon: '⚾' },
+        { id: 'basketball', label: '🏀 Basketball', value: 'I want to plan a basketball facility', icon: '🏀' },
+        { id: 'volleyball', label: '🏐 Volleyball', value: 'Tell me about volleyball facility options', icon: '🏐' },
+        { id: 'pickleball', label: '🥒 Pickleball', value: 'I\'m looking at pickleball court pricing', icon: '🥒' },
+        { id: 'multisport', label: '⚽ Multi-Sport', value: 'I want a multi-sport facility', icon: '⚽' },
+      ]
+    },
+    {
+      role: 'assistant',
+      content: "**Quick questions:**",
+      timestamp: new Date(),
+      quickReplies: [
+        { id: 'cage-cost', label: 'How much is a batting cage?', value: 'How much does a batting cage cost?', icon: '❓' },
+        { id: 'size', label: 'What size building do I need?', value: 'What size building do I need for my facility?', icon: '📐' },
+        { id: 'roi', label: 'What\'s typical ROI?', value: 'What is the typical ROI for a sports facility?', icon: '📈' },
+      ]
+    },
+    {
+      role: 'assistant',
+      content: "**Or choose a planning depth:**",
+      timestamp: new Date(),
+      quickReplies: [
+        { id: 'fast', label: '⚡ Quick Estimate', value: 'I want the Fast / Basic mode - give me a quick estimate', icon: '⚡' },
+        { id: 'advanced', label: '🎯 Guided Planning', value: 'I want the Advanced mode - guide me through more details', icon: '🎯' },
+        { id: 'expert', label: '🔬 Full Analysis', value: 'I want the Expert / Detailed mode - full comprehensive analysis', icon: '🔬' },
+      ]
+    },
+  ];
+
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const history = loadChatHistory();
     if (history.length > 0) return history;
-    return [
-      {
-        role: 'assistant',
-        content: "Welcome! I'm here to help you plan your sports facility. Let's get started by choosing your planning mode:",
-        timestamp: new Date(),
-        quickReplies: [
-          {
-            id: 'fast',
-            label: '⚡ Fast / Basic',
-            value: 'I want the Fast / Basic mode - give me a quick estimate',
-            icon: '⚡'
-          },
-          {
-            id: 'advanced',
-            label: '🎯 Advanced',
-            value: 'I want the Advanced mode - guide me through more details',
-            icon: '🎯'
-          },
-          {
-            id: 'expert',
-            label: '🔬 Expert / Detailed',
-            value: 'I want the Expert / Detailed mode - full comprehensive analysis',
-            icon: '🔬'
-          }
-        ]
-      },
-    ];
+    return getInitialMessages();
   });
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -404,33 +424,7 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
 
   const handleRestart = () => {
     clearChatHistory();
-    setMessages([
-      {
-        role: 'assistant',
-        content: "Welcome! I'm here to help you plan your sports facility. Let's get started by choosing your planning mode:",
-        timestamp: new Date(),
-        quickReplies: [
-          {
-            id: 'fast',
-            label: '⚡ Fast / Basic',
-            value: 'I want the Fast / Basic mode - give me a quick estimate',
-            icon: '⚡'
-          },
-          {
-            id: 'advanced',
-            label: '🎯 Advanced',
-            value: 'I want the Advanced mode - guide me through more details',
-            icon: '🎯'
-          },
-          {
-            id: 'expert',
-            label: '🔬 Expert / Detailed',
-            value: 'I want the Expert / Detailed mode - full comprehensive analysis',
-            icon: '🔬'
-          }
-        ]
-      },
-    ]);
+    setMessages(getInitialMessages());
     setInput('');
     setIsStreaming(false);
     setIsGeneratingReport(false);
