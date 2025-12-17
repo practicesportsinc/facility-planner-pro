@@ -46,6 +46,9 @@ const Calculator = () => {
   const presetData = location.state?.presetData;
   const presetId = location.state?.presetId;
   
+  // Get equipment data from location state (coming from Equipment Quote upgrade)
+  const equipmentData = location.state?.equipmentData;
+  
   // If it's quick mode, start at the KPI Results step (step 8)
   const [currentStep, setCurrentStep] = useState(isQuickMode || isWizardMode ? 8 : 1);
   const [calculatorData, setCalculatorData] = useState({});
@@ -139,6 +142,57 @@ const Calculator = () => {
       setCurrentStep(1);
     }
   }, [presetId, presetData]);
+
+  // Load data from equipment quote upgrade
+  useEffect(() => {
+    if (equipmentData?.fromEquipmentQuote) {
+      console.log('Loading from equipment quote:', equipmentData);
+      
+      // Map space size to estimated square footage
+      const spaceSizeToSqft: Record<string, number> = { 
+        small: 8000, 
+        medium: 16000, 
+        large: 24000 
+      };
+      const estimatedSqft = spaceSizeToSqft[equipmentData.spaceSize] || 16000;
+      
+      // Determine court/cage counts based on sport
+      const isCourtSport = ['basketball', 'volleyball', 'pickleball'].includes(equipmentData.sport);
+      const isCageSport = ['baseball', 'softball', 'multi_baseball'].includes(equipmentData.sport);
+      
+      setCalculatorData({
+        1: { // Project Basics
+          projectName: `${equipmentData.sport.charAt(0).toUpperCase() + equipmentData.sport.slice(1)} Facility`,
+          selectedSports: [equipmentData.sport],
+          currency: 'USD',
+        },
+        2: { // Build Mode
+          buildMode: 'lease'
+        },
+        3: { // Facility Plan
+          facilityType: 'lease',
+          totalSquareFootage: estimatedSqft.toString(),
+          clearHeight: equipmentData.sport === 'basketball' ? '24' : '20',
+          selectedSports: [equipmentData.sport],
+          numberOfCages: isCageSport ? equipmentData.units : 0,
+          numberOfCourts: isCourtSport ? equipmentData.units : 0,
+          court_or_cage_counts: {
+            baseball_tunnels: isCageSport ? equipmentData.units : 0,
+            basketball_courts_full: equipmentData.sport === 'basketball' ? equipmentData.units : 0,
+            volleyball_courts: equipmentData.sport === 'volleyball' ? equipmentData.units : 0,
+            pickleball_courts: equipmentData.sport === 'pickleball' ? equipmentData.units : 0,
+          }
+        },
+        4: { // Equipment - carry over exact totals from quote
+          equipmentCost: equipmentData.totals.equipment + equipmentData.totals.flooring,
+          installationEstimate: equipmentData.totals.installation,
+          equipmentTotal: equipmentData.totals.grandTotal,
+        },
+      });
+      
+      setCurrentStep(1); // Start at step 1 for review
+    }
+  }, [equipmentData]);
 
   // Load data from localStorage (quick estimate or wizard)
   useEffect(() => {
