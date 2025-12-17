@@ -11,6 +11,244 @@ const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
+// ============================================================
+// COMPREHENSIVE KNOWLEDGE BASE - ALL PRICING & CONFIGURATIONS
+// ============================================================
+
+const EQUIPMENT_PRICING = `
+## EQUIPMENT PRICING (Practice Sports - practicesports.com)
+
+### Batting Cages & Baseball/Softball
+- CurtainCage (Collapsible): $2,500-$3,500 per lane
+- ShellCage (Standard): $2,500-$3,500 per lane  
+- AirCage (Retractable Electric): $13,000-$17,000 each
+- Tunnel Netting: $700-$1,200 each
+- Pitching Machines: $2,000-$3,800 each
+- L-Screens: $150-$350 each
+- Portable Mounds: $800-$1,800 each
+- Batting Tees: $25-$65 each
+- Radar Speed Devices: $1,500-$3,500 each
+
+### Basketball Equipment
+- Competition Hoop Systems: $1,800-$4,500 each
+- Hardwood Flooring: $10-$20/SF installed
+
+### Volleyball Equipment
+- Volleyball Net Systems: $1,600-$3,200 per court
+- Sport Tile Flooring: $4-$8/SF installed
+
+### Pickleball Equipment
+- Pickleball Nets: $180-$450 each
+- Sport Tile or Hardwood: $4-$20/SF installed
+
+### Soccer/Multi-Sport
+- Soccer Goals (pair): $700-$1,800
+- Synthetic Turf: $6-$11/SF installed
+- Divider Curtains: $400-$900 each
+
+### Safety & Protection
+- Wall Padding: $50-$75 per linear foot
+- Netting Systems: Varies by size
+
+### Building Systems
+- LED Lighting: $2-$4/SF installed
+- HVAC: $5-$10/SF installed
+- IT/Security (cameras + WiFi): $5,000-$15,000 lump sum
+- Locker/Restroom Fixtures: $12,000-$30,000 lump sum
+`;
+
+const BUILDING_PRICING = `
+## BUILDING CONSTRUCTION PRICING
+
+### Pre-Engineered Metal Buildings
+- Metal Building Shell: $35-$60/SF (includes frame, roof, walls)
+- Concrete Foundation (6" slab): $8-$14/SF
+- Insulation Package: $2-$5/SF
+
+### Doors & Openings
+- Roll-Up Door 12'x14': $4,500-$7,000 each
+- Roll-Up Door 10'x12': $3,500-$5,500 each
+- Steel Man Door: $800-$1,800 each
+- Glass Storefront Entry: $6,000-$12,000 each
+- Windows 4'x4': $600-$1,400 each
+
+### Site Work
+- Site Preparation & Grading: $2-$5/SF
+- Asphalt Parking Lot: $4-$7/SF
+- Utilities Connection: $15,000-$40,000 lump sum
+
+### Building Systems
+- Electrical Service (400A): $25,000-$50,000 lump sum
+- Plumbing Rough-in: $12,000-$28,000 lump sum
+- Fire Sprinkler System: $3-$6/SF
+
+### Total Building Cost Estimates (turnkey)
+- Small facility (10k-15k SF): $65-$85/SF all-in
+- Medium facility (20k-30k SF): $55-$75/SF all-in
+- Large facility (40k+ SF): $50-$70/SF all-in
+`;
+
+const FACILITY_PRESETS = `
+## PRE-CONFIGURED FACILITY PACKAGES
+
+### Batting Cage Facility (8 lanes)
+- Size: 16,000 SF, 20' ceiling height
+- Configuration: 8 batting tunnels
+- Total CapEx: ~$580,000
+- Monthly Revenue: ~$35,000
+- Monthly OpEx: ~$22,000
+- Best for: Youth baseball/softball, team training, lessons
+
+### Basketball Facility (4 courts)
+- Size: 24,000 SF, 24' ceiling height
+- Configuration: 4 full-size regulation courts
+- Total CapEx: ~$850,000
+- Monthly Revenue: ~$42,000
+- Monthly OpEx: ~$28,000
+- Best for: Leagues, tournaments, open gym
+
+### Pickleball Facility (6 courts)
+- Size: 12,000 SF, 16' ceiling height
+- Configuration: 6 regulation pickleball courts
+- Total CapEx: ~$425,000
+- Monthly Revenue: ~$28,000
+- Monthly OpEx: ~$18,000
+- Best for: Adults 50+, leagues, drop-in play
+
+### Multi-Sport Complex
+- Size: 28,000 SF, 24' ceiling height
+- Configuration: 2 basketball courts + 4 volleyball courts + 1 batting cage
+- Total CapEx: ~$980,000
+- Monthly Revenue: ~$52,000
+- Monthly OpEx: ~$32,000
+- Best for: Multiple sports leagues, schools, clubs
+
+### Volleyball Facility (6 courts)
+- Size: 27,000 SF, 24' ceiling height
+- Configuration: 6 volleyball courts
+- Total CapEx: ~$930,000
+- Monthly Revenue: ~$48,000
+- Monthly OpEx: ~$31,500
+- Best for: Club teams, adult leagues, tournaments
+`;
+
+const SPORT_REQUIREMENTS = `
+## SPACE REQUIREMENTS BY SPORT
+
+### Baseball/Softball
+- Batting Tunnel: ~1,050 SF per tunnel (70'L x 15'W)
+- Minimum Ceiling Height: 16-18'
+- Recommended: 20'+ for lob/arc pitches
+- Flooring: Turf with padding
+
+### Basketball
+- Full Court: ~5,000 SF per court (94' x 50' + buffer)
+- Half Court: ~2,500 SF
+- Minimum Ceiling Height: 24-28'
+- Flooring: Hardwood or sport tile
+
+### Volleyball
+- Court: ~4,500 SF per court (60' x 30' + buffer)
+- Minimum Ceiling Height: 23-26'
+- Flooring: Hardwood or sport tile
+
+### Pickleball
+- Court: ~1,350 SF per court (30' x 60' + buffer)
+- Minimum Ceiling Height: 16-18'
+- Flooring: Sport tile or hardwood
+
+### Soccer (Indoor)
+- Small Field: ~8,000 SF (varies)
+- Minimum Ceiling Height: 16-20'
+- Flooring: Synthetic turf
+
+### Multi-Sport Turf
+- Flexible: 5,000-15,000 SF zones
+- Ceiling Height: 18-24'
+- Flooring: Synthetic turf
+`;
+
+const BUSINESS_METRICS = `
+## FINANCIAL BENCHMARKS & ROI
+
+### Operating Expense Ratios
+- Typical: 55-70% of gross revenue
+- Staffing: 25-35% of revenue
+- Rent/Lease: 10-15% of revenue
+- Utilities: 5-8% of revenue
+- Insurance: 2-4% of revenue
+- Maintenance: 3-5% of revenue
+- Marketing: 3-5% of revenue
+
+### Revenue Per Square Foot
+- Batting Cages: $25-$45/SF/year
+- Basketball Courts: $18-$28/SF/year
+- Pickleball Courts: $22-$35/SF/year
+- Multi-Sport: $20-$30/SF/year
+
+### Break-Even Timeline
+- Conservative: 24-36 months
+- Moderate: 18-24 months
+- Aggressive: 12-18 months
+
+### Hourly Rental Rates (typical)
+- Batting Cage Lane: $25-$45/hour
+- Full Basketball Court: $100-$200/hour
+- Half Court: $50-$100/hour
+- Volleyball Court: $60-$120/hour
+- Pickleball Court: $15-$30/hour
+- Turf Field Rental: $150-$300/hour
+
+### Membership Models
+- Monthly Memberships: $50-$150/person
+- Annual Memberships: $500-$1,500/person
+- Drop-in Rates: $10-$25/visit
+
+### Staffing Guidelines
+- Manager: $45,000-$65,000/year
+- Coaches/Trainers: $15-$35/hour
+- Front Desk: $12-$18/hour
+- Maintenance: $15-$22/hour
+`;
+
+const FAQ_KNOWLEDGE = `
+## FREQUENTLY ASKED QUESTIONS
+
+### Facility Sizing
+- Parking: 5-6 spaces per 1,000 SF of facility
+- Circulation Space: 15-20% additional for hallways, lobbies
+- Storage: 3-5% of total space
+
+### Ceiling Heights
+- Basketball: 24-28' minimum (28'+ preferred for competition)
+- Volleyball: 23-26' minimum
+- Pickleball: 16-18' minimum
+- Baseball Training: 16-18' (20'+ for high arc)
+
+### Popular Add-Ons
+- Pro shop/retail area: 200-500 SF
+- Observation seating: 10-20 spectators per court
+- Training rooms: 200-400 SF
+- Party/meeting rooms: 300-600 SF
+
+### Best ROI Sports
+1. Pickleball - Growing fastest, lower build cost, high demand
+2. Baseball Training - Year-round demand, lesson revenue
+3. Basketball - Tournament hosting, league revenue
+4. Multi-Sport - Flexibility, diverse revenue streams
+
+### Common Mistakes to Avoid
+- Undersizing parking
+- Insufficient ceiling height
+- Poor HVAC planning
+- Inadequate storage
+- No spectator seating
+`;
+
+// ============================================================
+// MAIN SERVER LOGIC
+// ============================================================
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -32,7 +270,7 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
     
     const windowMinutes = 60;
-    const maxRequests = 20;
+    const maxRequests = 30;
 
     const { data: limit } = await supabase
       .from('rate_limits')
@@ -72,10 +310,9 @@ serve(async (req) => {
 
     console.log(`[facility-chat] Processing ${messages.length} messages`);
 
-    // Filter and format messages for AI API (remove timestamps, filter out initial assistant greeting)
+    // Filter and format messages for AI API
     let formattedMessages = messages
       .filter((msg: any) => {
-        // Skip the initial assistant greeting with mode selection (it's UI-only)
         if (msg.role === 'assistant' && msg.content.includes("Welcome! I'm here to help you plan")) {
           return false;
         }
@@ -86,18 +323,18 @@ serve(async (req) => {
         content: msg.content,
       }));
 
-    // Limit conversation length to prevent overload (keep last 10 messages)
-    if (formattedMessages.length > 10) {
-      console.log(`[facility-chat] Truncating conversation from ${formattedMessages.length} to 10 messages`);
-      formattedMessages = formattedMessages.slice(-10);
+    // Limit conversation length
+    if (formattedMessages.length > 12) {
+      formattedMessages = formattedMessages.slice(-12);
     }
 
     console.log(`[facility-chat] Sending ${formattedMessages.length} messages to AI`);
 
-    // Detect selected mode from conversation
+    // Detect conversation context
     const conversationText = formattedMessages.map(m => m.content).join(' ').toLowerCase();
+    
+    // Detect selected mode
     let selectedMode: 'fast' | 'advanced' | 'expert' | null = null;
-
     if (/fast.*basic.*mode|quick estimate/i.test(conversationText)) {
       selectedMode = 'fast';
     } else if (/advanced.*mode/i.test(conversationText)) {
@@ -106,206 +343,153 @@ serve(async (req) => {
       selectedMode = 'expert';
     }
 
-    // Detect conversation stage to provide appropriate quick-reply buttons
+    // Detect what user is asking about
+    const isPricingQuestion = /how much|cost|price|pricing|budget|afford|expense|investment/i.test(conversationText);
+    const isEquipmentQuestion = /equipment|cage|hoop|net|turf|flooring|machine|batting cage|pitching/i.test(conversationText);
+    const isBuildingQuestion = /building|construction|shell|foundation|door|site work|metal building|concrete/i.test(conversationText);
+    const isBusinessQuestion = /roi|revenue|profit|break.?even|operating|staffing|salary|membership|pricing strategy/i.test(conversationText);
+    const isPresetQuestion = /preset|package|pre.?configured|turn.?key|template/i.test(conversationText);
+
+    // Detect conversation stage
     const hasSports = /basketball|volleyball|pickleball|soccer|tennis|baseball|turf|multi-sport|hockey|lacrosse/i.test(conversationText);
     const hasSize = /square feet|sq\.? ?ft|small|medium|large|(\d+,?\d*)\s*sf/i.test(conversationText);
     const hasLocation = /[A-Z][a-z]+,?\s+[A-Z]{2}/.test(formattedMessages.map(m => m.content).join(' '));
     const hasBudget = /budget|\$\d|million|cost|afford/i.test(conversationText);
     const hasTimeline = /timeline|month|year|soon|immediately/i.test(conversationText);
     const hasBuildMode = /new construction|retrofit|existing|lease|buy/i.test(conversationText);
-    
+
+    // Build stage guidance for quick-reply buttons
     let stageGuidance = '';
     
-    // Mode-specific guidance
     if (!selectedMode) {
       stageGuidance = `No mode selected yet - user should select Fast, Advanced, or Expert mode first.`;
     } else if (selectedMode === 'fast') {
-      // Fast mode: 3-4 questions only
       if (!hasSports) {
         stageGuidance = `FAST MODE - Ask about sports with buttons:
 [QUICK_REPLIES]
-[{"id":"basketball","label":"Basketball 🏀","value":"Basketball"},{"id":"volleyball","label":"Volleyball 🏐","value":"Volleyball"},{"id":"pickleball","label":"Pickleball 🏓","value":"Pickleball"},{"id":"soccer","label":"Soccer ⚽","value":"Indoor soccer/turf"},{"id":"multi","label":"Multi-Sport 🏟️","value":"Multiple sports"}]`;
+[{"id":"basketball","label":"Basketball 🏀","value":"Basketball"},{"id":"volleyball","label":"Volleyball 🏐","value":"Volleyball"},{"id":"pickleball","label":"Pickleball 🏓","value":"Pickleball"},{"id":"baseball","label":"Baseball/Softball ⚾","value":"Baseball/Softball"},{"id":"multi","label":"Multi-Sport 🏟️","value":"Multiple sports"}]`;
       } else if (!hasSize) {
         stageGuidance = `FAST MODE - Ask about size with buttons:
 [QUICK_REPLIES]
 [{"id":"small","label":"Small (10k-25k sf)","value":"Small facility, around 15,000 square feet"},{"id":"medium","label":"Medium (25k-50k sf)","value":"Medium sized, around 35,000 square feet"},{"id":"large","label":"Large (50k+ sf)","value":"Large facility, 60,000+ square feet"}]`;
       } else if (!hasLocation) {
-        stageGuidance = `FAST MODE - Ask about location with buttons:
+        stageGuidance = `FAST MODE - Ask about location:
 [QUICK_REPLIES]
 [{"id":"tx","label":"Texas","value":"Texas"},{"id":"ca","label":"California","value":"California"},{"id":"fl","label":"Florida","value":"Florida"},{"id":"ny","label":"New York","value":"New York"},{"id":"custom","label":"Other location","value":"Let me enter my city and state"}]`;
       } else {
-        stageGuidance = `FAST MODE - You have all required info (sports, size, location). TRIGGER REPORT NOW with the exact phrase.`;
+        stageGuidance = `FAST MODE - You have all required info. TRIGGER REPORT NOW.`;
       }
     } else if (selectedMode === 'advanced') {
-      // Advanced mode: 6-8 questions
       if (!hasSports) {
-        stageGuidance = `ADVANCED MODE - Ask about sports with buttons:
-[QUICK_REPLIES]
-[{"id":"basketball","label":"Basketball 🏀","value":"Basketball"},{"id":"volleyball","label":"Volleyball 🏐","value":"Volleyball"},{"id":"pickleball","label":"Pickleball 🏓","value":"Pickleball"},{"id":"soccer","label":"Soccer ⚽","value":"Indoor soccer/turf"},{"id":"multi","label":"Multi-Sport 🏟️","value":"Multiple sports"}]`;
+        stageGuidance = `ADVANCED MODE - Ask about sports with buttons.`;
       } else if (!hasSize) {
-        stageGuidance = `ADVANCED MODE - Ask about size with buttons:
-[QUICK_REPLIES]
-[{"id":"small","label":"Small (10k-25k sf)","value":"Small facility, around 15,000 square feet"},{"id":"medium","label":"Medium (25k-50k sf)","value":"Medium sized, around 35,000 square feet"},{"id":"large","label":"Large (50k+ sf)","value":"Large facility, 60,000+ square feet"}]`;
+        stageGuidance = `ADVANCED MODE - Ask about size with buttons.`;
       } else if (!hasLocation) {
-        stageGuidance = `ADVANCED MODE - Ask about location with buttons:
-[QUICK_REPLIES]
-[{"id":"tx","label":"Texas","value":"Texas"},{"id":"ca","label":"California","value":"California"},{"id":"fl","label":"Florida","value":"Florida"},{"id":"ny","label":"New York","value":"New York"},{"id":"custom","label":"Other location","value":"Let me enter my city and state"}]`;
+        stageGuidance = `ADVANCED MODE - Ask about location with buttons.`;
       } else if (!hasBudget) {
-        stageGuidance = `ADVANCED MODE - Ask about budget with buttons:
+        stageGuidance = `ADVANCED MODE - Ask about budget:
 [QUICK_REPLIES]
-[{"id":"under1m","label":"Under $1M","value":"Budget is under $1 million"},{"id":"1to3m","label":"$1M-$3M","value":"Budget is $1-3 million"},{"id":"3to5m","label":"$3M-$5M","value":"Budget is $3-5 million"},{"id":"over5m","label":"$5M+","value":"Budget is over $5 million"},{"id":"skip","label":"Skip this","value":"Not sure about budget yet"}]`;
+[{"id":"under1m","label":"Under $1M","value":"Budget under $1 million"},{"id":"1to3m","label":"$1M-$3M","value":"Budget $1-3 million"},{"id":"3to5m","label":"$3M-$5M","value":"Budget $3-5 million"},{"id":"over5m","label":"$5M+","value":"Budget over $5 million"}]`;
       } else if (!hasTimeline) {
-        stageGuidance = `ADVANCED MODE - Ask about timeline with buttons:
+        stageGuidance = `ADVANCED MODE - Ask about timeline:
 [QUICK_REPLIES]
-[{"id":"6mo","label":"6 months","value":"6 months"},{"id":"6to12","label":"6-12 months","value":"6-12 months"},{"id":"1to2yr","label":"1-2 years","value":"1-2 years"},{"id":"exploring","label":"Just exploring","value":"Just exploring options"}]`;
-      } else if (!hasBuildMode) {
-        stageGuidance = `ADVANCED MODE - Ask about build mode with buttons:
-[QUICK_REPLIES]
-[{"id":"new","label":"New Construction","value":"New construction"},{"id":"retrofit","label":"Retrofit Existing","value":"Retrofit existing building"},{"id":"notsure","label":"Not Sure","value":"Not sure yet"}]`;
+[{"id":"6mo","label":"6 months","value":"6 months"},{"id":"1yr","label":"6-12 months","value":"6-12 months"},{"id":"2yr","label":"1-2 years","value":"1-2 years"},{"id":"exploring","label":"Just exploring","value":"Just exploring options"}]`;
       } else {
-        stageGuidance = `ADVANCED MODE - You have enough info (sports, size, location, budget, timeline, build mode). TRIGGER REPORT NOW.`;
+        stageGuidance = `ADVANCED MODE - You have enough info. TRIGGER REPORT NOW.`;
       }
     } else if (selectedMode === 'expert') {
-      // Expert mode: 10+ comprehensive questions
-      if (!hasSports) {
-        stageGuidance = `EXPERT MODE - Ask about sports with buttons:
-[QUICK_REPLIES]
-[{"id":"basketball","label":"Basketball 🏀","value":"Basketball"},{"id":"volleyball","label":"Volleyball 🏐","value":"Volleyball"},{"id":"pickleball","label":"Pickleball 🏓","value":"Pickleball"},{"id":"soccer","label":"Soccer ⚽","value":"Indoor soccer/turf"},{"id":"multi","label":"Multi-Sport 🏟️","value":"Multiple sports"}]`;
-      } else if (!hasSize) {
-        stageGuidance = `EXPERT MODE - Ask about size with detailed options:
-[QUICK_REPLIES]
-[{"id":"small","label":"Small (10k-25k sf)","value":"Small facility, around 15,000 square feet"},{"id":"medium","label":"Medium (25k-50k sf)","value":"Medium sized, around 35,000 square feet"},{"id":"large","label":"Large (50k+ sf)","value":"Large facility, 60,000+ square feet"},{"id":"custom","label":"Custom size","value":"Let me specify exact square footage"}]`;
-      } else if (!hasLocation) {
-        stageGuidance = `EXPERT MODE - Ask about location:
-[QUICK_REPLIES]
-[{"id":"tx","label":"Texas","value":"Texas"},{"id":"ca","label":"California","value":"California"},{"id":"fl","label":"Florida","value":"Florida"},{"id":"ny","label":"New York","value":"New York"},{"id":"custom","label":"Other location","value":"Let me enter my city and state"}]`;
-      } else if (!hasBudget) {
-        stageGuidance = `EXPERT MODE - Ask about budget with detailed ranges:
-[QUICK_REPLIES]
-[{"id":"under1m","label":"Under $1M","value":"Budget is under $1 million"},{"id":"1to3m","label":"$1M-$3M","value":"Budget is $1-3 million"},{"id":"3to5m","label":"$3M-$5M","value":"Budget is $3-5 million"},{"id":"5to10m","label":"$5M-$10M","value":"Budget is $5-10 million"},{"id":"over10m","label":"$10M+","value":"Budget is over $10 million"}]`;
-      } else if (!hasTimeline) {
-        stageGuidance = `EXPERT MODE - Ask about timeline:
-[QUICK_REPLIES]
-[{"id":"3mo","label":"3 months","value":"3 months"},{"id":"6mo","label":"6 months","value":"6 months"},{"id":"1yr","label":"1 year","value":"1 year"},{"id":"2yr","label":"2+ years","value":"2+ years"}]`;
-      } else if (!hasBuildMode) {
-        stageGuidance = `EXPERT MODE - Ask about build mode with detailed follow-ups:
-[QUICK_REPLIES]
-[{"id":"new","label":"New Construction","value":"New construction from ground up"},{"id":"retrofit","label":"Retrofit","value":"Convert existing building"},{"id":"lease","label":"Lease","value":"Lease existing facility"}]`;
-      } else {
-        stageGuidance = `EXPERT MODE - Continue gathering detailed information about equipment preferences, staffing plans, revenue programs, and operating costs. Ask follow-up questions to get comprehensive details. After 8-10 detailed exchanges, TRIGGER REPORT.`;
-      }
+      stageGuidance = `EXPERT MODE - Gather comprehensive details about equipment preferences, staffing, revenue programs, operating costs. After 8-10 detailed exchanges, TRIGGER REPORT.`;
     }
 
-    // System prompt for facility planning assistant
-    const systemPrompt = `You are a helpful facility planning consultant helping users design their sports facility.
+    // System prompt with full knowledge base
+    const systemPrompt = `You are an expert sports facility planning consultant with deep knowledge of construction costs, equipment pricing, and business operations. You can answer specific questions about pricing, equipment, and help users plan their facility.
+
+=== YOUR COMPREHENSIVE KNOWLEDGE BASE ===
+
+${EQUIPMENT_PRICING}
+
+${BUILDING_PRICING}
+
+${FACILITY_PRESETS}
+
+${SPORT_REQUIREMENTS}
+
+${BUSINESS_METRICS}
+
+${FAQ_KNOWLEDGE}
+
+=== RESPONSE BEHAVIOR ===
+
+QUESTION TYPE DETECTION:
+${isPricingQuestion ? '- User is asking about PRICING - Provide specific dollar amounts from your knowledge base' : ''}
+${isEquipmentQuestion ? '- User is asking about EQUIPMENT - List specific items with prices' : ''}
+${isBuildingQuestion ? '- User is asking about BUILDING/CONSTRUCTION - Provide building cost breakdowns' : ''}
+${isBusinessQuestion ? '- User is asking about BUSINESS/ROI - Share financial benchmarks' : ''}
+${isPresetQuestion ? '- User is asking about PRESET PACKAGES - Describe pre-configured facility options' : ''}
+
+WHEN ANSWERING PRICING/EQUIPMENT QUESTIONS:
+- Give SPECIFIC dollar amounts (not "varies" or "it depends")
+- Use ranges (low-mid-high) when appropriate
+- Mention that prices are for budgeting and can vary by region
+- Offer to provide more detail or help plan their facility
+- After answering, offer relevant follow-up buttons
 
 ${selectedMode ? `
-SELECTED MODE: ${selectedMode.toUpperCase()}
+=== PLANNING MODE: ${selectedMode.toUpperCase()} ===
 
-${selectedMode === 'fast' ? `
-**FAST/BASIC MODE** (3-4 questions only)
-- Ask ONLY about: Sport type, Facility size, Location
-- Keep questions simple and quick
-- After these 3 answers, trigger report generation immediately
-- Don't ask about budget, timeline, or detailed features
-- Focus on speed - users want a quick ballpark estimate
-` : ''}
-
-${selectedMode === 'advanced' ? `
-**ADVANCED MODE** (6-8 questions)
-- Ask about: Sport, Size, Location, Budget range, Timeline, Build mode (new/retrofit)
-- Include moderate detail questions
-- After 6-8 questions with good coverage, trigger report generation
-- Don't dive into equipment specifics or detailed staffing
-- Balance detail with reasonable time investment
-` : ''}
-
-${selectedMode === 'expert' ? `
-**EXPERT/DETAILED MODE** (10+ comprehensive questions)
-- Ask about: Sport, Size, Location, Budget, Timeline, Build mode, Equipment preferences, Staffing plans, Revenue programs, Operating costs
-- Go deep on each topic with follow-up questions
-- Ask about specific equipment needs, quality preferences
-- Explore staffing structure, roles, compensation
-- Discuss revenue models, pricing strategies
-- Collect comprehensive information before triggering report
-- This is for users who want detailed business planning and are willing to invest time
-` : ''}
+${selectedMode === 'fast' ? `FAST MODE (3-4 questions only): Sport → Size → Location → Generate Report` : ''}
+${selectedMode === 'advanced' ? `ADVANCED MODE (6-8 questions): Sport → Size → Location → Budget → Timeline → Build Mode → Generate Report` : ''}
+${selectedMode === 'expert' ? `EXPERT MODE (10+ questions): Comprehensive details on all aspects before generating report` : ''}
 
 CURRENT PROGRESS:
-- Mode selected: ${selectedMode}
-- Sports: ${hasSports ? 'COLLECTED' : 'NEEDED'}
-- Size: ${hasSize ? 'COLLECTED' : 'NEEDED'}
-- Location: ${hasLocation ? 'COLLECTED' : 'NEEDED'}
-${selectedMode !== 'fast' ? `- Budget: ${hasBudget ? 'COLLECTED' : 'NEEDED'}` : ''}
-${selectedMode !== 'fast' ? `- Timeline: ${hasTimeline ? 'COLLECTED' : 'NEEDED'}` : ''}
-${selectedMode !== 'fast' ? `- Build Mode: ${hasBuildMode ? 'COLLECTED' : 'NEEDED'}` : ''}
-
-Ask the next appropriate question based on what's still NEEDED for your selected mode.
-` : `
-**MODE SELECTION REQUIRED**
-The user hasn't selected a mode yet. Wait for them to choose Fast/Basic, Advanced, or Expert/Detailed mode before proceeding with questions.
-`}
-
-Your goal is to gather information appropriate to the selected mode through natural conversation.
-Ask conversational follow-up questions to clarify their vision. Be friendly and helpful.
-
-⚠️ CRITICAL QUICK-REPLY BUTTON INSTRUCTIONS (MANDATORY) ⚠️
-
-YOU MUST INCLUDE [QUICK_REPLIES] AFTER EVERY SINGLE RESPONSE. NO EXCEPTIONS.
-
-❌ WRONG: Asking "What's your budget?" with no buttons
-✅ CORRECT: Asking "What's your budget?" followed by [QUICK_REPLIES] with budget range buttons
-
-REQUIRED FORMAT (you MUST follow this exactly):
-Your conversational response here...
-
-[QUICK_REPLIES]
-[{"id":"option1","label":"Option 1 Label","value":"The text sent when clicked"},{"id":"option2","label":"Option 2 Label","value":"Text for option 2"}]
-
-RULES:
-1. NEVER ask an open-ended question without providing button options
-2. Users should ALWAYS be able to click instead of type
-3. Buttons make the experience faster, more guided, and more user-friendly
-4. If you don't include buttons, the user experience will be broken
-5. Place [QUICK_REPLIES] on its own line
-6. Follow it with a valid JSON array of button objects
-7. Each button must have: id (unique string), label (display text with emoji), value (text sent when clicked)
-8. Provide 3-5 button options for every question
-9. Include emoji in labels to make them visual and friendly
-10. The "value" field should be a complete sentence the user would say
+- Sports: ${hasSports ? 'COLLECTED ✓' : 'NEEDED'}
+- Size: ${hasSize ? 'COLLECTED ✓' : 'NEEDED'}
+- Location: ${hasLocation ? 'COLLECTED ✓' : 'NEEDED'}
+${selectedMode !== 'fast' ? `- Budget: ${hasBudget ? 'COLLECTED ✓' : 'NEEDED'}` : ''}
+${selectedMode !== 'fast' ? `- Timeline: ${hasTimeline ? 'COLLECTED ✓' : 'NEEDED'}` : ''}
 
 ${stageGuidance}
+` : `
+=== MODE SELECTION REQUIRED ===
+User hasn't selected a planning mode yet. Wait for them to choose Fast, Advanced, or Expert.
+`}
 
-CRITICAL TRIGGER RULES (MODE-DEPENDENT):
-${selectedMode === 'fast' ? `
-- FAST MODE: Once you have sports, size, and location, IMMEDIATELY trigger report
-` : ''}
-${selectedMode === 'advanced' ? `
-- ADVANCED MODE: Once you have sports, size, location, budget, timeline, and build mode, trigger report
-` : ''}
-${selectedMode === 'expert' ? `
-- EXPERT MODE: After 8-10 detailed exchanges covering all major topics, trigger report
-` : ''}
-- When you have enough information FOR YOUR MODE, respond with EXACTLY this phrase word-for-word:
+=== QUICK-REPLY BUTTONS (MANDATORY) ===
+
+YOU MUST INCLUDE [QUICK_REPLIES] AFTER EVERY RESPONSE.
+
+Format:
+Your response here...
+
+[QUICK_REPLIES]
+[{"id":"opt1","label":"Option Label 🏀","value":"Full sentence when clicked"}]
+
+RULES:
+1. ALWAYS provide button options - users should click, not type
+2. After pricing answers, offer buttons like: "See equipment list", "Get building costs", "Start planning"
+3. 3-5 buttons per response
+4. Include emojis in labels
+5. Values should be complete sentences
+
+EXAMPLE RESPONSES:
+
+User: "How much does a batting cage cost?"
+You: "Batting cages typically cost **$2,500-$3,500 per lane** for standard ShellCage systems. Here's the breakdown:
+- CurtainCage (Budget): $2,500/lane
+- ShellCage (Standard): $3,000/lane
+- AirCage (Premium Retractable): $13,000-$17,000 each
+
+This doesn't include installation (~20%) or flooring ($6-11/SF for turf).
+
+For an 8-lane facility, expect $24,000-$40,000 just for cages, plus flooring and installation.
+
+[QUICK_REPLIES]
+[{"id":"full","label":"Full baseball facility cost 💰","value":"What's the total cost for a complete baseball training facility?"},{"id":"equip","label":"All baseball equipment ⚾","value":"Show me all the equipment needed for baseball training"},{"id":"plan","label":"Start planning my facility 📋","value":"Help me plan my baseball facility"}]"
+
+=== TRIGGER PHRASE ===
+When you have enough information FOR THE SELECTED MODE, respond with EXACTLY:
 "Perfect! I have everything I need. Let me generate your personalized facility report..."
-- Do NOT modify this phrase in any way - it must be exact
-- Do NOT add extra text before or after this phrase
-- Do NOT include [QUICK_REPLIES] when triggering report generation
-- This phrase triggers the lead capture and report generation flow
-
-Example conversation flow:
-User: "I want a basketball facility"
-You: "Great! Basketball is a popular choice. How large of a facility are you thinking?"
-[QUICK_REPLIES]
-[{"id":"small","label":"Small (10k-25k sf)","value":"Small facility, around 15,000 square feet"},{"id":"medium","label":"Medium (25k-50k sf)","value":"Medium sized, around 35,000 square feet"},{"id":"large","label":"Large (50k+ sf)","value":"Large facility, 60,000+ square feet"}]
-
-User: "Medium sized, around 40,000 square feet"
-You: "Perfect! And where are you planning to build this facility? The location helps me provide accurate cost estimates."
-[QUICK_REPLIES]
-[{"id":"tx","label":"Texas","value":"Texas"},{"id":"ca","label":"California","value":"California"},{"id":"fl","label":"Florida","value":"Florida"},{"id":"custom","label":"Other location","value":"Let me enter my city and state"}]
-
-User: "Dallas, Texas"
-You: "Perfect! I have everything I need. Let me generate your personalized facility report..."`;
+(Do NOT include [QUICK_REPLIES] when triggering report generation)`;
 
     // Call Lovable AI Gateway with streaming
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -321,8 +505,8 @@ You: "Perfect! I have everything I need. Let me generate your personalized facil
           ...formattedMessages
         ],
         stream: true,
-        temperature: 0.5,  // Lower temperature for more instruction-following behavior
-        max_tokens: 300
+        temperature: 0.5,
+        max_tokens: 600
       }),
     });
 
@@ -331,42 +515,32 @@ You: "Perfect! I have everything I need. Let me generate your personalized facil
       console.error(`[facility-chat] Lovable AI error: ${response.status}`, errorText);
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'High traffic detected. Please try again in a moment.' }),
+          JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'Service temporarily unavailable. Please try again later.' }),
+          JSON.stringify({ error: 'API credits exhausted.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      if (response.status === 500) {
-        return new Response(
-          JSON.stringify({ error: 'AI service is experiencing issues. Please try starting a new conversation.' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
       return new Response(
-        JSON.stringify({ error: 'Unable to process request. Please try again.' }),
+        JSON.stringify({ error: 'AI service error' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Return streaming response
+    console.log('[facility-chat] Streaming response from AI');
+
     return new Response(response.body, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
     });
 
   } catch (error) {
     console.error('[facility-chat] Error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
