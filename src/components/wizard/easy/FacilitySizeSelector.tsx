@@ -8,6 +8,42 @@ import { Label } from "@/components/ui/label";
 import { TopViewLayout } from "@/components/layout/TopViewLayout";
 import { Ruler } from "lucide-react";
 
+// Approximate SF per court/cage type for estimation
+const SPACE_PER_UNIT: Record<string, number> = {
+  baseball_tunnels: 2000,        // ~70x12 ft per tunnel + circulation
+  basketball_courts_full: 7000,  // 94x50 + runout + seating
+  basketball_courts_half: 3500,
+  volleyball_courts: 4500,       // 60x30 + clearance
+  pickleball_courts: 1800,       // 30x60 + buffer
+  soccer_field_small: 8000,      // Small-sided field
+  training_turf_zone: 3000,      // Multipurpose turf zone
+};
+
+// Estimate court/cage counts based on selected sports and total SF
+const estimateCourtsForCustomSize = (totalSqft: number): Record<string, number> => {
+  const sports: string[] = JSON.parse(localStorage.getItem('wizard-selected-sports') || '[]');
+  const counts: Record<string, number> = {};
+  
+  if (sports.includes('baseball_softball')) {
+    counts.baseball_tunnels = Math.max(1, Math.floor(totalSqft / SPACE_PER_UNIT.baseball_tunnels * 0.5));
+  }
+  if (sports.includes('basketball')) {
+    counts.basketball_courts_full = Math.max(1, Math.floor(totalSqft / SPACE_PER_UNIT.basketball_courts_full * 0.7));
+  }
+  if (sports.includes('volleyball')) {
+    counts.volleyball_courts = Math.max(1, Math.floor(totalSqft / SPACE_PER_UNIT.volleyball_courts * 0.6));
+  }
+  if (sports.includes('pickleball')) {
+    counts.pickleball_courts = Math.max(2, Math.floor(totalSqft / SPACE_PER_UNIT.pickleball_courts * 0.5));
+  }
+  if (sports.includes('soccer_indoor_small_sided') || sports.includes('multi_sport')) {
+    counts.soccer_field_small = Math.max(1, Math.floor(totalSqft / SPACE_PER_UNIT.soccer_field_small * 0.6));
+    counts.training_turf_zone = Math.max(1, Math.floor(totalSqft / SPACE_PER_UNIT.training_turf_zone * 0.3));
+  }
+  
+  return counts;
+};
+
 interface SizeOption {
   key: string;
   name: string;
@@ -74,11 +110,14 @@ export const FacilitySizeSelector = ({
       const length = parseInt(customLength);
       const totalSqft = width * length;
       
+      // Estimate court/cage counts based on space and selected sports
+      const estimatedCounts = estimateCourtsForCustomSize(totalSqft);
+      
       const facilityData = {
         key: 'custom',
         shell_dims_ft: [width, length] as [number, number],
         total_sqft: totalSqft,
-        court_or_cage_counts: {}
+        court_or_cage_counts: estimatedCounts
       };
       localStorage.setItem('wizard-facility-size', JSON.stringify(facilityData));
       console.log("Custom size selected:", facilityData);
