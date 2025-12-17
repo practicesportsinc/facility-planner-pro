@@ -25,7 +25,7 @@ export const calculateEquipmentQuote = (inputs: EquipmentInputs): EquipmentQuote
   // Calculate totals
   const equipmentTotal = coreEquipment.subtotal + safety.subtotal;
   const flooringTotal = flooring.subtotal;
-  const installationTotal = Math.round((equipmentTotal + flooringTotal) * 0.15); // 15% installation
+  const installationTotal = Math.round((equipmentTotal + flooringTotal) * 0.50); // 50% installation
   const grandTotal = equipmentTotal + flooringTotal + installationTotal;
 
   return {
