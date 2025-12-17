@@ -4,9 +4,9 @@ import { Separator } from "@/components/ui/separator";
 import { Download, Mail, ArrowRight } from "lucide-react";
 import { EquipmentQuote } from "@/types/equipment";
 import { SPORT_LABELS } from "@/components/home/SportIcons";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 import useAnalytics from "@/hooks/useAnalytics";
 import { toast } from "sonner";
-
 interface EquipmentQuoteDisplayProps {
   quote: EquipmentQuote;
   onRequestReview: () => void;
@@ -131,13 +131,7 @@ export const EquipmentQuoteDisplay = ({
         </div>
 
         {/* Disclaimer */}
-        <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            <strong>Note:</strong> This is an estimated quote based on typical market pricing. 
-            Final costs may vary based on your location, specific product selections, and site conditions. 
-            Installation costs are approximate and may require professional assessment.
-          </p>
-        </div>
+        <PricingDisclaimer className="mt-6" />
       </Card>
 
       {/* Action Buttons */}

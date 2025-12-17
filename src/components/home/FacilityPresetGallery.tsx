@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FACILITY_PRESETS, PRESET_CATEGORIES } from "@/data/facilityPresets";
 import { PresetReportModal } from "@/components/reports/PresetReportModal";
+import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 import { ArrowRight, Building2, DollarSign, Maximize2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { FacilityPreset } from "@/data/facilityPresets";
@@ -84,6 +85,9 @@ export function FacilityPresetGallery() {
           </div>
         ))}
       </div>
+
+      {/* Pricing Disclaimer */}
+      <PricingDisclaimer className="mt-8" />
 
       {selectedPreset && (
         <PresetReportModal
