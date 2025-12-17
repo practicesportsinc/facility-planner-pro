@@ -554,14 +554,14 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
                   return (
                     <Button
                       key={reply.id}
-                      variant={isModeButton ? "default" : "outline"}
+                      variant="default"
                       size={isModeButton ? "lg" : "sm"}
                       onClick={() => handleSend(reply.value, true)}
                       disabled={isStreaming || isGeneratingReport}
                       className={cn(
                         isModeButton 
                           ? "w-full justify-start text-left py-6 px-4 h-auto shadow-md hover:shadow-lg transition-all" 
-                          : "text-xs px-3 py-1.5 h-auto rounded-full border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all",
+                          : "text-xs px-3 py-1.5 h-auto rounded-full bg-primary/20 hover:bg-primary/30 text-foreground border border-primary/40 transition-all",
                         reply.id === 'fast' && "bg-success hover:bg-success/90 text-success-foreground",
                         reply.id === 'advanced' && "bg-primary hover:bg-primary/90 text-primary-foreground",
                         reply.id === 'expert' && "bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white"
