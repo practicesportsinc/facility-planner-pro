@@ -69,7 +69,12 @@ export const EasyResults = ({
   const navigate = useNavigate();
   const [kpis, setKpis] = useState<Record<string, number>>({});
   const [showLeadGate, setShowLeadGate] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'report' | 'pdf' | null>(null);
   const { trackResultsViewed, trackLeadSubmitted, trackExportClicked } = useAnalytics();
+
+  const handleSaveReport = () => {
+    window.print();
+  };
 
   useEffect(() => {
     // Calculate KPIs from wizard data
@@ -186,8 +191,17 @@ export const EasyResults = ({
       }
       navigate(button.route);
     } else if (button.action === "emit") {
-      trackExportClicked('report', false);
-      console.log("Save report clicked");
+      // Check if lead exists, gate if not
+      const projectId = localStorage.getItem('current-project-id') || 'legacy';
+      const project = getProjectState(projectId);
+      if (!project.lead?.email) {
+        trackExportClicked('report', true);
+        setPendingAction('report');
+        setShowLeadGate(true);
+      } else {
+        trackExportClicked('report', false);
+        handleSaveReport();
+      }
     } else if (button.action === "fetch") {
       // Check if lead exists, gate if not
       const projectId = localStorage.getItem('current-project-id') || 'legacy';
@@ -283,8 +297,12 @@ export const EasyResults = ({
       
       console.log("Lead submitted:", payload);
       
-      // TODO: POST to /api/leads/monday
-      // await fetch('/api/leads/monday', { method: 'POST', body: JSON.stringify(payload) });
+      // Execute pending action after lead capture
+      if (pendingAction === 'report') {
+        handleSaveReport();
+      }
+      setPendingAction(null);
+      setShowLeadGate(false);
       
     } catch (error) {
       console.error("Error submitting lead:", error);
