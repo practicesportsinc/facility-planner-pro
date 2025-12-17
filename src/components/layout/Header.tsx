@@ -41,7 +41,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-cyan-500/30 bg-black">
+      <header className="sticky top-0 z-50 w-full border-b border-cyan-500/30 bg-gradient-to-b from-black/80 via-black/50 to-transparent">
         <div className="container flex h-36 md:h-44 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <img 
