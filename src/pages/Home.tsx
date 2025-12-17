@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,21 @@ const Home = () => {
   const [quote, setQuote] = useState<EquipmentQuote | null>(null);
   const [equipmentQuoteForUpgrade, setEquipmentQuoteForUpgrade] = useState<EquipmentQuote | null>(null);
   const [isLeadGateOpen, setIsLeadGateOpen] = useState(false);
+  const heroImageRef = useRef<HTMLImageElement>(null);
+
+  // Parallax scroll effect for hero image
+  useEffect(() => {
+    const handleScroll = () => {
+      if (heroImageRef.current) {
+        const scrollY = window.scrollY;
+        // Move image at 40% of scroll speed for subtle parallax
+        heroImageRef.current.style.transform = `translateY(${scrollY * 0.4}px)`;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Initialize flow based on URL parameters
   useEffect(() => {
@@ -148,12 +163,13 @@ const Home = () => {
   
   return (
     <Layout>
-      {/* Hero Image Banner - Extended behind header */}
+      {/* Hero Image Banner - Extended behind header with parallax */}
       <div className="relative h-[calc(250px+9rem)] md:h-[calc(300px+11rem)] w-full overflow-hidden -mt-36 md:-mt-44">
         <img 
+          ref={heroImageRef}
           src="/images/home-gallery/hero-facility.jpg"
           alt="Professional sports training facility"
-          className="w-full h-full object-cover object-center"
+          className="w-full h-[120%] object-cover object-center will-change-transform"
         />
         {/* Gradient overlay blends with header */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60" />
