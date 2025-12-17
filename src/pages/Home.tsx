@@ -250,160 +250,165 @@ const Home = () => {
         cancelButtonText="Cancel"
       />
 
-      {/* Features Section */}
-      <section id="features" className="py-16 px-4 bg-card">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Everything You Need to Plan Your Facility</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our comprehensive calculator covers every aspect of sports facility planning and operations.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
-              <CardHeader>
-                <TrendingUp className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Financial Projections</CardTitle>
-                <CardDescription>
-                  Complete P&L forecasts, break-even analysis, ROI calculations, and payback periods
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
-              <CardHeader>
-                <Calculator className="h-8 w-8 text-secondary mb-2" />
-                <CardTitle>Startup & Operating Costs</CardTitle>
-                <CardDescription>
-                  Detailed equipment lists, construction costs, staffing, utilities, and ongoing expenses
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
-              <CardHeader>
-                <Target className="h-8 w-8 text-accent mb-2" />
-                <CardTitle>Revenue Modeling</CardTitle>
-                <CardDescription>
-                  Memberships, rentals, lessons, camps, leagues, and events with utilization forecasting
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
-              <CardHeader>
-                <Users className="h-8 w-8 text-info mb-2" />
-                <CardTitle>Multi-Sport Support</CardTitle>
-                <CardDescription>
-                  Baseball, basketball, volleyball, pickleball, soccer, football, lacrosse, and more
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
-              <CardHeader>
-                <FileText className="h-8 w-8 text-success mb-2" />
-                <CardTitle>Professional Reports</CardTitle>
-                <CardDescription>
-                  Download detailed PDF reports and CSV data for presentations and funding applications
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
-              <CardHeader>
-                <Clock className="h-8 w-8 text-warning mb-2" />
-                <CardTitle>Project Timeline</CardTitle>
-                <CardDescription>
-                  Phase-by-phase timeline estimates from planning to grand opening
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">How It Works</h2>
-            <p className="text-lg text-muted-foreground">
-              Get your complete facility analysis in minutes!
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="bg-gradient-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-primary-foreground">1</span>
+      {/* Only show generic content sections on the main path selection */}
+      {flowStep === 'path' && (
+        <>
+          {/* Features Section */}
+          <section id="features" className="py-16 px-4 bg-card">
+            <div className="container mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold mb-4">Everything You Need to Plan Your Facility</h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Our comprehensive calculator covers every aspect of sports facility planning and operations.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Input Your Details</h3>
-              <p className="text-muted-foreground">
-                Tell us about your location, sports, facility type, and business goals
-              </p>
-            </div>
 
-            <div className="text-center">
-              <div className="bg-gradient-secondary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-secondary-foreground">2</span>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
+                  <CardHeader>
+                    <TrendingUp className="h-8 w-8 text-primary mb-2" />
+                    <CardTitle>Financial Projections</CardTitle>
+                    <CardDescription>
+                      Complete P&L forecasts, break-even analysis, ROI calculations, and payback periods
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+
+                <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
+                  <CardHeader>
+                    <Calculator className="h-8 w-8 text-secondary mb-2" />
+                    <CardTitle>Startup & Operating Costs</CardTitle>
+                    <CardDescription>
+                      Detailed equipment lists, construction costs, staffing, utilities, and ongoing expenses
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+
+                <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
+                  <CardHeader>
+                    <Target className="h-8 w-8 text-accent mb-2" />
+                    <CardTitle>Revenue Modeling</CardTitle>
+                    <CardDescription>
+                      Memberships, rentals, lessons, camps, leagues, and events with utilization forecasting
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+
+                <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
+                  <CardHeader>
+                    <Users className="h-8 w-8 text-info mb-2" />
+                    <CardTitle>Multi-Sport Support</CardTitle>
+                    <CardDescription>
+                      Baseball, basketball, volleyball, pickleball, soccer, football, lacrosse, and more
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+
+                <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
+                  <CardHeader>
+                    <FileText className="h-8 w-8 text-success mb-2" />
+                    <CardTitle>Professional Reports</CardTitle>
+                    <CardDescription>
+                      Download detailed PDF reports and CSV data for presentations and funding applications
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+
+                <Card className="shadow-custom-md hover:shadow-custom-lg transition-smooth">
+                  <CardHeader>
+                    <Clock className="h-8 w-8 text-warning mb-2" />
+                    <CardTitle>Project Timeline</CardTitle>
+                    <CardDescription>
+                      Phase-by-phase timeline estimates from planning to grand opening
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Review & Customize</h3>
-              <p className="text-muted-foreground">
-                Adjust our recommendations to match your specific needs and budget
-              </p>
             </div>
+          </section>
 
-            <div className="text-center">
-              <div className="bg-gradient-hero rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-white">3</span>
+          {/* How It Works */}
+          <section className="py-16 px-4">
+            <div className="container mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold mb-4">How It Works</h2>
+                <p className="text-lg text-muted-foreground">
+                  Get your complete facility analysis in minutes!
+                </p>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Get Your Report</h3>
-              <p className="text-muted-foreground">
-                Download comprehensive financial projections and connect with our experts
-              </p>
+
+              <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <div className="text-center">
+                  <div className="bg-gradient-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl font-bold text-primary-foreground">1</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Input Your Details</h3>
+                  <p className="text-muted-foreground">
+                    Tell us about your location, sports, facility type, and business goals
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="bg-gradient-secondary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl font-bold text-secondary-foreground">2</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Review & Customize</h3>
+                  <p className="text-muted-foreground">
+                    Adjust our recommendations to match your specific needs and budget
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="bg-gradient-hero rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl font-bold text-white">3</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Get Your Report</h3>
+                  <p className="text-muted-foreground">
+                    Download comprehensive financial projections and connect with our experts
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      {/* CTA Section */}
-      <section className="py-16 px-4 bg-gradient-hero">
-        <div className="container mx-auto text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Ready to Turn Your Vision Into Reality?
-            </h2>
-            <p className="text-xl text-white/90 mb-8">
-              Start your free facility calculation today and get the insights you need to make confident decisions.
-            </p>
-            <Button variant="outline" size="lg" className="bg-white text-primary hover:bg-white/90" asChild>
-              <Link to="/start">
-                <Calculator className="mr-2 h-5 w-5" />
-                Start Your Free Plan
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+          {/* CTA Section */}
+          <section className="py-16 px-4 bg-gradient-hero">
+            <div className="container mx-auto text-center">
+              <div className="max-w-3xl mx-auto">
+                <h2 className="text-3xl font-bold text-white mb-4">
+                  Ready to Turn Your Vision Into Reality?
+                </h2>
+                <p className="text-xl text-white/90 mb-8">
+                  Start your free facility calculation today and get the insights you need to make confident decisions.
+                </p>
+                <Button variant="outline" size="lg" className="bg-white text-primary hover:bg-white/90" asChild>
+                  <Link to="/start">
+                    <Calculator className="mr-2 h-5 w-5" />
+                    Start Your Free Plan
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </section>
 
-      {/* Footer Links */}
-      <footer className="py-8 px-4 border-t bg-card">
-        <div className="container mx-auto">
-          <div className="flex justify-center gap-8 text-sm text-muted-foreground">
-            <Link to="/admin" className="hover:text-primary transition-colors">
-              Admin
-            </Link>
-            <Link to="/legal" className="hover:text-primary transition-colors">
-              Legal
-            </Link>
-            <Link to="/contact" className="hover:text-primary transition-colors">
-              Contact Us
-            </Link>
-          </div>
-        </div>
-      </footer>
+          {/* Footer Links */}
+          <footer className="py-8 px-4 border-t bg-card">
+            <div className="container mx-auto">
+              <div className="flex justify-center gap-8 text-sm text-muted-foreground">
+                <Link to="/admin" className="hover:text-primary transition-colors">
+                  Admin
+                </Link>
+                <Link to="/legal" className="hover:text-primary transition-colors">
+                  Legal
+                </Link>
+                <Link to="/contact" className="hover:text-primary transition-colors">
+                  Contact Us
+                </Link>
+              </div>
+            </div>
+          </footer>
+        </>
+      )}
     </Layout>
   );
 };
