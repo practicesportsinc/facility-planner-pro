@@ -1,6 +1,27 @@
 import { leadSchema, sanitizeLeadData, checkRateLimit, recordSubmission } from '@/utils/leadValidation';
 import { z } from 'zod';
 
+export interface EquipmentLineItem {
+  name: string;
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
+  description?: string;
+}
+
+export interface EquipmentCategory {
+  category: string;
+  items: EquipmentLineItem[];
+  subtotal: number;
+}
+
+export interface EquipmentTotals {
+  equipment: number;
+  flooring: number;
+  installation: number;
+  grandTotal: number;
+}
+
 export interface LeadData {
   // Personal Information
   firstName?: string;
@@ -31,6 +52,16 @@ export interface LeadData {
   paybackPeriod?: number;
   breakEvenMonths?: number;
   totalSquareFootage?: number;
+  
+  // Equipment Quote Data
+  equipmentItems?: EquipmentCategory[];
+  equipmentSummary?: string;
+  equipmentTotals?: EquipmentTotals;
+  equipmentInputs?: {
+    sport?: string;
+    units?: number;
+    spaceSize?: string;
+  };
   
   // Full report data for saving
   reportData?: any;
@@ -125,7 +156,12 @@ export const dispatchLead = async (leadData: LeadData): Promise<{ success: boole
       source: leadData.source,
       userAgent: navigator.userAgent,
       referrer: document.referrer || 'direct',
-      reportData: leadData.reportData, // Include full report data for saving
+      reportData: leadData.reportData,
+      // Equipment quote data
+      equipmentItems: leadData.equipmentItems,
+      equipmentSummary: leadData.equipmentSummary,
+      equipmentTotals: leadData.equipmentTotals,
+      equipmentInputs: leadData.equipmentInputs,
     };
 
       console.log('📤 [dispatchLead] Sending validated payload to sync-lead-to-sheets');

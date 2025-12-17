@@ -108,6 +108,19 @@ const validateLeadData = (data: LeadData): { valid: boolean; errors: string[] } 
   return { valid: errors.length === 0, errors };
 };
 
+interface EquipmentLineItem {
+  name: string;
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
+}
+
+interface EquipmentCategory {
+  category: string;
+  items: EquipmentLineItem[];
+  subtotal: number;
+}
+
 interface LeadData {
   name: string;
   email: string;
@@ -128,6 +141,20 @@ interface LeadData {
   userAgent?: string;
   referrer?: string;
   reportData?: any;
+  // Equipment quote data
+  equipmentItems?: EquipmentCategory[];
+  equipmentSummary?: string;
+  equipmentTotals?: {
+    equipment: number;
+    flooring: number;
+    installation: number;
+    grandTotal: number;
+  };
+  equipmentInputs?: {
+    sport?: string;
+    units?: number;
+    spaceSize?: string;
+  };
 }
 
 serve(async (req) => {
@@ -354,7 +381,7 @@ async function syncToGoogleSheets(
     const { access_token } = await tokenResponse.json();
     console.log('[syncToGoogleSheets] Access token obtained');
 
-    // Prepare row data with report URL
+    // Prepare row data with report URL and equipment summary
     const timestamp = new Date().toISOString();
     const rowData = [
       timestamp,
@@ -373,13 +400,14 @@ async function syncToGoogleSheets(
       leadData.estimatedROI?.toString() || '',
       leadData.breakEvenMonths?.toString() || '',
       leadData.source,
-      reportUrl || '', // Add report URL to sheet
+      reportUrl || '',
+      leadData.equipmentSummary || '', // Column R: Equipment list
     ];
     
     console.log('[syncToGoogleSheets] Row data prepared:', rowData);
 
-    // Append to Google Sheet
-    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tabName}!A:Q:append?valueInputOption=RAW`;
+    // Append to Google Sheet (expanded to column R for equipment summary)
+    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tabName}!A:R:append?valueInputOption=RAW`;
     console.log('[syncToGoogleSheets] Appending to sheet:', appendUrl);
 
     const appendResponse = await fetch(appendUrl, {
