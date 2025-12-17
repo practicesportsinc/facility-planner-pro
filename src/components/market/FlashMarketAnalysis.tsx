@@ -79,17 +79,23 @@ export const FlashMarketAnalysis = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [showLeadGate, setShowLeadGate] = useState(false);
+  const [showPreAnalysisGate, setShowPreAnalysisGate] = useState(false);
+  const [pendingZipCode, setPendingZipCode] = useState("");
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = () => {
     if (!zipCode || zipCode.length !== 5) {
       toast.error("Please enter a valid 5-digit ZIP code");
       return;
     }
+    setPendingZipCode(zipCode);
+    setShowPreAnalysisGate(true);
+  };
 
+  const runAnalysis = async (zip: string) => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('analyze-location', {
-        body: { zipCode, radius: 15 }
+        body: { zipCode: zip, radius: 15 }
       });
 
       if (error) throw error;
@@ -105,6 +111,23 @@ export const FlashMarketAnalysis = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLeadSubmitAndAnalyze = async (leadData: any) => {
+    try {
+      await supabase.functions.invoke('sync-lead-to-sheets', {
+        body: {
+          ...leadData,
+          source: 'flash-market-analysis',
+          source_detail: `pre-analysis-gate-${pendingZipCode}`,
+        },
+      });
+      toast.success("Thank you! Running your analysis...");
+    } catch (error) {
+      console.error('Error syncing lead:', error);
+    }
+    setShowPreAnalysisGate(false);
+    runAnalysis(pendingZipCode);
   };
 
   const handleDownloadReport = async (leadData: any) => {
@@ -308,8 +331,18 @@ export const FlashMarketAnalysis = () => {
       </div>
 
       <p className="text-sm text-muted-foreground mt-4">
-        Results in under 30 seconds • No signup required
+        Results in under 30 seconds • Free instant analysis
       </p>
+
+      {/* Pre-Analysis Lead Gate */}
+      <LeadGate
+        isOpen={showPreAnalysisGate}
+        onClose={() => setShowPreAnalysisGate(false)}
+        onSubmit={handleLeadSubmitAndAnalyze}
+        title="Get Your Market Analysis"
+        description={`Enter your information to see detailed demographics, sports demand, and market opportunity for ZIP ${pendingZipCode}`}
+        showOutreachField={false}
+      />
     </div>
   );
 };
