@@ -5,6 +5,7 @@ import FacilitySizeSelector from "@/components/wizard/easy/FacilitySizeSelector"
 import ProductQuantities from "@/components/wizard/easy/ProductQuantities";
 import EasyContext from "@/components/wizard/easy/EasyContext";
 import EasyResults from "@/components/wizard/easy/EasyResults";
+import { STAGE_CONFIG } from "@/types/stage";
 
 const EasyWizard = () => {
   return (
@@ -159,7 +160,7 @@ const EasyWizard = () => {
             { key: "state", label: "State", type: "text", default: "NE" },
             { key: "country", label: "Country", type: "text", default: "United States" },
             { key: "timeline", label: "Target open date", type: "chips", options: ["<6 mo", "6–12", "12–18", ">18", "TBD"] },
-            { key: "stage_code", label: "Stage", type: "chips", options: ["concept", "feasibility", "site_search", "plan_permits", "financing", "outfitting", "expansion"] }
+            { key: "stage_code", label: "Stage", type: "chips", options: Object.entries(STAGE_CONFIG).map(([key, config]) => ({ key, label: config.label })) }
           ]}
           primaryCta={{ label: "Show My Results →", route: "/wizard/easy/results" }}
         />
