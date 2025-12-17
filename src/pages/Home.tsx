@@ -44,6 +44,11 @@ const Home = () => {
     }
   }, [searchParams]);
 
+  // Scroll to top when flow step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [flowStep]);
+
   const handleChatSend = (message: string) => {
     clearChatHistory();
     openChat(message);
