@@ -148,25 +148,27 @@ const Home = () => {
   
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-16 px-4 min-h-[600px] flex items-center">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/images/home-gallery/hero-facility.jpg')" }}
-        >
-          {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-black/60" />
-        </div>
-        
-        <div className="container mx-auto text-center relative z-10">
+      {/* Hero Image Banner - Top 1/3 */}
+      <div className="relative h-[250px] md:h-[300px] w-full overflow-hidden">
+        <img 
+          src="/images/home-gallery/hero-facility.jpg"
+          alt="Professional sports training facility"
+          className="w-full h-full object-cover object-center"
+        />
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/50" />
+      </div>
+
+      {/* Main Content Section */}
+      <section className="py-12 px-4">
+        <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white leading-tight py-2">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-hero bg-clip-text text-transparent leading-tight py-2">
               Amazing Sports Facility Idea?
             </h1>
-            <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             </p>
-            <div className="mt-12">
+            <div className="mt-8">
               {flowStep === 'path' && (
                 <>
                   <PathSelector onSelectPath={handlePathSelect} />
