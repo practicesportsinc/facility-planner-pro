@@ -15,8 +15,6 @@ export const PathSelector = ({ onSelectPath }: PathSelectorProps) => {
     track('path_selected', { path });
     if (path === 'building') {
       navigate('/building-config');
-    } else if (path === 'market') {
-      navigate('/market-analysis');
     } else {
       onSelectPath(path);
     }
