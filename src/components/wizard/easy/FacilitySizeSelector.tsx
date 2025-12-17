@@ -122,6 +122,7 @@ export const FacilitySizeSelector = ({
       localStorage.setItem('wizard-facility-size', JSON.stringify(facilityData));
       console.log("Custom size selected:", facilityData);
     }
+    window.scrollTo(0, 0);
     navigate(primaryCta.route);
   };
 

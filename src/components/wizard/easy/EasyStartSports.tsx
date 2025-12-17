@@ -100,6 +100,7 @@ export const EasyStartSports = ({
     localStorage.setItem('wizard-selected-sports', JSON.stringify(selectedSports));
     localStorage.setItem('current-project-id', projectId);
     
+    window.scrollTo(0, 0);
     navigate(primaryCta.route);
   };
 

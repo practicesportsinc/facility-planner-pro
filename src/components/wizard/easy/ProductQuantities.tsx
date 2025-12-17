@@ -124,6 +124,7 @@ export const ProductQuantities = ({
       selected_products: selectedProducts,
       quantities: quantities
     }));
+    window.scrollTo(0, 0);
     navigate(primaryCta.route);
   };
 
