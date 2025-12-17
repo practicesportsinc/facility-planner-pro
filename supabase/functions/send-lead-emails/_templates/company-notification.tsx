@@ -13,6 +13,19 @@ import {
 } from 'npm:@react-email/components@0.0.22';
 import * as React from 'npm:react@18.3.1';
 
+interface EquipmentLineItem {
+  name: string;
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
+}
+
+interface EquipmentCategory {
+  category: string;
+  items: EquipmentLineItem[];
+  subtotal: number;
+}
+
 interface CompanyNotificationEmailProps {
   leadData: {
     name: string;
@@ -38,6 +51,13 @@ interface CompanyNotificationEmailProps {
     paybackPeriod?: number | string;
     breakEven?: number | string;
   };
+  equipmentItems?: EquipmentCategory[];
+  equipmentTotals?: {
+    equipment: number;
+    flooring: number;
+    installation: number;
+    grandTotal: number;
+  };
   source: string;
   timestamp: string;
 }
@@ -46,6 +66,8 @@ export const CompanyNotificationEmail = ({
   leadData,
   facilityDetails,
   estimates,
+  equipmentItems,
+  equipmentTotals,
   source,
   timestamp,
 }: CompanyNotificationEmailProps) => {
@@ -152,7 +174,67 @@ export const CompanyNotificationEmail = ({
             </>
           )}
 
-          {estimates && Object.keys(estimates).length > 0 && (
+          {equipmentItems && equipmentItems.length > 0 && (
+            <>
+              <Section style={section}>
+                <Heading style={h2}>📦 Equipment Quote Details</Heading>
+                {equipmentItems.map((category, catIndex) => (
+                  <React.Fragment key={catIndex}>
+                    <Text style={categoryHeader}>{category.category}</Text>
+                    <table style={equipmentTable}>
+                      <thead>
+                        <tr>
+                          <th style={eqTableHeaderCell}>Item</th>
+                          <th style={eqTableHeaderCellRight}>Qty</th>
+                          <th style={eqTableHeaderCellRight}>Unit</th>
+                          <th style={eqTableHeaderCellRight}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {category.items.map((item, itemIndex) => (
+                          <tr key={itemIndex}>
+                            <td style={eqTableCell}>{item.name}</td>
+                            <td style={eqTableCellRight}>{item.quantity}</td>
+                            <td style={eqTableCellRight}>${item.unitCost.toLocaleString()}</td>
+                            <td style={eqTableCellRight}>${item.totalCost.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <Text style={subtotalText}>
+                      Subtotal: ${category.subtotal.toLocaleString()}
+                    </Text>
+                  </React.Fragment>
+                ))}
+                
+                {equipmentTotals && (
+                  <table style={totalsTable}>
+                    <tbody>
+                      <tr>
+                        <td style={totalsLabel}>Equipment:</td>
+                        <td style={totalsValue}>${equipmentTotals.equipment.toLocaleString()}</td>
+                      </tr>
+                      <tr>
+                        <td style={totalsLabel}>Flooring & Surfaces:</td>
+                        <td style={totalsValue}>${equipmentTotals.flooring.toLocaleString()}</td>
+                      </tr>
+                      <tr>
+                        <td style={totalsLabel}>Installation (50%):</td>
+                        <td style={totalsValue}>${equipmentTotals.installation.toLocaleString()}</td>
+                      </tr>
+                      <tr>
+                        <td style={grandTotalLabel}>Grand Total:</td>
+                        <td style={grandTotalValue}>${equipmentTotals.grandTotal.toLocaleString()}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                )}
+              </Section>
+              <Hr style={hr} />
+            </>
+          )}
+
+          {estimates && Object.keys(estimates).length > 0 && !equipmentTotals && (
             <>
               <Section style={section}>
                 <Heading style={h2}>💰 Financial Estimates</Heading>
@@ -323,6 +405,92 @@ const noTag = {
   fontSize: '12px',
   fontWeight: 'bold' as const,
   display: 'inline-block',
+};
+
+const categoryHeader = {
+  color: '#333',
+  fontSize: '16px',
+  fontWeight: 'bold' as const,
+  margin: '16px 0 8px 0',
+  borderBottom: '1px solid #e5e7eb',
+  paddingBottom: '4px',
+};
+
+const equipmentTable = {
+  width: '100%',
+  borderCollapse: 'collapse' as const,
+  fontSize: '12px',
+  marginBottom: '8px',
+};
+
+const eqTableHeaderCell = {
+  textAlign: 'left' as const,
+  padding: '4px',
+  borderBottom: '1px solid #d1d5db',
+  color: '#6b7280',
+  fontWeight: 'bold' as const,
+  fontSize: '11px',
+};
+
+const eqTableHeaderCellRight = {
+  ...eqTableHeaderCell,
+  textAlign: 'right' as const,
+};
+
+const eqTableCell = {
+  padding: '4px',
+  borderBottom: '1px solid #f3f4f6',
+  color: '#333',
+  fontSize: '12px',
+};
+
+const eqTableCellRight = {
+  ...eqTableCell,
+  textAlign: 'right' as const,
+};
+
+const subtotalText = {
+  textAlign: 'right' as const,
+  fontSize: '12px',
+  color: '#4b5563',
+  fontWeight: 'bold' as const,
+  margin: '4px 0 16px 0',
+};
+
+const totalsTable = {
+  width: '100%',
+  fontSize: '13px',
+  marginTop: '12px',
+  borderTop: '1px solid #e5e7eb',
+  paddingTop: '12px',
+};
+
+const totalsLabel = {
+  padding: '4px 0',
+  color: '#4b5563',
+};
+
+const totalsValue = {
+  padding: '4px 0',
+  textAlign: 'right' as const,
+  color: '#333',
+};
+
+const grandTotalLabel = {
+  padding: '8px 0 4px 0',
+  color: '#333',
+  fontWeight: 'bold' as const,
+  fontSize: '14px',
+  borderTop: '2px solid #333',
+};
+
+const grandTotalValue = {
+  padding: '8px 0 4px 0',
+  textAlign: 'right' as const,
+  color: '#333',
+  fontWeight: 'bold' as const,
+  fontSize: '14px',
+  borderTop: '2px solid #333',
 };
 
 const ctaSection = {

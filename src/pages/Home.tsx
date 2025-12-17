@@ -86,6 +86,13 @@ const Home = () => {
   };
 
   const handleLeadSubmit = async (leadData: any) => {
+    // Format equipment list as readable text for Google Sheets
+    const equipmentSummary = quote?.lineItems.map(category => 
+      `${category.category}:\n${category.items.map(item => 
+        `  - ${item.name}: ${item.quantity} × $${item.unitCost.toLocaleString()} = $${item.totalCost.toLocaleString()}`
+      ).join('\n')}`
+    ).join('\n\n');
+
     const enrichedData = {
       name: leadData.name,
       email: leadData.email,
@@ -98,6 +105,11 @@ const Home = () => {
       source: 'equipment_quote_review',
       user_agent: navigator.userAgent,
       referrer: document.referrer,
+      // Include full equipment data
+      equipmentItems: quote?.lineItems,
+      equipmentSummary: equipmentSummary,
+      equipmentTotals: quote?.totals,
+      equipmentInputs: quote?.inputs,
     };
 
     const result = await submitLeadToDatabase(enrichedData);

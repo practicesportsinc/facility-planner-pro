@@ -24,6 +24,21 @@ const RATE_LIMIT = {
 // Configure your company email here
 const COMPANY_EMAIL = 'chad@sportsfacility.ai';
 
+// Equipment item schema
+const EquipmentLineItemSchema = z.object({
+  name: z.string(),
+  quantity: z.number(),
+  unitCost: z.number(),
+  totalCost: z.number(),
+  description: z.string().optional(),
+});
+
+const EquipmentCategorySchema = z.object({
+  category: z.string(),
+  items: z.array(EquipmentLineItemSchema),
+  subtotal: z.number(),
+});
+
 // Validation schema
 const EmailPayloadSchema = z.object({
   customerEmail: z.string().email().max(255),
@@ -52,6 +67,14 @@ const EmailPayloadSchema = z.object({
     roi: z.number().optional(),
     paybackPeriod: z.union([z.number(), z.string()]).optional(),
     breakEven: z.union([z.number(), z.string()]).optional()
+  }).optional(),
+  // Equipment quote data
+  equipmentItems: z.array(EquipmentCategorySchema).optional(),
+  equipmentTotals: z.object({
+    equipment: z.number(),
+    flooring: z.number(),
+    installation: z.number(),
+    grandTotal: z.number(),
   }).optional(),
   source: z.string().min(1).max(100)
 });
@@ -121,6 +144,20 @@ function formatPartnershipType(slug?: string): string {
   ).join(' ');
 }
 
+interface EquipmentLineItem {
+  name: string;
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
+  description?: string;
+}
+
+interface EquipmentCategory {
+  category: string;
+  items: EquipmentLineItem[];
+  subtotal: number;
+}
+
 interface EmailPayload {
   customerEmail: string;
   customerName: string;
@@ -148,6 +185,13 @@ interface EmailPayload {
     roi?: number;
     paybackPeriod?: number | string;
     breakEven?: number | string;
+  };
+  equipmentItems?: EquipmentCategory[];
+  equipmentTotals?: {
+    equipment: number;
+    flooring: number;
+    installation: number;
+    grandTotal: number;
   };
   source: string;
 }
@@ -218,7 +262,8 @@ const handler = async (req: Request): Promise<Response> => {
         customerName: payload.customerName,
         partnershipType: formattedPartnershipType,
         hasMessage: !!(payload.leadData?.message && payload.leadData.message !== 'b2b'),
-        isB2B: isB2BInquiry
+        isB2B: isB2BInquiry,
+        hasEquipment: !!(payload.equipmentItems && payload.equipmentItems.length > 0)
       });
       
       customerHtml = isB2BInquiry
@@ -236,6 +281,8 @@ const handler = async (req: Request): Promise<Response> => {
               customerName: payload.customerName,
               facilityDetails: payload.facilityDetails,
               estimates: payload.estimates,
+              equipmentItems: payload.equipmentItems,
+              equipmentTotals: payload.equipmentTotals,
             })
           );
       console.log('✅ Customer email rendered successfully, length:', customerHtml.length);
@@ -263,6 +310,8 @@ const handler = async (req: Request): Promise<Response> => {
           leadData: payload.leadData,
           facilityDetails: formattedFacilityDetails,
           estimates: payload.estimates,
+          equipmentItems: payload.equipmentItems,
+          equipmentTotals: payload.equipmentTotals,
           source: payload.source,
           timestamp: new Date().toISOString(),
         })
