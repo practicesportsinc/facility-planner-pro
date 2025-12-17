@@ -32,6 +32,7 @@ const Home = () => {
   const [flowStep, setFlowStep] = useState<FlowStep>('path');
   const [selectedSport, setSelectedSport] = useState<SportKey | null>(null);
   const [quote, setQuote] = useState<EquipmentQuote | null>(null);
+  const [equipmentQuoteForUpgrade, setEquipmentQuoteForUpgrade] = useState<EquipmentQuote | null>(null);
   const [isLeadGateOpen, setIsLeadGateOpen] = useState(false);
 
   // Initialize flow based on URL parameters
@@ -114,6 +115,7 @@ const Home = () => {
   };
 
   const handleUpgradeToFull = () => {
+    setEquipmentQuoteForUpgrade(quote);
     setFlowStep('facility');
   };
 
@@ -173,7 +175,7 @@ const Home = () => {
               )}
               
               {flowStep === 'facility' && (
-                <FullFacilitySelector onBack={handleBackToPath} />
+                <FullFacilitySelector onBack={handleBackToPath} equipmentQuote={equipmentQuoteForUpgrade} />
               )}
               
               {flowStep === 'market-select' && (
