@@ -33,10 +33,10 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
       content: "Welcome! I can help plan your sports facility. What do you need?",
       timestamp: new Date(),
       quickReplies: [
-        { id: 'equipment', label: '💰 Equipment Pricing', value: 'Show me equipment pricing options', icon: '💰' },
-        { id: 'building', label: '🏗️ Building Estimate', value: 'What does it cost to build a facility?', icon: '🏗️' },
-        { id: 'facility', label: '🏢 Full Facility Plan', value: 'I want to plan a complete sports facility', icon: '🏢' },
-        { id: 'question', label: '❓ Quick Question', value: 'I have a quick question about sports facilities', icon: '❓' },
+        { id: 'equipment', label: 'Equipment Pricing', value: 'Show me equipment pricing options', icon: '💰' },
+        { id: 'building', label: 'Building Estimate', value: 'What does it cost to build a facility?', icon: '🏗️' },
+        { id: 'facility', label: 'Full Facility Plan', value: 'I want to plan a complete sports facility', icon: '🏢' },
+        { id: 'question', label: 'Quick Question', value: 'I have a quick question about sports facilities', icon: '❓' },
       ]
     },
   ];
