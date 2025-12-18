@@ -52,6 +52,7 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
   const [showLeadGate, setShowLeadGate] = useState(false);
   const [extractedParams, setExtractedParams] = useState<any>(null);
   const [selectedMode, setSelectedMode] = useState<'fast' | 'advanced' | 'expert' | null>(null);
+  const [reportReady, setReportReady] = useState(false); // Track when report is ready but not yet submitted
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initialMessageSent = useRef(false);
   const { toast } = useToast();
@@ -114,6 +115,16 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
   const handleSend = async (messageToSend?: string, clearButtons = false) => {
     const messageContent = messageToSend || input.trim();
     if (!messageContent || isStreaming || isGeneratingReport) return;
+
+    // Check if user is asking to get their report (natural language or quick-reply)
+    if (reportReady && (
+      messageContent === '[GET_REPORT]' || 
+      /get.*report|send.*report|email.*report|download.*report|my report/i.test(messageContent)
+    )) {
+      setShowLeadGate(true);
+      setInput('');
+      return; // Don't send to AI, just open the modal
+    }
 
     const userMessage: ChatMessage = {
       role: 'user',
@@ -204,6 +215,7 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
     // Extract parameters from conversation for later use
     const params = extractParametersFromConversation();
     setExtractedParams(params);
+    setReportReady(true); // Mark report as available
     setShowLeadGate(true);
   };
 
@@ -340,6 +352,7 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
       });
       
       // Close widget and clear chat
+      setReportReady(false); // Clear report ready state after successful submission
       clearChatHistory();
       setShowLeadGate(false);
       onClose();
@@ -399,10 +412,30 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
     setShowLeadGate(false);
     setExtractedParams(null);
     setSelectedMode(null);
+    setReportReady(false); // Reset report ready state
     toast({
       title: 'Chat Reset',
       description: 'Starting a fresh conversation.',
     });
+  };
+
+  // Handle LeadGate close without submission
+  const handleLeadGateClose = () => {
+    setShowLeadGate(false);
+    
+    // If they closed without submitting and report was ready, add a reminder message
+    if (reportReady) {
+      const reminderMessage: ChatMessage = {
+        role: 'assistant',
+        content: "No problem! Your facility analysis is saved. When you're ready to receive your detailed report, just click the button below or ask me to 'get my report'.",
+        timestamp: new Date(),
+        quickReplies: [
+          { id: 'get-report', label: '📧 Get My Report', value: '[GET_REPORT]', icon: '📧' },
+          { id: 'more-questions', label: 'I have more questions', value: 'I have some more questions about my facility project', icon: '❓' },
+        ]
+      };
+      setMessages(prev => [...prev, reminderMessage]);
+    }
   };
 
   // Calculate progress based on mode and collected info
@@ -573,6 +606,22 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Persistent Report Button - shows when report is ready but modal is closed */}
+      {reportReady && !showLeadGate && (
+        <div className="px-4 py-3 bg-success/10 border-t border-success/20">
+          <Button
+            onClick={() => setShowLeadGate(true)}
+            className="w-full bg-success hover:bg-success/90 text-success-foreground"
+            disabled={isStreaming || isGeneratingReport}
+          >
+            📧 Get Your Facility Report
+          </Button>
+          <p className="text-xs text-muted-foreground text-center mt-1.5">
+            Your analysis is ready! Enter your email to receive it.
+          </p>
+        </div>
+      )}
+
       {/* Input */}
       <div className="p-4 border-t">
         <form
@@ -585,7 +634,7 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Describe your facility vision..."
+            placeholder={reportReady ? "Ask more questions or get your report..." : "Describe your facility vision..."}
             disabled={isStreaming || isGeneratingReport}
             maxLength={500}
             className="flex-1"
@@ -604,7 +653,7 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
     {/* Lead Gate Modal */}
     <LeadGate
       isOpen={showLeadGate}
-      onClose={() => setShowLeadGate(false)}
+      onClose={handleLeadGateClose}
       onSubmit={handleLeadSubmit}
       mode="modal"
       title="Get Your Personalized Facility Report"
