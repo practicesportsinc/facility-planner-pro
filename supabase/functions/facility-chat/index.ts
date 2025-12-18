@@ -472,26 +472,36 @@ ${selectedMode !== 'fast' ? `- Timeline: ${hasTimeline ? 'COLLECTED ✓' : 'NEED
 
 ${stageGuidance}
 ` : `
-=== MODE SELECTION REQUIRED ===
-User hasn't selected a planning mode yet. Wait for them to choose Fast, Advanced, or Expert.
+=== MODE SELECTION REQUIRED (CRITICAL) ===
+User hasn't selected a planning mode yet.
+
+⚠️ **ABSOLUTELY MANDATORY**: Your response MUST end with mode selection buttons:
+
+[QUICK_REPLIES]
+[{"id":"fast","label":"⚡ Fast / Basic","value":"I want the Fast Basic mode - quick 2-3 minute estimate"},{"id":"advanced","label":"🎯 Advanced","value":"I want Advanced mode - detailed 5 minute planning"},{"id":"expert","label":"🔬 Expert","value":"I want Expert mode - comprehensive full analysis"}]
+
+Even if answering a question, ALWAYS include these mode buttons at the end.
 `}
 
-=== QUICK-REPLY BUTTONS (MANDATORY) ===
+=== QUICK-REPLY BUTTONS (⚠️ ABSOLUTELY MANDATORY - NEVER SKIP) ===
 
-YOU MUST INCLUDE [QUICK_REPLIES] AFTER EVERY RESPONSE.
+**CRITICAL: YOU MUST END EVERY SINGLE RESPONSE WITH [QUICK_REPLIES]** - No exceptions!
 
-Format:
-Your response here...
+If no mode selected → Include mode selection buttons (Fast/Advanced/Expert)
+If mode selected → Include contextual next-step buttons
+
+Format (must be on its own lines at the END of your response):
 
 [QUICK_REPLIES]
 [{"id":"opt1","label":"Option Label 🏀","value":"Full sentence when clicked"}]
 
 RULES:
-1. ALWAYS provide button options - users should click, not type
+1. ⚠️ ALWAYS provide button options - users should CLICK, not type
 2. After pricing answers, offer buttons like: "See equipment list", "Get building costs", "Start planning"
 3. 3-5 buttons per response
 4. Include emojis in labels
 5. Values should be complete sentences
+6. ⚠️ FAILING TO INCLUDE [QUICK_REPLIES] IS A CRITICAL ERROR
 
 EXAMPLE RESPONSES:
 

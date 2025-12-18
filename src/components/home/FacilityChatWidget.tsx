@@ -173,12 +173,23 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
           // Parse quick replies from the complete assistant response
           const { content: parsedContent, quickReplies } = parseQuickReplies(assistantContent);
           
+          // FALLBACK: If no quick replies and no mode selected, inject mode selection buttons
+          let finalQuickReplies = quickReplies;
+          if (!quickReplies && !selectedMode) {
+            console.log('[FacilityChatWidget] Injecting fallback mode selection buttons');
+            finalQuickReplies = [
+              { id: 'fast', label: '⚡ Fast / Basic', value: 'I want the Fast Basic mode - quick 2-3 minute estimate', icon: '⚡' },
+              { id: 'advanced', label: '🎯 Advanced', value: 'I want Advanced mode - detailed 5 minute planning', icon: '🎯' },
+              { id: 'expert', label: '🔬 Expert', value: 'I want Expert mode - comprehensive full analysis', icon: '🔬' },
+            ];
+          }
+          
           // Update the last assistant message with parsed content and quick replies
           setMessages((prev) => {
             const lastIndex = prev.length - 1;
             if (prev[lastIndex]?.role === 'assistant') {
               return prev.map((m, i) =>
-                i === lastIndex ? { ...m, content: parsedContent, quickReplies } : m
+                i === lastIndex ? { ...m, content: parsedContent, quickReplies: finalQuickReplies } : m
               );
             }
             return prev;
