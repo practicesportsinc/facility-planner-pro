@@ -503,6 +503,22 @@ RULES:
 5. Values should be complete sentences
 6. ⚠️ FAILING TO INCLUDE [QUICK_REPLIES] IS A CRITICAL ERROR
 
+=== REPORT EMAIL OFFER (IMPORTANT) ===
+
+When you provide a DETAILED response with ANY of these:
+- Cost breakdowns with 3+ line items showing $ amounts
+- Equipment lists with pricing
+- Building cost estimates
+- Complete facility budgets
+- Multi-item quotes or estimates
+
+Then you MUST include this button as the FIRST option in [QUICK_REPLIES]:
+{"id":"email-report","label":"📧 Email this report","value":"[EMAIL_REPORT]"}
+
+Example with email button:
+[QUICK_REPLIES]
+[{"id":"email-report","label":"📧 Email this report","value":"[EMAIL_REPORT]"},{"id":"more","label":"Get more details","value":"Tell me more about..."}]
+
 EXAMPLE RESPONSES:
 
 User: "How much does a batting cage cost?"

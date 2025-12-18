@@ -18,6 +18,7 @@ import {
   FacilityParameters,
 } from '@/utils/chatHelpers';
 import LeadGate from '@/components/shared/LeadGate';
+import { InlineChatLeadForm } from '@/components/home/InlineChatLeadForm';
 import { dispatchLead } from '@/services/leadDispatch';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -115,6 +116,23 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
   const handleSend = async (messageToSend?: string, clearButtons = false) => {
     const messageContent = messageToSend || input.trim();
     if (!messageContent || isStreaming || isGeneratingReport) return;
+
+    // Handle [EMAIL_REPORT] trigger - show inline form instead of sending to AI
+    if (messageContent === '[EMAIL_REPORT]') {
+      // Find the last assistant message with report content
+      const lastAssistantMsg = messages.filter(m => m.role === 'assistant').slice(-1)[0];
+      
+      const formMessage: ChatMessage = {
+        role: 'assistant',
+        content: "Great! Enter your details below and I'll send this report to your inbox:",
+        timestamp: new Date(),
+        showInlineLeadForm: true,
+        reportContent: lastAssistantMsg?.content,
+      };
+      setMessages(prev => [...prev, formMessage]);
+      setInput('');
+      return; // Don't send to AI
+    }
 
     // Check if user is asking to get their report (natural language or quick-reply)
     if (reportReady && (
@@ -449,6 +467,84 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
     }
   };
 
+  // Handle inline lead form submission (for email report)
+  const handleInlineLeadSubmit = async (data: { name: string; email: string; phone?: string; reportContent?: string }) => {
+    try {
+      // Save lead to database
+      await dispatchLead({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        source: 'ai-chat-inline-report',
+      });
+
+      // Send email with report content
+      try {
+        console.log('📧 [FacilityChatWidget] Sending inline report email...');
+        
+        const emailPayload = {
+          customerEmail: data.email,
+          customerName: data.name,
+          leadData: {
+            name: data.name,
+            email: data.email,
+            phone: data.phone || '',
+            allowOutreach: true,
+          },
+          reportContent: data.reportContent,
+          source: 'ai-chat-inline',
+        };
+
+        const { error: emailError } = await supabase.functions.invoke('send-lead-emails', {
+          body: emailPayload,
+        });
+
+        if (emailError) {
+          console.error('❌ [FacilityChatWidget] Email sending failed:', emailError);
+        } else {
+          console.log('✅ [FacilityChatWidget] Report email sent successfully');
+        }
+      } catch (emailErr) {
+        console.error('❌ [FacilityChatWidget] Email error:', emailErr);
+      }
+
+      // Add success message to chat
+      const successMessage: ChatMessage = {
+        role: 'assistant',
+        content: `✅ Sent! Check your inbox at ${data.email} for your facility report.\n\nWhat would you like to do next?`,
+        timestamp: new Date(),
+        quickReplies: [
+          { id: 'continue', label: '💬 Continue planning', value: 'Let me continue planning my facility', icon: '💬' },
+          { id: 'new', label: '🔄 Start fresh', value: 'I want to start a new facility plan', icon: '🔄' },
+        ]
+      };
+      setMessages(prev => [...prev, successMessage]);
+
+      toast({
+        title: 'Report Sent!',
+        description: 'Check your email for your facility report.',
+      });
+
+    } catch (error) {
+      console.error('Error in inline lead submit:', error);
+      throw error; // Re-throw to let the form handle it
+    }
+  };
+
+  // Handle inline form dismiss
+  const handleInlineFormDismiss = () => {
+    const dismissMessage: ChatMessage = {
+      role: 'assistant',
+      content: "No problem! You can always ask me to email this report later. What else would you like to know?",
+      timestamp: new Date(),
+      quickReplies: [
+        { id: 'email-later', label: '📧 Email report later', value: '[EMAIL_REPORT]', icon: '📧' },
+        { id: 'more-info', label: '💬 Continue exploring', value: 'Tell me more about facility costs', icon: '💬' },
+      ]
+    };
+    setMessages(prev => [...prev, dismissMessage]);
+  };
+
   // Calculate progress based on mode and collected info
   const calculateProgress = () => {
     if (!selectedMode) return 0;
@@ -548,8 +644,8 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
               </div>
             </div>
 
-            {/* Quick-reply buttons (only for assistant messages) */}
-            {message.role === 'assistant' && message.quickReplies && message.quickReplies.length > 0 && (
+            {/* Quick-reply buttons (only for assistant messages without inline form) */}
+            {message.role === 'assistant' && !message.showInlineLeadForm && message.quickReplies && message.quickReplies.length > 0 && (
               <div className={cn(
                 "flex flex-col gap-2 ml-2",
                 index === 0 && "gap-3"
@@ -590,6 +686,15 @@ export const FacilityChatWidget = ({ onClose, initialMessage }: FacilityChatWidg
                   );
                 })}
               </div>
+            )}
+
+            {/* Inline lead capture form */}
+            {message.showInlineLeadForm && (
+              <InlineChatLeadForm
+                reportContent={message.reportContent}
+                onSubmit={handleInlineLeadSubmit}
+                onDismiss={handleInlineFormDismiss}
+              />
             )}
           </div>
         ))}

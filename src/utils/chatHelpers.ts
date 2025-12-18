@@ -14,6 +14,8 @@ export interface ChatMessage {
   content: string;
   timestamp?: Date;
   quickReplies?: QuickReplyButton[];
+  showInlineLeadForm?: boolean;  // Show inline contact form in chat
+  reportContent?: string;         // Store report text for emailing
 }
 
 export interface ToolCall {
