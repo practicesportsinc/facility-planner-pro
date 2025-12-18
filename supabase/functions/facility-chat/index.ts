@@ -362,7 +362,9 @@ serve(async (req) => {
     let stageGuidance = '';
     
     if (!selectedMode) {
-      stageGuidance = `No mode selected yet - user should select Fast, Advanced, or Expert mode first.`;
+      stageGuidance = `No mode selected yet. Ask user which planning mode they prefer and ALWAYS include these buttons:
+[QUICK_REPLIES]
+[{"id":"fast","label":"⚡ Fast / Basic","value":"I want the Fast Basic mode - quick 2-3 minute estimate"},{"id":"advanced","label":"🎯 Advanced","value":"I want Advanced mode - detailed 5 minute planning"},{"id":"expert","label":"🔬 Expert","value":"I want Expert mode - comprehensive full analysis"}]`;
     } else if (selectedMode === 'fast') {
       if (!hasSports) {
         stageGuidance = `FAST MODE - Ask about sports with buttons:
