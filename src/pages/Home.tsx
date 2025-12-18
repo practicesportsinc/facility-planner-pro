@@ -35,6 +35,7 @@ const Home = () => {
   const [equipmentQuoteForUpgrade, setEquipmentQuoteForUpgrade] = useState<EquipmentQuote | null>(null);
   const [isLeadGateOpen, setIsLeadGateOpen] = useState(false);
   const heroImageRef = useRef<HTMLImageElement>(null);
+  const flowContentRef = useRef<HTMLDivElement>(null);
 
   // Parallax scroll effect for hero image
   useEffect(() => {
@@ -60,9 +61,13 @@ const Home = () => {
     }
   }, [searchParams]);
 
-  // Scroll to top when flow step changes
+  // Scroll to flow content when step changes (or top for path selection)
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (flowStep !== 'path') {
+      flowContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, [flowStep]);
 
   const handleChatSend = (message: string) => {
@@ -183,7 +188,7 @@ const Home = () => {
       </div>
 
       {/* Main Content Section */}
-      <section className="py-12 px-4">
+      <section ref={flowContentRef} className="py-12 px-4">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
