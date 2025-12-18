@@ -169,7 +169,7 @@ const Home = () => {
   return (
     <Layout>
       {/* Hero Image Banner - Extended behind header with parallax */}
-      <div className="relative h-[calc(250px+9rem)] md:h-[calc(300px+11rem)] w-full overflow-hidden -mt-36 md:-mt-44">
+      <div className="relative h-[calc(150px+5rem)] md:h-[calc(180px+6rem)] w-full overflow-hidden -mt-20 md:-mt-24">
         <img 
           ref={heroImageRef}
           src="/images/home-gallery/hero-facility.jpg"
@@ -180,7 +180,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60" />
         
         {/* Heading overlay - positioned in visible area below header */}
-        <div className="absolute inset-0 flex items-center justify-center pt-36 md:pt-44">
+        <div className="absolute inset-0 flex items-center justify-center pt-20 md:pt-24">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white text-center px-4 drop-shadow-lg animate-enter">
             Amazing Sports Facility Idea?
           </h1>
