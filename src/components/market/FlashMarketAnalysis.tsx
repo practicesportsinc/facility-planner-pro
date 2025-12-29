@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -76,13 +76,28 @@ function calculateMarketScore(data: MarketData): number {
 }
 
 export const FlashMarketAnalysis = () => {
+  const [searchParams] = useSearchParams();
   const [zipCode, setZipCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [showLeadGate, setShowLeadGate] = useState(false);
+  const hasAutoAnalyzed = useRef(false);
 
-  const handleAnalyze = async () => {
-    if (!zipCode || zipCode.length !== 5) {
+  // Auto-analyze from URL parameter
+  useEffect(() => {
+    const urlZip = searchParams.get('zip');
+    if (urlZip && urlZip.length === 5 && !hasAutoAnalyzed.current) {
+      hasAutoAnalyzed.current = true;
+      setZipCode(urlZip);
+      // Trigger analysis after state update
+      setTimeout(() => {
+        analyzeZip(urlZip);
+      }, 100);
+    }
+  }, [searchParams]);
+
+  const analyzeZip = async (zip: string) => {
+    if (!zip || zip.length !== 5) {
       toast.error("Please enter a valid 5-digit ZIP code");
       return;
     }
@@ -90,7 +105,7 @@ export const FlashMarketAnalysis = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('analyze-location', {
-        body: { zipCode, radius: 15 }
+        body: { zipCode: zip, radius: 15 }
       });
 
       if (error) throw error;
@@ -106,6 +121,10 @@ export const FlashMarketAnalysis = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAnalyze = async () => {
+    await analyzeZip(zipCode);
   };
 
   const handleDownloadReport = async (leadData: any) => {
