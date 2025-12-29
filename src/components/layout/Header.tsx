@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, MessageCircle, Home as HomeIcon, Building2, HardHat, FileText } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Menu, MessageCircle, Home as HomeIcon, Building2, HardHat, FileText, MapPin, TrendingUp } from "lucide-react";
 import { FlashMarketInput } from "@/components/market/FlashMarketInput";
 
 // Baseball icon SVG component
@@ -28,8 +29,18 @@ import {
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { openChat } = useChat();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileZipCode, setMobileZipCode] = useState("");
+
+  const handleMobileMarketSubmit = () => {
+    if (mobileZipCode.length === 5) {
+      setMobileMenuOpen(false);
+      navigate(`/market-analysis?zip=${mobileZipCode}`);
+      setMobileZipCode("");
+    }
+  };
 
   const isActive = (path: string, mode?: string) => {
     if (mode) {
@@ -162,21 +173,49 @@ const Header = () => {
                 <SheetTitle>Navigation</SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-4 mt-8">
-                <Button
-                  size="lg"
-                  asChild
-                  className={`w-full justify-start shadow-glow ${
-                    isActive('/')
-                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
-                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Link to="/" className="flex items-center gap-2">
-                    <HomeIcon className="h-5 w-5" />
-                    Home
-                  </Link>
-                </Button>
+                {/* Flash Market Input - Mobile */}
+                <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-4 h-4 text-cyan-400" />
+                    <span className="text-sm font-medium text-cyan-400">Flash Market Review</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Enter ZIP code"
+                      className="flex-1 h-10 text-sm bg-black/40 border-cyan-500/30"
+                      value={mobileZipCode}
+                      onChange={(e) => setMobileZipCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                      onKeyDown={(e) => e.key === 'Enter' && handleMobileMarketSubmit()}
+                    />
+                    <Button
+                      size="sm"
+                      className="h-10 px-4 bg-cyan-600 hover:bg-cyan-500 text-white"
+                      onClick={handleMobileMarketSubmit}
+                      disabled={mobileZipCode.length !== 5}
+                    >
+                      <MapPin className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="border-t border-cyan-500/20 pt-4">
+                  <Button
+                    size="lg"
+                    asChild
+                    className={`w-full justify-start shadow-glow ${
+                      isActive('/')
+                        ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                        : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Link to="/" className="flex items-center gap-2">
+                      <HomeIcon className="h-5 w-5" />
+                      Home
+                    </Link>
+                  </Button>
+                </div>
 
                 <Button
                   size="lg"
