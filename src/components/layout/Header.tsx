@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Menu, MessageCircle, Home as HomeIcon, Building2, HardHat, FileText, MapPin, TrendingUp } from "lucide-react";
 import { FlashMarketInput } from "@/components/market/FlashMarketInput";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 // Baseball icon SVG component
 const BaseballIcon = ({ className }: { className?: string }) => (
@@ -33,6 +40,16 @@ const Header = () => {
   const { openChat } = useChat();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileZipCode, setMobileZipCode] = useState("");
+  const [dialogZipCode, setDialogZipCode] = useState("");
+  const [marketDialogOpen, setMarketDialogOpen] = useState(false);
+
+  const handleDialogMarketSubmit = () => {
+    if (dialogZipCode.length === 5) {
+      setMarketDialogOpen(false);
+      navigate(`/market-analysis?zip=${dialogZipCode}`);
+      setDialogZipCode("");
+    }
+  };
 
   const handleMobileMarketSubmit = () => {
     if (mobileZipCode.length === 5) {
@@ -150,10 +167,54 @@ const Header = () => {
                     </Link>
                   </Button>
                 </NavigationMenuItem>
-              </NavigationMenuList>
+            </NavigationMenuList>
             </NavigationMenu>
 
-            {/* Flash Market Input - Desktop */}
+            {/* Flash Market Icon + Dialog - visible md to lg */}
+            <Dialog open={marketDialogOpen} onOpenChange={setMarketDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  className="xl:hidden bg-cyan-600 hover:bg-cyan-500 text-white shadow-glow"
+                  title="Flash Market Review"
+                >
+                  <MapPin className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-cyan-400" />
+                    Flash Market Review
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col gap-4 pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Enter a ZIP code to get instant market analysis for your sports facility.
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Enter ZIP code"
+                      className="flex-1 h-10 bg-background border-cyan-500/30"
+                      value={dialogZipCode}
+                      onChange={(e) => setDialogZipCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                      onKeyDown={(e) => e.key === 'Enter' && handleDialogMarketSubmit()}
+                      autoFocus
+                    />
+                    <Button
+                      className="h-10 px-6 bg-cyan-600 hover:bg-cyan-500 text-white"
+                      onClick={handleDialogMarketSubmit}
+                      disabled={dialogZipCode.length !== 5}
+                    >
+                      Analyze
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Flash Market Input - Desktop XL+ inline */}
             <div className="hidden xl:flex items-center pl-4 border-l border-cyan-500/30">
               <FlashMarketInput />
             </div>
