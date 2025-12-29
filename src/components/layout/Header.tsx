@@ -75,7 +75,7 @@ const Header = () => {
             <img 
               src="/images/sportsfacility-logo.png?v=4" 
               alt="SportsFacility.ai - Building the future of modern sports facilities" 
-              className="h-10 md:h-12 w-auto object-contain"
+              className="h-14 md:h-16 w-auto object-contain"
             />
           </Link>
 
