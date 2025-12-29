@@ -73,9 +73,9 @@ const Header = () => {
         <div className="container flex h-20 md:h-24 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <img 
-              src="/images/sportsfacility-logo.png?v=3" 
+              src="/images/sportsfacility-logo.png?v=4" 
               alt="SportsFacility.ai - Building the future of modern sports facilities" 
-              className="h-16 md:h-20 w-auto object-contain"
+              className="h-10 md:h-12 w-auto object-contain"
             />
           </Link>
 
