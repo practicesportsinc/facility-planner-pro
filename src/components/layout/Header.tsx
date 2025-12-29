@@ -62,99 +62,101 @@ const Header = () => {
             />
           </Link>
 
-          {/* Desktop Navigation */}
-          <NavigationMenu className="hidden md:flex">
-            <NavigationMenuList className="space-x-2">
-              <NavigationMenuItem>
-                <Button
-                  size="sm"
-                  asChild
-                  className={`shadow-glow transition-all ${
-                    isActive('/')
-                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
-                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
-                  }`}
-                >
-                  <Link to="/" className="flex items-center gap-2">
-                    <HomeIcon className="h-4 w-4" />
-                    Home
-                  </Link>
-                </Button>
-              </NavigationMenuItem>
+          {/* Desktop Navigation + Flash Market */}
+          <div className="hidden md:flex items-center gap-4">
+            <NavigationMenu>
+              <NavigationMenuList className="space-x-2">
+                <NavigationMenuItem>
+                  <Button
+                    size="sm"
+                    asChild
+                    className={`shadow-glow transition-all ${
+                      isActive('/')
+                        ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                        : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                    }`}
+                  >
+                    <Link to="/" className="flex items-center gap-2">
+                      <HomeIcon className="h-4 w-4" />
+                      Home
+                    </Link>
+                  </Button>
+                </NavigationMenuItem>
 
-              <NavigationMenuItem>
-                <Button
-                  size="sm"
-                  asChild
-                  className={`shadow-glow transition-all ${
-                    isActive('/', 'equipment')
-                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
-                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
-                  }`}
-                >
-                  <Link to="/?mode=equipment" className="flex items-center gap-2">
-                    <BaseballIcon className="h-4 w-4" />
-                    Equipment Only
-                  </Link>
-                </Button>
-              </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Button
+                    size="sm"
+                    asChild
+                    className={`shadow-glow transition-all ${
+                      isActive('/', 'equipment')
+                        ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                        : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                    }`}
+                  >
+                    <Link to="/?mode=equipment" className="flex items-center gap-2">
+                      <BaseballIcon className="h-4 w-4" />
+                      Equipment Only
+                    </Link>
+                  </Button>
+                </NavigationMenuItem>
 
-              <NavigationMenuItem>
-                <Button
-                  size="sm"
-                  asChild
-                  className={`shadow-glow transition-all ${
-                    location.pathname === '/building-config'
-                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
-                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
-                  }`}
-                >
-                  <Link to="/building-config" className="flex items-center gap-2">
-                    <HardHat className="h-4 w-4" />
-                    Building Only
-                  </Link>
-                </Button>
-              </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Button
+                    size="sm"
+                    asChild
+                    className={`shadow-glow transition-all ${
+                      location.pathname === '/building-config'
+                        ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                        : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                    }`}
+                  >
+                    <Link to="/building-config" className="flex items-center gap-2">
+                      <HardHat className="h-4 w-4" />
+                      Building Only
+                    </Link>
+                  </Button>
+                </NavigationMenuItem>
 
-              <NavigationMenuItem>
-                <Button
-                  size="sm"
-                  asChild
-                  className={`shadow-glow transition-all ${
-                    isActive('/', 'facility')
-                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
-                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
-                  }`}
-                >
-                  <Link to="/?mode=facility" className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    Full Facility
-                  </Link>
-                </Button>
-              </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Button
+                    size="sm"
+                    asChild
+                    className={`shadow-glow transition-all ${
+                      isActive('/', 'facility')
+                        ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                        : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                    }`}
+                  >
+                    <Link to="/?mode=facility" className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Full Facility
+                    </Link>
+                  </Button>
+                </NavigationMenuItem>
 
-              <NavigationMenuItem>
-                <Button
-                  size="sm"
-                  asChild
-                  className={`shadow-glow transition-all ${
-                    location.pathname === '/business-plan'
-                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
-                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
-                  }`}
-                >
-                  <Link to="/business-plan" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Business Plan
-                  </Link>
-                </Button>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+                <NavigationMenuItem>
+                  <Button
+                    size="sm"
+                    asChild
+                    className={`shadow-glow transition-all ${
+                      location.pathname === '/business-plan'
+                        ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                        : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                    }`}
+                  >
+                    <Link to="/business-plan" className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Business Plan
+                    </Link>
+                  </Button>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
 
-          {/* Flash Market Input - Desktop */}
-          <div className="hidden lg:flex items-center ml-4 pl-4 border-l border-cyan-500/30">
-            <FlashMarketInput />
+            {/* Flash Market Input - Desktop */}
+            <div className="hidden xl:flex items-center pl-4 border-l border-cyan-500/30">
+              <FlashMarketInput />
+            </div>
           </div>
 
           {/* Mobile Navigation */}
