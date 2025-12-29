@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, MessageCircle, Home as HomeIcon, Building2, HardHat, FileText } from "lucide-react";
+import { FlashMarketInput } from "@/components/market/FlashMarketInput";
 
 // Baseball icon SVG component
 const BaseballIcon = ({ className }: { className?: string }) => (
@@ -140,6 +140,11 @@ const Header = () => {
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
+
+          {/* Flash Market Input - Desktop */}
+          <div className="hidden lg:flex items-center ml-4 pl-4 border-l border-cyan-500/30">
+            <FlashMarketInput />
+          </div>
 
           {/* Mobile Navigation */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
