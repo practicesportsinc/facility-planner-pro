@@ -71,7 +71,7 @@ const Header = () => {
     <>
       <header className="sticky top-0 z-50 w-full border-b border-cyan-500/30 bg-gradient-to-b from-black/80 via-black/50 to-transparent">
         <div className="container flex h-28 md:h-32 items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 -ml-2 md:-ml-4">
             <img 
               src="/images/sportsfacility-logo.png?v=4" 
               alt="SportsFacility.ai - Building the future of modern sports facilities" 
