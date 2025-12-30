@@ -407,11 +407,14 @@ const FAQ = () => {
                       <p className="text-sm italic">"{msg.content}"</p>
                     ) : (
                       <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <div dangerouslySetInnerHTML={{ 
-                          __html: msg.content
-                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                            .replace(/\n/g, '<br/>') 
-                        }} />
+                        {msg.content.split('\n').map((line, lineIdx) => (
+                          <span key={lineIdx}>
+                            {line.split(/\*\*(.*?)\*\*/g).map((part, partIdx) => 
+                              partIdx % 2 === 1 ? <strong key={partIdx}>{part}</strong> : part
+                            )}
+                            {lineIdx < msg.content.split('\n').length - 1 && <br />}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
