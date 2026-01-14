@@ -404,11 +404,10 @@ const handler = async (req: Request): Promise<Response> => {
       errorKeys: Object.keys(error)
     });
     
-    // Return generic error message to client
+    // Return generic error message to client (no debug info to prevent leakage)
     return new Response(
       JSON.stringify({
-        error: 'An error occurred while processing your email request',
-        debug: error.message // Include error message in development
+        error: 'An error occurred while processing your email request'
       }),
       {
         status: 500,
