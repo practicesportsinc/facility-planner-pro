@@ -49,11 +49,15 @@ export const PricingDisclaimer = ({
       // Send confirmation emails
       await supabase.functions.invoke('send-lead-emails', {
         body: {
-          leadName: data.name,
-          leadEmail: data.email,
-          leadPhone: data.phone,
-          leadCity: data.city,
-          leadState: data.state,
+          customerEmail: data.email,
+          customerName: data.name,
+          leadData: {
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            city: data.city,
+            state: data.state,
+          },
           source: 'finalize-pricing',
         }
       });
