@@ -54,6 +54,58 @@ const FinancialSummaryRequestSchema = z.object({
   })
 });
 
+// Generate template-based fallback summary when OpenAI is unavailable
+function generateFallbackSummary(financialMetrics: any, wizardData: any): string {
+  const capex = financialMetrics.capex;
+  const revenue = financialMetrics.revenue;
+  const opex = financialMetrics.opex;
+  const profitability = financialMetrics.profitability;
+  
+  const monthlyProfit = revenue.total - opex.total;
+  const profitMargin = ((monthlyProfit / revenue.total) * 100).toFixed(1);
+  const annualRevenue = revenue.total * 12;
+  
+  // Determine financial health assessment
+  let healthAssessment = '';
+  if (profitability?.roi >= 15) {
+    healthAssessment = 'strong investment potential';
+  } else if (profitability?.roi >= 8) {
+    healthAssessment = 'solid investment fundamentals';
+  } else {
+    healthAssessment = 'potential for optimization';
+  }
+
+  // Build revenue streams description
+  const revenueStreams: string[] = [];
+  if (revenue.memberships > 0) revenueStreams.push(`memberships ($${(revenue.memberships / 1000).toFixed(0)}K/mo)`);
+  if (revenue.rentals > 0) revenueStreams.push(`facility rentals ($${(revenue.rentals / 1000).toFixed(0)}K/mo)`);
+  if (revenue.lessons > 0) revenueStreams.push(`training programs ($${(revenue.lessons / 1000).toFixed(0)}K/mo)`);
+  
+  const revenueDescription = revenueStreams.length > 0 
+    ? revenueStreams.join(', ') 
+    : 'diversified income sources';
+
+  const sportsDescription = wizardData.selectedSports?.length > 0 
+    ? wizardData.selectedSports.join(', ') 
+    : 'multi-sport';
+
+  return `**Financial Viability Assessment**
+
+This ${wizardData.facilitySize || 'sports'} facility project focusing on ${sportsDescription} shows ${healthAssessment} with a total capital investment of $${(capex.total / 1000000).toFixed(2)}M. The projected monthly revenue of $${(revenue.total / 1000).toFixed(0)}K against operating expenses of $${(opex.total / 1000).toFixed(0)}K yields a healthy monthly EBITDA of $${(monthlyProfit / 1000).toFixed(0)}K (${profitMargin}% margin).
+
+**Revenue Streams & Market Position**
+
+The facility's diversified revenue model includes ${revenueDescription}. This multi-stream approach provides revenue stability and reduces dependency on any single income source. Targeting ${wizardData.targetMarket?.join(', ') || 'a broad demographic'} positions the facility well for consistent utilization.
+
+**Investment Returns**
+
+With an estimated ROI of ${profitability?.roi?.toFixed(1) || 'N/A'}% and break-even projected at ${profitability?.breakEvenMonths || 'N/A'} months, the facility demonstrates ${profitability?.breakEvenMonths && profitability.breakEvenMonths <= 24 ? 'attractive' : 'reasonable'} return characteristics. The annual revenue potential of $${(annualRevenue / 1000000).toFixed(2)}M supports long-term sustainability.
+
+**Strategic Recommendations**
+
+Focus on pre-opening marketing to build a membership base before launch. Consider phased equipment investment to manage initial capital outlay. Establish partnerships with local sports organizations and schools to drive consistent facility utilization. Monitor operating costs closely during the first year to optimize profitability.`;
+}
+
 async function checkRateLimit(
   supabase: any,
   identifier: string,
@@ -135,8 +187,16 @@ serve(async (req) => {
     const validated = FinancialSummaryRequestSchema.parse(rawPayload);
     const { financialMetrics, wizardData } = validated;
 
+    // Check if OpenAI API key is configured - use fallback if not
     if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+      console.warn('OpenAI API key not configured, using fallback summary');
+      const fallbackSummary = generateFallbackSummary(financialMetrics, wizardData);
+      return new Response(JSON.stringify({ 
+        summary: fallbackSummary,
+        fallback: true
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     console.log('Generating financial summary:', { 
@@ -207,27 +267,22 @@ Keep the tone professional but accessible, as if speaking to a potential investo
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
+      console.error('OpenAI API error, using fallback summary:', errorData);
       
-      let errorMessage = `OpenAI API error: ${response.status}`;
-      try {
-        const errorJson = JSON.parse(errorData);
-        if (errorJson.error?.code === 'insufficient_quota') {
-          errorMessage = 'OpenAI API quota exceeded. Please check your OpenAI account billing and add credits to continue using AI summaries.';
-        } else if (errorJson.error?.message) {
-          errorMessage = errorJson.error.message;
-        }
-      } catch (e) {
-        // Use default error message
-      }
-      
-      throw new Error(errorMessage);
+      // Generate fallback summary instead of throwing error
+      const fallbackSummary = generateFallbackSummary(financialMetrics, wizardData);
+      return new Response(JSON.stringify({ 
+        summary: fallbackSummary,
+        fallback: true
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await response.json();
     const summary = data.choices[0].message.content;
 
-    return new Response(JSON.stringify({ summary }), {
+    return new Response(JSON.stringify({ summary, fallback: false }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
