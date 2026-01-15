@@ -182,7 +182,7 @@ const EasyWizard = () => {
           showCharts={true}
           buttons={[
             { kind: "primary", label: "Generate Business Plan (PDF)", action: "fetch", url: "/api/plan/generate", method: "POST", bodyFrom: "project", download: "PracticeSports_BusinessPlan.pdf" },
-            { kind: "secondary", label: "Customize in Pro Mode", route: "/wizard/pro" },
+            { kind: "secondary", label: "Customize in Pro Mode", route: "/calculator" },
             { kind: "ghost", label: "Save / Download Report", action: "emit" }
           ]}
           leadGate={{

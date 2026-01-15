@@ -52,6 +52,9 @@ const Calculator = () => {
   // Get building data from location state (coming from Building Config wizard)
   const buildingData = location.state?.buildingData;
   
+  // Get easy wizard data from location state (coming from Easy Wizard results)
+  const easyWizardData = location.state?.easyWizardData;
+  
   // If it's quick mode, start at the KPI Results step (step 8)
   const [currentStep, setCurrentStep] = useState(isQuickMode || isWizardMode ? 8 : 1);
   const [calculatorData, setCalculatorData] = useState({});
@@ -207,7 +210,66 @@ const Calculator = () => {
     }
   }, [buildingData]);
 
-  // Load data from equipment quote upgrade
+  // Load data from Easy Wizard results
+  useEffect(() => {
+    if (easyWizardData) {
+      console.log('Loading from Easy Wizard:', easyWizardData);
+      
+      const { sports, facility, context, kpis: wizardKpis } = easyWizardData;
+      
+      // Build location string from context
+      const locationParts = [context?.city, context?.state].filter(Boolean);
+      const locationString = locationParts.join(', ');
+      
+      // Map sport keys to display names for project name
+      const sportLabels: Record<string, string> = {
+        baseball_softball: 'Baseball/Softball',
+        basketball: 'Basketball',
+        volleyball: 'Volleyball',
+        pickleball: 'Pickleball',
+        soccer_indoor: 'Indoor Soccer',
+        football: 'Football',
+        lacrosse: 'Lacrosse',
+        tennis: 'Tennis',
+        multi_sport_turf: 'Multi-Sport',
+      };
+      
+      const sportNames = (sports || []).map((s: string) => sportLabels[s] || s);
+      const projectName = sportNames.length > 0 
+        ? `${sportNames.join(' / ')} Facility` 
+        : 'Sports Facility';
+      
+      setCalculatorData({
+        1: { // Project Basics
+          projectName,
+          selectedSports: sports || [],
+          location: locationString,
+          currency: 'USD',
+        },
+        2: { // Build Mode
+          buildMode: 'lease', // Default to lease for easy wizard
+        },
+        3: { // Facility Plan
+          facilityType: 'lease',
+          totalSquareFootage: (facility?.total_sqft || 0).toString(),
+          clearHeight: '24', // Default
+          selectedSports: sports || [],
+          court_or_cage_counts: facility?.court_or_cage_counts || {},
+          numberOfCourts: (facility?.court_or_cage_counts?.basketball_courts_full || 0) +
+                         (facility?.court_or_cage_counts?.volleyball_courts || 0) +
+                         (facility?.court_or_cage_counts?.pickleball_courts || 0),
+          numberOfCages: facility?.court_or_cage_counts?.baseball_tunnels || 0,
+        },
+        6: { // Revenue - pre-fill court rentals based on court counts
+          courtRentalRate: '60',
+          courtUtilization: '65',
+        },
+      });
+      
+      setCurrentStep(1); // Start at step 1 for review
+    }
+  }, [easyWizardData]);
+
   useEffect(() => {
     if (equipmentData?.fromEquipmentQuote) {
       console.log('Loading from equipment quote:', equipmentData);

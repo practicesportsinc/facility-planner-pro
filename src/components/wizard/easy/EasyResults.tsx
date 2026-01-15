@@ -183,11 +183,25 @@ export const EasyResults = ({
 
   const handleButtonClick = (button: typeof buttons[0]) => {
     if (button.route) {
-      if (button.route === "/wizard/pro") {
-        // Upgrade to Pro Mode - preserve project state
-        const projectId = localStorage.getItem('current-project-id') || 'legacy';
-        const currentProject = getProjectState(projectId);
-        saveProjectState(projectId, { ...currentProject, mode: 'pro' });
+      if (button.route === "/calculator") {
+        // Pass Easy Wizard data to Calculator
+        const facilityData = JSON.parse(localStorage.getItem('wizard-facility-size') || '{}');
+        const estimateData = JSON.parse(localStorage.getItem('wizard-estimate') || '{}');
+        const contextData = JSON.parse(localStorage.getItem('wizard-context') || '{}');
+        const sportsData = JSON.parse(localStorage.getItem('wizard-sports') || '[]');
+        
+        navigate('/calculator', {
+          state: {
+            easyWizardData: {
+              sports: sportsData,
+              facility: facilityData,
+              estimate: estimateData,
+              context: contextData,
+              kpis: kpis,
+            }
+          }
+        });
+        return;
       }
       navigate(button.route);
     } else if (button.action === "emit") {
