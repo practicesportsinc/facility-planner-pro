@@ -38,6 +38,7 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 import { COST_LIBRARY, calculateItemTotal } from "@/data/costLibrary";
+import { generateWizardReportPdf } from "@/utils/wizardReportPdf";
 
 const WizardResults = () => {
   const navigate = useNavigate();
@@ -562,7 +563,48 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
           console.error('Error dispatching lead:', error);
         }
 
-        // Send lead emails
+        // Format equipment breakdown for email
+        const formattedEquipmentItems = Object.entries(financialMetrics.equipmentBreakdown || {})
+          .filter(([_, items]) => Array.isArray(items) && items.length > 0)
+          .map(([category, items]) => ({
+            category,
+            items: (items as any[]).map((item: any) => ({
+              name: item.item || item.name,
+              quantity: item.quantity || 1,
+              unitCost: item.unitCost || 0,
+              totalCost: item.total || 0,
+              description: item.description,
+            })),
+            subtotal: (items as any[]).reduce((sum: number, item: any) => sum + (item.total || 0), 0),
+          }));
+
+        // Format capital investment breakdown
+        const buildingLineItems = [{
+          category: 'Capital Investment Breakdown',
+          items: [
+            { name: 'Construction/Build-out', quantity: 1, unitCost: financialMetrics.capex.construction, totalCost: financialMetrics.capex.construction },
+            { name: 'Equipment', quantity: 1, unitCost: financialMetrics.capex.equipment, totalCost: financialMetrics.capex.equipment },
+            { name: 'Installation', quantity: 1, unitCost: financialMetrics.capex.installation, totalCost: financialMetrics.capex.installation },
+            { name: 'Working Capital', quantity: 1, unitCost: financialMetrics.capex.workingCapital, totalCost: financialMetrics.capex.workingCapital },
+          ].filter(item => item.totalCost > 0),
+          subtotal: financialMetrics.capex.total,
+        }];
+
+        // Generate PDF report for attachment
+        let pdfAttachment;
+        try {
+          const pdfBase64 = generateWizardReportPdf(wizardResult, financialMetrics, leadData);
+          pdfAttachment = {
+            filename: `${(leadData.business || leadData.name).replace(/[^a-zA-Z0-9]/g, '-')}-Facility-Report.pdf`,
+            content: pdfBase64,
+          };
+          console.log('PDF generated successfully for email attachment');
+        } catch (pdfError) {
+          console.error('Error generating PDF for email:', pdfError);
+          // Continue without PDF attachment
+        }
+
+        // Send lead emails with full details and PDF attachment
         try {
           await supabase.functions.invoke('send-lead-emails', {
             body: {
@@ -587,10 +629,25 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
                 roi: financialMetrics.profitability.roi,
                 paybackPeriod: financialMetrics.profitability.breakEvenMonths,
               },
+              equipmentItems: formattedEquipmentItems,
+              equipmentTotals: {
+                equipment: financialMetrics.capex.equipment,
+                flooring: 0,
+                installation: financialMetrics.capex.installation,
+                grandTotal: financialMetrics.capex.totalEquipment,
+              },
+              buildingLineItems: buildingLineItems,
+              buildingTotals: {
+                subtotal: financialMetrics.capex.total - financialMetrics.capex.workingCapital,
+                softCosts: 0,
+                contingency: 0,
+                grandTotal: financialMetrics.capex.total,
+              },
+              pdfAttachment: pdfAttachment,
               source: 'full-calculator',
             },
           });
-          console.log('Lead emails sent successfully');
+          console.log('Lead emails sent successfully with PDF attachment');
         } catch (error) {
           console.error('Error sending lead emails:', error);
           // Don't block the user flow if email fails

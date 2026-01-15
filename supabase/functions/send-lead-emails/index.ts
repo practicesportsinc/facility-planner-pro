@@ -39,6 +39,12 @@ const EquipmentCategorySchema = z.object({
   subtotal: z.number(),
 });
 
+// PDF attachment schema
+const PdfAttachmentSchema = z.object({
+  filename: z.string().max(255),
+  content: z.string(), // base64 encoded PDF
+});
+
 // Validation schema
 const EmailPayloadSchema = z.object({
   customerEmail: z.string().email().max(255),
@@ -85,6 +91,8 @@ const EmailPayloadSchema = z.object({
     contingency: z.number(),
     grandTotal: z.number(),
   }).optional(),
+  // PDF attachment for full report
+  pdfAttachment: PdfAttachmentSchema.optional(),
   source: z.string().min(1).max(100)
 });
 
@@ -209,6 +217,10 @@ interface EmailPayload {
     softCosts: number;
     contingency: number;
     grandTotal: number;
+  };
+  pdfAttachment?: {
+    filename: string;
+    content: string;
   };
   source: string;
 }
@@ -346,13 +358,22 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Company email rendering failed: ${renderError.message}`);
     }
 
+    // Prepare PDF attachment for Resend if provided
+    const attachments = payload.pdfAttachment ? [{
+      filename: payload.pdfAttachment.filename,
+      content: payload.pdfAttachment.content,
+    }] : undefined;
+
+    console.log('PDF attachment:', payload.pdfAttachment ? `${payload.pdfAttachment.filename} (${payload.pdfAttachment.content.length} chars)` : 'none');
+
     // Send customer confirmation email
     console.log('Attempting to send customer confirmation to:', payload.customerEmail);
     console.log('Email config:', {
       from: 'Practice Sports <noreply@sportsfacility.ai>',
       to: payload.customerEmail,
       subject: isB2BInquiry ? 'Thank you for your partnership inquiry' : 'Thank you for your facility planning request',
-      htmlLength: customerHtml.length
+      htmlLength: customerHtml.length,
+      hasAttachment: !!attachments
     });
     
     const customerEmailResult = await resend.emails.send({
@@ -363,6 +384,7 @@ const handler = async (req: Request): Promise<Response> => {
         ? 'Thank you for your partnership inquiry'
         : 'Thank you for your facility planning request',
       html: customerHtml,
+      attachments: attachments,
     });
 
     console.log('Customer email result:', {
@@ -382,7 +404,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('✅ Customer email sent successfully:', customerEmailResult.data?.id);
 
-    // Send company notification email
+    // Send company notification email (always include attachment for sales team)
     console.log('Sending company notification to:', COMPANY_EMAIL);
     const companyEmailResult = await resend.emails.send({
       from: 'Practice Sports Leads <leads@sportsfacility.ai>',
@@ -390,6 +412,7 @@ const handler = async (req: Request): Promise<Response> => {
       replyTo: 'info@practicesports.com',
       subject: `New Lead: ${payload.customerName} - ${formattedPartnershipType || 'Sports Facility'}`,
       html: companyHtml,
+      attachments: attachments,
     });
 
     if (companyEmailResult.error) {
