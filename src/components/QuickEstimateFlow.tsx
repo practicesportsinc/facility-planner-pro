@@ -141,10 +141,30 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
     // Dispatch lead to backend (saves to DB + syncs to Google Sheets)
     const syncResult = await dispatchLeadData(leadData, projectId, 'analysis');
     
-    // Send lead emails (annotate with sync status)
+    // Send lead emails (annotate with sync status) with itemized equipment breakdown
     try {
       console.log('📧 [handleAnalysisWithLead] Sending lead emails...');
       const roi = results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0;
+      
+      // Format equipment package for email
+      const formattedEquipmentItems = equipmentPackage.items.length > 0 ? [{
+        category: 'Equipment Package',
+        items: equipmentPackage.items.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          unitCost: item.unitCost,
+          totalCost: item.total,
+        })),
+        subtotal: equipmentPackage.total,
+      }] : undefined;
+      
+      const equipmentTotals = equipmentPackage.total > 0 ? {
+        equipment: equipmentPackage.total,
+        flooring: 0,
+        installation: Math.round(equipmentPackage.total * 0.15),
+        grandTotal: equipmentPackage.total + Math.round(equipmentPackage.total * 0.15),
+      } : undefined;
+      
       await supabase.functions.invoke('send-lead-emails', {
         body: {
           customerEmail: leadData.email,
@@ -170,6 +190,8 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
             roi: roi,
             breakEven: results.breakEvenMonths,
           },
+          equipmentItems: formattedEquipmentItems,
+          equipmentTotals: equipmentTotals,
           source: 'quick-estimate',
           syncFailed: !syncResult.success,
           syncError: syncResult.error,
@@ -360,9 +382,29 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
     // Dispatch lead to backend (saves to DB + syncs to Google Sheets)
     const syncResult = await dispatchLeadData(leadData, projectId, 'pdf');
     
-    // Send lead emails (annotate with sync status)
+    // Send lead emails (annotate with sync status) with itemized equipment breakdown
     try {
       const roi = results.ebitdaMonthly > 0 ? ((results.ebitdaMonthly * 12) / results.capexTotal * 100) : 0;
+      
+      // Format equipment package for email
+      const formattedEquipmentItems = equipmentPackage.items.length > 0 ? [{
+        category: 'Equipment Package',
+        items: equipmentPackage.items.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          unitCost: item.unitCost,
+          totalCost: item.total,
+        })),
+        subtotal: equipmentPackage.total,
+      }] : undefined;
+      
+      const equipmentTotals = equipmentPackage.total > 0 ? {
+        equipment: equipmentPackage.total,
+        flooring: 0,
+        installation: Math.round(equipmentPackage.total * 0.15),
+        grandTotal: equipmentPackage.total + Math.round(equipmentPackage.total * 0.15),
+      } : undefined;
+      
       await supabase.functions.invoke('send-lead-emails', {
         body: {
           customerEmail: leadData.email,
@@ -388,6 +430,8 @@ export const QuickEstimateFlow = ({ onClose }: QuickEstimateFlowProps) => {
             roi: roi,
             breakEven: results.breakEvenMonths,
           },
+          equipmentItems: formattedEquipmentItems,
+          equipmentTotals: equipmentTotals,
           source: 'quick-estimate',
           syncFailed: !syncResult.success,
           syncError: syncResult.error,

@@ -254,8 +254,82 @@ export const EasyResults = ({
         console.error('Error dispatching lead:', error);
       }
 
-      // Send lead emails
+      // Send lead emails with itemized facility breakdown
       try {
+        // Get wizard data for itemized breakdown
+        const facilityData = JSON.parse(localStorage.getItem('wizard-facility-size') || '{}');
+        const estimateData = JSON.parse(localStorage.getItem('wizard-estimate') || '{}');
+        const sportsData = JSON.parse(localStorage.getItem('wizard-sports') || '[]');
+        
+        const sf = facilityData.total_sqft || 0;
+        const tiCostPerSf = 45;
+        const ti = tiCostPerSf * sf;
+        const soft = ti * 0.15;
+        const cont = (ti + soft) * 0.10;
+        
+        // Calculate equipment cost from quantities
+        const quantities = estimateData.inputs?.quantities || {};
+        let equipmentCost = 0;
+        const equipmentLineItems: Array<{name: string; quantity: number; unitCost: number; totalCost: number}> = [];
+        
+        if (quantities.batting_cages) {
+          equipmentLineItems.push({ name: 'Batting Cages', quantity: quantities.batting_cages, unitCost: 8000, totalCost: quantities.batting_cages * 8000 });
+          equipmentCost += quantities.batting_cages * 8000;
+        }
+        if (quantities.pitching_machines) {
+          equipmentLineItems.push({ name: 'Pitching Machines', quantity: quantities.pitching_machines, unitCost: 3500, totalCost: quantities.pitching_machines * 3500 });
+          equipmentCost += quantities.pitching_machines * 3500;
+        }
+        if (quantities.basketball_hoops) {
+          equipmentLineItems.push({ name: 'Basketball Hoops', quantity: quantities.basketball_hoops, unitCost: 1200, totalCost: quantities.basketball_hoops * 1200 });
+          equipmentCost += quantities.basketball_hoops * 1200;
+        }
+        if (quantities.volleyball_systems) {
+          equipmentLineItems.push({ name: 'Volleyball Systems', quantity: quantities.volleyball_systems, unitCost: 800, totalCost: quantities.volleyball_systems * 800 });
+          equipmentCost += quantities.volleyball_systems * 800;
+        }
+        if (quantities.scoreboards) {
+          equipmentLineItems.push({ name: 'Scoreboards', quantity: quantities.scoreboards, unitCost: 5000, totalCost: quantities.scoreboards * 5000 });
+          equipmentCost += quantities.scoreboards * 5000;
+        }
+        if (quantities.pickleball_nets) {
+          equipmentLineItems.push({ name: 'Pickleball Nets', quantity: quantities.pickleball_nets, unitCost: 300, totalCost: quantities.pickleball_nets * 300 });
+          equipmentCost += quantities.pickleball_nets * 300;
+        }
+
+        // Format equipment items for email
+        const formattedEquipmentItems = equipmentLineItems.length > 0 ? [{
+          category: 'Equipment Package',
+          items: equipmentLineItems,
+          subtotal: equipmentCost,
+        }] : undefined;
+
+        const formattedEquipmentTotals = equipmentCost > 0 ? {
+          equipment: equipmentCost,
+          flooring: 0,
+          installation: Math.round(equipmentCost * 0.15),
+          grandTotal: equipmentCost + Math.round(equipmentCost * 0.15),
+        } : undefined;
+
+        // Format facility investment breakdown
+        const buildingLineItems = [{
+          category: 'Facility Investment',
+          items: [
+            { name: 'Tenant Improvements', quantity: 1, unitCost: Math.round(ti), totalCost: Math.round(ti) },
+            { name: 'Soft Costs (15%)', quantity: 1, unitCost: Math.round(soft), totalCost: Math.round(soft) },
+            { name: 'Contingency (10%)', quantity: 1, unitCost: Math.round(cont), totalCost: Math.round(cont) },
+            { name: 'Equipment & Fixtures', quantity: 1, unitCost: equipmentCost || 25000, totalCost: equipmentCost || 25000 },
+          ].filter(item => item.totalCost > 0),
+          subtotal: kpis.capex_total || 0,
+        }];
+
+        const buildingTotals = {
+          subtotal: Math.round(ti + soft),
+          softCosts: Math.round(soft),
+          contingency: Math.round(cont),
+          grandTotal: kpis.capex_total || 0,
+        };
+
         await supabase.functions.invoke('send-lead-emails', {
           body: {
             customerEmail: leadData.email,
@@ -270,16 +344,22 @@ export const EasyResults = ({
               allowOutreach: leadData.allowOutreach,
             },
             facilityDetails: {
-              projectType: `${project.selectedSports?.join(', ') || 'Multi-Sport'} Facility`,
-              sports: project.selectedSports || [],
-              size: project.facilitySize,
+              projectType: `${sportsData?.join(', ') || project.selectedSports?.join(', ') || 'Multi-Sport'} Facility`,
+              sports: sportsData || project.selectedSports || [],
+              size: sf ? `${sf} sq ft` : project.facilitySize,
             },
             estimates: {
-              totalInvestment: project.totalInvestment,
-              annualRevenue: project.annualRevenue,
-              roi: project.roi,
-              paybackPeriod: project.paybackPeriod,
+              totalInvestment: kpis.capex_total || project.totalInvestment,
+              annualRevenue: (kpis.monthly_revenue || 0) * 12,
+              monthlyRevenue: kpis.monthly_revenue,
+              roi: kpis.monthly_ebitda > 0 ? Math.round(((kpis.monthly_ebitda * 12) / kpis.capex_total) * 100) : project.roi,
+              paybackPeriod: kpis.break_even_months ? kpis.break_even_months / 12 : project.paybackPeriod,
+              breakEven: kpis.break_even_months,
             },
+            equipmentItems: formattedEquipmentItems,
+            equipmentTotals: formattedEquipmentTotals,
+            buildingLineItems: buildingLineItems,
+            buildingTotals: buildingTotals,
             source: 'easy-wizard',
           },
         });
