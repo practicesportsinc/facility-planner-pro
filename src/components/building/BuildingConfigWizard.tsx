@@ -170,6 +170,7 @@ export function BuildingConfigWizard() {
         buildingData: {
           config,
           estimate,
+          lead: capturedLead,
         }
       } 
     });
