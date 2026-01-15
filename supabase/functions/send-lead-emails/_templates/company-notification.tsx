@@ -58,6 +58,13 @@ interface CompanyNotificationEmailProps {
     installation: number;
     grandTotal: number;
   };
+  buildingLineItems?: EquipmentCategory[];
+  buildingTotals?: {
+    subtotal: number;
+    softCosts: number;
+    contingency: number;
+    grandTotal: number;
+  };
   source: string;
   timestamp: string;
 }
@@ -68,6 +75,8 @@ export const CompanyNotificationEmail = ({
   estimates,
   equipmentItems,
   equipmentTotals,
+  buildingLineItems,
+  buildingTotals,
   source,
   timestamp,
 }: CompanyNotificationEmailProps) => {
@@ -225,6 +234,66 @@ export const CompanyNotificationEmail = ({
                       <tr>
                         <td style={grandTotalLabel}>Grand Total:</td>
                         <td style={grandTotalValue}>${equipmentTotals.grandTotal.toLocaleString()}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                )}
+              </Section>
+              <Hr style={hr} />
+            </>
+          )}
+
+          {buildingLineItems && buildingLineItems.length > 0 && (
+            <>
+              <Section style={section}>
+                <Heading style={h2}>🏗️ Building Estimate Details</Heading>
+                {buildingLineItems.map((category, catIndex) => (
+                  <React.Fragment key={catIndex}>
+                    <Text style={categoryHeader}>{category.category}</Text>
+                    <table style={equipmentTable}>
+                      <thead>
+                        <tr>
+                          <th style={eqTableHeaderCell}>Item</th>
+                          <th style={eqTableHeaderCellRight}>Qty</th>
+                          <th style={eqTableHeaderCellRight}>Unit</th>
+                          <th style={eqTableHeaderCellRight}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {category.items.map((item, itemIndex) => (
+                          <tr key={itemIndex}>
+                            <td style={eqTableCell}>{item.name}</td>
+                            <td style={eqTableCellRight}>{item.quantity}</td>
+                            <td style={eqTableCellRight}>${item.unitCost.toLocaleString()}</td>
+                            <td style={eqTableCellRight}>${item.totalCost.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <Text style={subtotalText}>
+                      Subtotal: ${category.subtotal.toLocaleString()}
+                    </Text>
+                  </React.Fragment>
+                ))}
+                
+                {buildingTotals && (
+                  <table style={totalsTable}>
+                    <tbody>
+                      <tr>
+                        <td style={totalsLabel}>Building Subtotal:</td>
+                        <td style={totalsValue}>${buildingTotals.subtotal.toLocaleString()}</td>
+                      </tr>
+                      <tr>
+                        <td style={totalsLabel}>Soft Costs (8%):</td>
+                        <td style={totalsValue}>${buildingTotals.softCosts.toLocaleString()}</td>
+                      </tr>
+                      <tr>
+                        <td style={totalsLabel}>Contingency (10%):</td>
+                        <td style={totalsValue}>${buildingTotals.contingency.toLocaleString()}</td>
+                      </tr>
+                      <tr>
+                        <td style={grandTotalLabel}>Grand Total:</td>
+                        <td style={grandTotalValue}>${buildingTotals.grandTotal.toLocaleString()}</td>
                       </tr>
                     </tbody>
                   </table>

@@ -331,6 +331,8 @@ const handler = async (req: Request): Promise<Response> => {
           estimates: payload.estimates,
           equipmentItems: payload.equipmentItems,
           equipmentTotals: payload.equipmentTotals,
+          buildingLineItems: payload.buildingLineItems,
+          buildingTotals: payload.buildingTotals,
           source: payload.source,
           timestamp: new Date().toISOString(),
         })
