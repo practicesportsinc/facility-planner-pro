@@ -26,6 +26,13 @@ interface EquipmentCategory {
   subtotal: number;
 }
 
+interface BuildingTotals {
+  subtotal: number;
+  softCosts: number;
+  contingency: number;
+  grandTotal: number;
+}
+
 interface CustomerConfirmationEmailProps {
   customerName: string;
   facilityDetails?: {
@@ -46,6 +53,8 @@ interface CustomerConfirmationEmailProps {
     installation: number;
     grandTotal: number;
   };
+  buildingLineItems?: EquipmentCategory[];
+  buildingTotals?: BuildingTotals;
 }
 
 export const CustomerConfirmationEmail = ({
@@ -54,6 +63,8 @@ export const CustomerConfirmationEmail = ({
   estimates,
   equipmentItems,
   equipmentTotals,
+  buildingLineItems,
+  buildingTotals,
 }: CustomerConfirmationEmailProps) => (
   <Html>
     <Head />
@@ -83,6 +94,62 @@ export const CustomerConfirmationEmail = ({
               <Text style={summaryText}>
                 <strong>Location:</strong> {facilityDetails.location}
               </Text>
+            )}
+          </Section>
+        )}
+
+        {buildingLineItems && buildingLineItems.length > 0 && (
+          <Section style={buildingBox}>
+            <Heading style={h2}>🏗️ Your Building Estimate</Heading>
+            {buildingLineItems.map((category, catIndex) => (
+              <React.Fragment key={catIndex}>
+                <Text style={categoryHeader}>{category.category}</Text>
+                <table style={equipmentTable}>
+                  <thead>
+                    <tr>
+                      <th style={tableHeaderCell}>Item</th>
+                      <th style={tableHeaderCellRight}>Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {category.items.map((item, itemIndex) => (
+                      <tr key={itemIndex}>
+                        <td style={tableCell}>{item.name}</td>
+                        <td style={tableCellRight}>${item.totalCost.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <Text style={subtotalText}>
+                  Subtotal: ${category.subtotal.toLocaleString()}
+                </Text>
+              </React.Fragment>
+            ))}
+            
+            {buildingTotals && (
+              <>
+                <Hr style={hr} />
+                <table style={totalsTable}>
+                  <tbody>
+                    <tr>
+                      <td style={totalsLabel}>Construction Subtotal:</td>
+                      <td style={totalsValue}>${buildingTotals.subtotal.toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                      <td style={totalsLabel}>Soft Costs (8%):</td>
+                      <td style={totalsValue}>${buildingTotals.softCosts.toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                      <td style={totalsLabel}>Contingency (10%):</td>
+                      <td style={totalsValue}>${buildingTotals.contingency.toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                      <td style={grandTotalLabel}>Total Investment:</td>
+                      <td style={grandTotalValue}>${buildingTotals.grandTotal.toLocaleString()}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </>
             )}
           </Section>
         )}
@@ -260,6 +327,14 @@ const text = {
 const summaryBox = {
   backgroundColor: '#f0f7ff',
   border: '2px solid #3b82f6',
+  borderRadius: '8px',
+  padding: '20px',
+  margin: '20px 20px',
+};
+
+const buildingBox = {
+  backgroundColor: '#fef3c7',
+  border: '2px solid #d97706',
   borderRadius: '8px',
   padding: '20px',
   margin: '20px 20px',

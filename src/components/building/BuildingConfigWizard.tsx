@@ -100,13 +100,61 @@ export function BuildingConfigWizard() {
         console.error('[BuildingWizard] Google Sheets sync error:', sheetError);
       }
 
-      // Prepare site options summary
-      const siteOptions = [];
-      if (config.sitePrep) siteOptions.push("Site Prep");
-      if (config.concreteFoundation) siteOptions.push("Foundation");
-      if (config.parking) siteOptions.push("Parking");
-      if (config.utilities) siteOptions.push("Utilities");
-      if (config.sprinklerSystem) siteOptions.push("Sprinklers");
+      // Build location string
+      const locationParts = [leadData.city, leadData.state].filter(Boolean);
+      const locationString = locationParts.join(', ');
+
+      // Group line items by category for the email
+      const buildingLineItems = [
+        {
+          category: 'Building Structure',
+          items: estimate.items
+            .filter(item => item.category === 'structure')
+            .map(item => ({
+              name: item.name,
+              quantity: 1,
+              unitCost: item.total,
+              totalCost: item.total,
+            })),
+          subtotal: estimate.subtotals.structure,
+        },
+        {
+          category: 'Doors & Access',
+          items: estimate.items
+            .filter(item => item.category === 'doors')
+            .map(item => ({
+              name: item.name,
+              quantity: item.quantity || 1,
+              unitCost: item.unitCost || item.total,
+              totalCost: item.total,
+            })),
+          subtotal: estimate.subtotals.doors,
+        },
+        {
+          category: 'Systems (HVAC, Electrical, Plumbing)',
+          items: estimate.items
+            .filter(item => item.category === 'systems')
+            .map(item => ({
+              name: item.name,
+              quantity: 1,
+              unitCost: item.total,
+              totalCost: item.total,
+            })),
+          subtotal: estimate.subtotals.systems,
+        },
+        {
+          category: 'Site Work',
+          items: estimate.items
+            .filter(item => item.category === 'site_work')
+            .map(item => ({
+              name: item.name,
+              quantity: 1,
+              unitCost: item.total,
+              totalCost: item.total,
+            })),
+          subtotal: estimate.subtotals.siteWork,
+        },
+      ].filter(cat => cat.items.length > 0); // Only include categories with items
 
       // Send confirmation emails
       console.log('[BuildingWizard] Sending confirmation emails');
@@ -123,16 +171,22 @@ export function BuildingConfigWizard() {
             wantsOutreach: leadData.wantsOutreach || false,
           },
           facilityDetails: {
-            presetName: `${config.width}' x ${config.length}' Metal Building`,
-            squareFootage: estimate.grossSF,
-            projectType: 'Building Configuration',
-            additionalInfo: `Eave Height: ${config.eaveHeight}' | Finish: ${config.finishLevel} | ${siteOptions.length > 0 ? 'Site Work: ' + siteOptions.join(', ') : 'No site work included'}`,
+            sport: config.sports.length > 0 ? config.sports.join(', ') : 'Multi-Sport',
+            size: `${estimate.grossSF.toLocaleString()} SF (${config.width}' x ${config.length}')`,
+            location: locationString || undefined,
+            projectType: 'Metal Building Estimate',
+            buildMode: 'build',
           },
           estimates: {
-            totalCapEx: estimate.total,
-            buildingSubtotal: estimate.subtotals.structure + estimate.subtotals.doors + estimate.subtotals.systems + estimate.subtotals.siteWork,
+            totalInvestment: estimate.total,
+          },
+          // Building line items (uses same format as equipment)
+          buildingLineItems,
+          buildingTotals: {
+            subtotal: estimate.subtotals.structure + estimate.subtotals.doors + estimate.subtotals.systems + estimate.subtotals.siteWork,
             softCosts: estimate.softCosts,
             contingency: estimate.contingency,
+            grandTotal: estimate.total,
           },
           source: 'building-estimate',
         }
