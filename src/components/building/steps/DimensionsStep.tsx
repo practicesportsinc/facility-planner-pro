@@ -103,6 +103,11 @@ export function DimensionsStep({ config, updateConfig, onNext }: DimensionsStepP
               <span>Current height ({config.eaveHeight}') may be too low for your selected sports.</span>
             </div>
           )}
+          {(sports.includes('soccer_indoor_small_sided') || sports.includes('soccer') || sports.includes('football')) && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Note: 40' is suitable for most practice and recreational use. Full-size indoor soccer domes typically require 50-65' clearance, and football facilities with punting may need 65'+ or specialized dome structures.
+            </p>
+          )}
         </div>
       )}
 
@@ -181,7 +186,7 @@ export function DimensionsStep({ config, updateConfig, onNext }: DimensionsStepP
               <p className="text-xs text-muted-foreground">
                 {sports.length > 0 
                   ? `Recommended: ${recommendedHeight}' for ${sports.map(s => SPORT_LABELS[s as SportKey]).join(', ')}`
-                  : "16' pickleball, 20' baseball, 24' basketball/volleyball, 30' soccer/football"
+                  : "16' pickleball, 20' baseball, 24' basketball/volleyball, 40' soccer/football"
                 }
               </p>
             </div>
