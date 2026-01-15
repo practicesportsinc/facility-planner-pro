@@ -49,6 +49,9 @@ const Calculator = () => {
   // Get equipment data from location state (coming from Equipment Quote upgrade)
   const equipmentData = location.state?.equipmentData;
   
+  // Get building data from location state (coming from Building Config wizard)
+  const buildingData = location.state?.buildingData;
+  
   // If it's quick mode, start at the KPI Results step (step 8)
   const [currentStep, setCurrentStep] = useState(isQuickMode || isWizardMode ? 8 : 1);
   const [calculatorData, setCalculatorData] = useState({});
@@ -142,6 +145,67 @@ const Calculator = () => {
       setCurrentStep(1);
     }
   }, [presetId, presetData]);
+
+  // Load data from building config wizard
+  useEffect(() => {
+    if (buildingData) {
+      console.log('Loading from building config:', buildingData);
+      
+      const { config, estimate, lead } = buildingData;
+      
+      // Map clear height to standard options
+      const heightMap: Record<number, string> = { 16: '16', 20: '20', 24: '24', 28: '28', 32: '32' };
+      const clearHeight = heightMap[config.eaveHeight] || '24';
+      
+      // Calculate cost per sqft from estimate
+      const costPerSf = estimate.grossSF > 0 ? Math.round(estimate.total / estimate.grossSF) : 0;
+      
+      // Build location string from lead data
+      const locationParts = [lead?.city, lead?.state].filter(Boolean);
+      const locationString = locationParts.join(', ');
+      
+      setCalculatorData({
+        1: { // Project Basics
+          projectName: 'New Sports Facility',
+          selectedSports: config.sports || [],
+          location: locationString,
+          currency: 'USD',
+        },
+        2: { // Build Mode - pre-set to "build" with costs from estimate
+          buildMode: 'build',
+          buildingCostPerSf: costPerSf.toString(),
+          siteworkPct: config.sitePrep ? '15' : '0',
+          softCostsPct: '8',
+          contingencyPct: '10',
+          // Pass through building estimate details
+          buildingEstimate: {
+            total: estimate.total,
+            grossSF: estimate.grossSF,
+            shellCost: estimate.shellCost,
+            foundationCost: estimate.foundationCost,
+            mepCost: estimate.mepCost,
+            interiorCost: estimate.interiorCost,
+          }
+        },
+        3: { // Facility Plan
+          facilityType: 'build',
+          totalSquareFootage: estimate.grossSF.toString(),
+          clearHeight: clearHeight,
+          selectedSports: config.sports || [],
+          amenities: [],
+        },
+        10: lead ? { // Lead Capture (if lead was captured)
+          name: lead.name,
+          email: lead.email,
+          phone: lead.phone || '',
+          city: lead.city || '',
+          state: lead.state || '',
+        } : undefined,
+      });
+      
+      setCurrentStep(1); // Start at step 1 for review
+    }
+  }, [buildingData]);
 
   // Load data from equipment quote upgrade
   useEffect(() => {
