@@ -58,7 +58,8 @@ const EmailPayloadSchema = z.object({
     projectType: z.string().max(100).optional(),
     size: z.string().max(100).optional(),
     buildMode: z.string().max(100).optional(),
-    sports: z.array(z.string()).optional()
+    sports: z.array(z.string()).optional(),
+    location: z.string().max(200).optional(),
   }).optional(),
   estimates: z.object({
     totalInvestment: z.number().positive().optional(),
@@ -74,6 +75,14 @@ const EmailPayloadSchema = z.object({
     equipment: z.number(),
     flooring: z.number(),
     installation: z.number(),
+    grandTotal: z.number(),
+  }).optional(),
+  // Building estimate data
+  buildingLineItems: z.array(EquipmentCategorySchema).optional(),
+  buildingTotals: z.object({
+    subtotal: z.number(),
+    softCosts: z.number(),
+    contingency: z.number(),
     grandTotal: z.number(),
   }).optional(),
   source: z.string().min(1).max(100)
@@ -177,6 +186,7 @@ interface EmailPayload {
     size?: string;
     buildMode?: string;
     sports?: string[];
+    location?: string;
   };
   estimates?: {
     totalInvestment?: number;
@@ -191,6 +201,13 @@ interface EmailPayload {
     equipment: number;
     flooring: number;
     installation: number;
+    grandTotal: number;
+  };
+  buildingLineItems?: EquipmentCategory[];
+  buildingTotals?: {
+    subtotal: number;
+    softCosts: number;
+    contingency: number;
     grandTotal: number;
   };
   source: string;
@@ -283,6 +300,8 @@ const handler = async (req: Request): Promise<Response> => {
               estimates: payload.estimates,
               equipmentItems: payload.equipmentItems,
               equipmentTotals: payload.equipmentTotals,
+              buildingLineItems: payload.buildingLineItems,
+              buildingTotals: payload.buildingTotals,
             })
           );
       console.log('✅ Customer email rendered successfully, length:', customerHtml.length);
