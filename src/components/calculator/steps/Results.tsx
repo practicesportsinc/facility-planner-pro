@@ -188,7 +188,48 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData, setDataForStep }
     }
 
     try {
-      // Build email payload with all available data
+      // Format equipment items for email
+      const equipmentLineItems = equipment.selectedEquipment || [];
+      const formattedEquipmentItems = equipmentLineItems.length > 0 ? [{
+        category: 'Selected Equipment',
+        items: equipmentLineItems.map((item: any) => ({
+          name: item.name,
+          quantity: item.quantity || 1,
+          unitCost: item.price || 0,
+          totalCost: (item.price || 0) * (item.quantity || 1),
+        })),
+        subtotal: equipmentCost,
+      }] : undefined;
+
+      const formattedEquipmentTotals = equipmentCost > 0 ? {
+        equipment: equipmentCost,
+        flooring: 0,
+        installation: installationEstimate,
+        grandTotal: equipmentCost + installationEstimate,
+      } : undefined;
+
+      // Format CapEx breakdown for email
+      const buildingLineItems = [{
+        category: 'Capital Expenditure',
+        items: [
+          { name: facilityType === 'build' ? 'Building Construction' : facilityType === 'buy' ? 'Purchase & Renovation' : 'Tenant Improvements', quantity: 1, unitCost: capExCalculation.building || capExCalculation.ti || 0, totalCost: capExCalculation.building || capExCalculation.ti || 0 },
+          { name: 'Site Work', quantity: 1, unitCost: capExCalculation.sitework || 0, totalCost: capExCalculation.sitework || 0 },
+          { name: 'Fixtures & FF&E', quantity: 1, unitCost: capExCalculation.fixtures || 0, totalCost: capExCalculation.fixtures || 0 },
+          { name: 'IT & Security', quantity: 1, unitCost: capExCalculation.itSecurity || 0, totalCost: capExCalculation.itSecurity || 0 },
+          { name: 'Soft Costs', quantity: 1, unitCost: capExCalculation.softCosts || 0, totalCost: capExCalculation.softCosts || 0 },
+          { name: 'Contingency', quantity: 1, unitCost: capExCalculation.contingency || 0, totalCost: capExCalculation.contingency || 0 },
+        ].filter(item => item.totalCost > 0),
+        subtotal: capExCalculation.total || 0,
+      }];
+
+      const buildingTotals = {
+        subtotal: capExCalculation.subtotal || capExCalculation.total || 0,
+        softCosts: capExCalculation.softCosts || 0,
+        contingency: capExCalculation.contingency || 0,
+        grandTotal: capExCalculation.total || 0,
+      };
+
+      // Build email payload with all available data including itemized breakdowns
       const emailPayload = {
         customerEmail: leadInfo.email,
         customerName: leadInfo.name,
@@ -215,6 +256,10 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData, setDataForStep }
           paybackPeriod: summaryData.paybackYears,
           breakEven: summaryData.breakEvenMonths,
         },
+        equipmentItems: formattedEquipmentItems,
+        equipmentTotals: formattedEquipmentTotals,
+        buildingLineItems: buildingLineItems,
+        buildingTotals: buildingTotals,
         source: 'full-calculator-email-action',
       };
 
@@ -281,8 +326,49 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData, setDataForStep }
       console.error('Error dispatching lead:', error);
     }
 
-    // Send lead emails
+    // Send lead emails with itemized breakdowns
     try {
+      // Format equipment items for email
+      const equipmentLineItems = equipment.selectedEquipment || [];
+      const formattedEquipmentItems = equipmentLineItems.length > 0 ? [{
+        category: 'Selected Equipment',
+        items: equipmentLineItems.map((item: any) => ({
+          name: item.name,
+          quantity: item.quantity || 1,
+          unitCost: item.price || 0,
+          totalCost: (item.price || 0) * (item.quantity || 1),
+        })),
+        subtotal: equipmentCost,
+      }] : undefined;
+
+      const formattedEquipmentTotals = equipmentCost > 0 ? {
+        equipment: equipmentCost,
+        flooring: 0,
+        installation: installationEstimate,
+        grandTotal: equipmentCost + installationEstimate,
+      } : undefined;
+
+      // Format CapEx breakdown for email
+      const buildingLineItems = [{
+        category: 'Capital Expenditure',
+        items: [
+          { name: facilityType === 'build' ? 'Building Construction' : facilityType === 'buy' ? 'Purchase & Renovation' : 'Tenant Improvements', quantity: 1, unitCost: capExCalculation.building || capExCalculation.ti || 0, totalCost: capExCalculation.building || capExCalculation.ti || 0 },
+          { name: 'Site Work', quantity: 1, unitCost: capExCalculation.sitework || 0, totalCost: capExCalculation.sitework || 0 },
+          { name: 'Fixtures & FF&E', quantity: 1, unitCost: capExCalculation.fixtures || 0, totalCost: capExCalculation.fixtures || 0 },
+          { name: 'IT & Security', quantity: 1, unitCost: capExCalculation.itSecurity || 0, totalCost: capExCalculation.itSecurity || 0 },
+          { name: 'Soft Costs', quantity: 1, unitCost: capExCalculation.softCosts || 0, totalCost: capExCalculation.softCosts || 0 },
+          { name: 'Contingency', quantity: 1, unitCost: capExCalculation.contingency || 0, totalCost: capExCalculation.contingency || 0 },
+        ].filter(item => item.totalCost > 0),
+        subtotal: capExCalculation.total || 0,
+      }];
+
+      const buildingTotals = {
+        subtotal: capExCalculation.subtotal || capExCalculation.total || 0,
+        softCosts: capExCalculation.softCosts || 0,
+        contingency: capExCalculation.contingency || 0,
+        grandTotal: capExCalculation.total || 0,
+      };
+
       await supabase.functions.invoke('send-lead-emails', {
         body: {
           customerEmail: leadData.email,
@@ -297,17 +383,23 @@ const Results = ({ data, onUpdate, onNext, onPrevious, allData, setDataForStep }
             allowOutreach: leadData.allowOutreach,
           },
           facilityDetails: {
-            projectType: allData?.projectBasics?.projectName || 'Sports Facility',
-            sports: allData?.projectBasics?.selectedSports || [],
-            size: allData?.facilityPlan?.totalSquareFootage ? `${allData.facilityPlan.totalSquareFootage} sq ft` : undefined,
-            buildMode: allData?.buildMode?.buildType,
+            projectType: projectBasics.projectName || 'Sports Facility',
+            sports: projectBasics.selectedSports || [],
+            size: facilityPlan.totalSqft ? `${facilityPlan.totalSqft} sq ft` : undefined,
+            buildMode: facilityPlan.facilityType || 'build',
           },
           estimates: {
-            totalInvestment: data?.totalInvestment,
-            annualRevenue: data?.projectedRevenue,
-            roi: data?.roi,
-            paybackPeriod: data?.paybackPeriod,
+            totalInvestment: summaryData.totalInvestment,
+            annualRevenue: summaryData.annualCashFlow,
+            monthlyRevenue: summaryData.monthlyRevenue,
+            roi: summaryData.roi,
+            paybackPeriod: summaryData.paybackYears,
+            breakEven: summaryData.breakEvenMonths,
           },
+          equipmentItems: formattedEquipmentItems,
+          equipmentTotals: formattedEquipmentTotals,
+          buildingLineItems: buildingLineItems,
+          buildingTotals: buildingTotals,
           source: 'full-calculator',
         },
       });
