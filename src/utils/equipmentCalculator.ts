@@ -145,12 +145,22 @@ const calculateCoreEquipment = (inputs: EquipmentInputs): EquipmentCategory => {
         totalCost: inputs.units * 800,
       });
 
-      items.push({
-        name: 'Portable Pickleball Nets',
-        quantity: inputs.units,
-        unitCost: 400,
-        totalCost: inputs.units * 400,
-      });
+      // Different net type based on indoor/outdoor selection
+      if (inputs.indoorOutdoor === 'outdoor') {
+        items.push({
+          name: 'In-Ground or Surface Mount Pickleball Nets',
+          quantity: inputs.units,
+          unitCost: 700,
+          totalCost: inputs.units * 700,
+        });
+      } else {
+        items.push({
+          name: 'Portable Pickleball Nets',
+          quantity: inputs.units,
+          unitCost: 400,
+          totalCost: inputs.units * 400,
+        });
+      }
       break;
 
     case 'soccer_indoor_small_sided':
