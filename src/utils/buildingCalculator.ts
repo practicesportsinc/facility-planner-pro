@@ -366,8 +366,9 @@ export function getRecommendedHeight(sport: string): number {
       return 24;
     case 'soccer_indoor_small_sided':
     case 'soccer':
+      return 40;
     case 'football':
-      return 30;
+      return 40;
     case 'pickleball':
       return 16;
     case 'multi_sport':
