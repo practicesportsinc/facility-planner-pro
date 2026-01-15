@@ -37,6 +37,8 @@ export function BuildingConfigWizard() {
   const [config, setConfig] = useState<BuildingConfig>(DEFAULT_BUILDING_CONFIG);
   const [leadGateOpen, setLeadGateOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [leadCaptured, setLeadCaptured] = useState(false);
+  const [capturedLead, setCapturedLead] = useState<LeadData | null>(null);
   
   const currentStepIndex = STEPS.findIndex(s => s.id === step);
   const progress = ((currentStepIndex + 1) / STEPS.length) * 100;
@@ -48,7 +50,22 @@ export function BuildingConfigWizard() {
   const estimate: BuildingEstimate = calculateBuildingEstimate(config);
   
   const handleDownload = () => {
-    setLeadGateOpen(true);
+    if (capturedLead) {
+      // Lead already captured, generate PDF directly
+      generateBuildingEstimatePDF(config, estimate, capturedLead);
+      toast.success("Your building estimate PDF has been downloaded!");
+    } else {
+      // Fallback - shouldn't happen since estimate is gated
+      setLeadGateOpen(true);
+    }
+  };
+  
+  const handleViewEstimate = () => {
+    if (leadCaptured) {
+      setStep('estimate');
+    } else {
+      setLeadGateOpen(true);
+    }
   };
 
   const handleLeadSubmit = async (leadData: LeadData) => {
@@ -125,17 +142,22 @@ export function BuildingConfigWizard() {
         console.error('[BuildingWizard] Email send error:', emailError);
       }
 
-      // Generate and download PDF
-      generateBuildingEstimatePDF(config, estimate, leadData);
+      // Save lead data for future PDF downloads
+      setCapturedLead(leadData);
+      setLeadCaptured(true);
       
-      toast.success("Your building estimate PDF has been downloaded!");
+      // Navigate to estimate step (first time viewing)
+      setStep('estimate');
+      toast.success("Thank you! Here's your building estimate.");
       setLeadGateOpen(false);
       
     } catch (error) {
       console.error('[BuildingWizard] Lead submission error:', error);
       toast.error("There was an issue processing your request. Your PDF will still download.");
-      // Still generate PDF even if sync fails
-      generateBuildingEstimatePDF(config, estimate, leadData);
+      // Still save lead and show estimate even if sync fails
+      setCapturedLead(leadData);
+      setLeadCaptured(true);
+      setStep('estimate');
       setLeadGateOpen(false);
     } finally {
       setIsSubmitting(false);
@@ -211,7 +233,7 @@ export function BuildingConfigWizard() {
         <SiteOptionsStep
           config={config}
           updateConfig={updateConfig}
-          onNext={() => setStep('estimate')}
+          onNext={handleViewEstimate}
           onBack={() => setStep('finish')}
         />
       )}
@@ -232,13 +254,13 @@ export function BuildingConfigWizard() {
         onClose={() => setLeadGateOpen(false)}
         onSubmit={handleLeadSubmit}
         mode="modal"
-        title="Get Your Building Estimate PDF"
-        description="Enter your details to download the complete itemized construction estimate."
+        title="View Your Building Estimate"
+        description="Enter your details to see the complete itemized construction estimate for your building."
         showOptionalFields={true}
         showMessageField={false}
         showPartnershipField={false}
         showOutreachField={true}
-        submitButtonText={isSubmitting ? "Processing..." : "Download Estimate PDF"}
+        submitButtonText={isSubmitting ? "Processing..." : "View My Estimate"}
         showCancelButton={true}
         cancelButtonText="Cancel"
       />
