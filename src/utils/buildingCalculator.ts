@@ -6,6 +6,9 @@ export interface BuildingConfig {
   length: number;
   eaveHeight: number;
   
+  // Sports (for height recommendations)
+  sports: string[];
+  
   // Doors & Openings
   rollUpDoors12x14: number;
   rollUpDoors10x12: number;
@@ -353,26 +356,37 @@ export function calculateBuildingEstimate(config: BuildingConfig): BuildingEstim
 
 export function getRecommendedHeight(sport: string): number {
   switch (sport) {
+    case 'baseball_softball':
     case 'baseball':
     case 'softball':
       return 20;
     case 'basketball':
+      return 24;
     case 'volleyball':
       return 24;
+    case 'soccer_indoor_small_sided':
     case 'soccer':
     case 'football':
       return 30;
     case 'pickleball':
       return 16;
+    case 'multi_sport':
+      return 24;
     default:
       return 20;
   }
+}
+
+export function getMaxRecommendedHeight(sports: string[]): number {
+  if (sports.length === 0) return 20;
+  return Math.max(...sports.map(getRecommendedHeight));
 }
 
 export const DEFAULT_BUILDING_CONFIG: BuildingConfig = {
   width: 100,
   length: 150,
   eaveHeight: 20,
+  sports: [],
   rollUpDoors12x14: 1,
   rollUpDoors10x12: 0,
   manDoors: 2,

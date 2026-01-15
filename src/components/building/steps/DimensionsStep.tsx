@@ -2,8 +2,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BuildingConfig } from "@/utils/buildingCalculator";
-import { Ruler, ArrowUpDown, Square } from "lucide-react";
+import { BuildingConfig, getMaxRecommendedHeight } from "@/utils/buildingCalculator";
+import { Ruler, ArrowUpDown, Square, AlertTriangle } from "lucide-react";
+import { SportIcon, SportKey, SPORT_LABELS } from "@/components/home/SportIcons";
 
 interface DimensionsStepProps {
   config: BuildingConfig;
@@ -18,8 +19,28 @@ const PRESETS = [
   { label: "XL (40,000 SF)", width: 150, length: 267, height: 24 },
 ];
 
+const BUILDING_SPORTS: SportKey[] = [
+  'baseball_softball',
+  'basketball',
+  'volleyball',
+  'pickleball',
+  'soccer_indoor_small_sided',
+  'football',
+  'multi_sport'
+];
+
 export function DimensionsStep({ config, updateConfig, onNext }: DimensionsStepProps) {
   const grossSF = config.width * config.length;
+  const sports = config.sports || [];
+  const recommendedHeight = getMaxRecommendedHeight(sports);
+  const isHeightOptimal = config.eaveHeight >= recommendedHeight;
+
+  const toggleSport = (sport: SportKey) => {
+    const updated = sports.includes(sport)
+      ? sports.filter(s => s !== sport)
+      : [...sports, sport];
+    updateConfig({ sports: updated });
+  };
   
   return (
     <div className="space-y-6">
@@ -29,6 +50,61 @@ export function DimensionsStep({ config, updateConfig, onNext }: DimensionsStepP
           Enter your building dimensions or select a preset size below.
         </p>
       </div>
+
+      {/* Sport Selection */}
+      <div>
+        <h3 className="text-lg font-semibold mb-2">What sports will be played?</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Select your sports to get an eave height recommendation.
+        </p>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-3">
+          {BUILDING_SPORTS.map((sport) => (
+            <button
+              key={sport}
+              onClick={() => toggleSport(sport)}
+              className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center ${
+                sports.includes(sport)
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <SportIcon kind={sport} size={40} />
+              <span className="text-xs mt-1 text-center leading-tight">{SPORT_LABELS[sport]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Height Recommendation */}
+      {sports.length > 0 && (
+        <div className={`p-4 rounded-lg border ${isHeightOptimal ? 'bg-primary/10 border-primary/20' : 'bg-amber-500/10 border-amber-500/30'}`}>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <p className="font-medium">
+                Recommended Eave Height: {recommendedHeight}'
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Based on: {sports.map(s => SPORT_LABELS[s as SportKey]).join(', ')}
+              </p>
+            </div>
+            {config.eaveHeight !== recommendedHeight && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => updateConfig({ eaveHeight: recommendedHeight })}
+              >
+                Use Recommended
+              </Button>
+            )}
+          </div>
+          {!isHeightOptimal && (
+            <div className="flex items-center gap-2 text-sm text-amber-600 mt-2">
+              <AlertTriangle className="h-4 w-4" />
+              <span>Current height ({config.eaveHeight}') may be too low for your selected sports.</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Presets */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -103,7 +179,10 @@ export function DimensionsStep({ config, updateConfig, onNext }: DimensionsStepP
                 onChange={(e) => updateConfig({ eaveHeight: parseInt(e.target.value) || 0 })}
               />
               <p className="text-xs text-muted-foreground">
-                Recommended: 20' for baseball, 24' for basketball/volleyball
+                {sports.length > 0 
+                  ? `Recommended: ${recommendedHeight}' for ${sports.map(s => SPORT_LABELS[s as SportKey]).join(', ')}`
+                  : "16' pickleball, 20' baseball, 24' basketball/volleyball, 30' soccer/football"
+                }
               </p>
             </div>
           </div>
