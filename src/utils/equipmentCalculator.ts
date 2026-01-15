@@ -144,6 +144,13 @@ const calculateCoreEquipment = (inputs: EquipmentInputs): EquipmentCategory => {
         unitCost: 800,
         totalCost: inputs.units * 800,
       });
+
+      items.push({
+        name: 'Portable Pickleball Nets',
+        quantity: inputs.units,
+        unitCost: 400,
+        totalCost: inputs.units * 400,
+      });
       break;
 
     case 'soccer_indoor_small_sided':
@@ -301,14 +308,6 @@ const calculateSafety = (inputs: EquipmentInputs): EquipmentCategory => {
       });
       break;
 
-    case 'pickleball':
-      items.push({
-        name: 'Court Divider Nets',
-        quantity: inputs.units,
-        unitCost: 400,
-        totalCost: inputs.units * 400,
-      });
-      break;
   }
 
   // Add lighting estimate
