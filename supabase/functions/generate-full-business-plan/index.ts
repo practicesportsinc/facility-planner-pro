@@ -166,9 +166,9 @@ Format your response as JSON with the following sections.`
     });
 
   } catch (error) {
-    console.error('Business plan generation error:', error);
+    console.error('[generate-full-business-plan] Error:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Generation failed' }),
+      JSON.stringify({ error: 'An error occurred generating the business plan' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

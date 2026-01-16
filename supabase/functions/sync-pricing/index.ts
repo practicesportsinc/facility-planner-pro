@@ -158,7 +158,7 @@ serve(async (req) => {
     console.error('[sync-pricing] Fatal error:', error);
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message 
+      error: 'An error occurred during price sync' 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
