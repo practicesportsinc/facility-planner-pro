@@ -229,7 +229,7 @@ const Home = () => {
               {flowStep === 'market-select' && (
                 <div className="w-full max-w-3xl mx-auto mb-16">
                   <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold mb-3">Choose Your Analysis Type</h2>
+                    <h2 className="text-3xl font-bold mb-3">Market Analysis / Biz Plan</h2>
                     <p className="text-muted-foreground text-lg">Quick check or comprehensive plan?</p>
                   </div>
                   
