@@ -258,9 +258,9 @@ ${FAQ_KNOWLEDGE_BASE}
     });
 
   } catch (error) {
-    console.error("FAQ chat error:", error);
+    console.error("[faq-chat] Error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: "An error occurred processing your request" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

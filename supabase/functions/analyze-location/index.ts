@@ -198,7 +198,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('[analyze-location] Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'An error occurred analyzing the location' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
