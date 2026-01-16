@@ -29,6 +29,7 @@ import B2BPricing from "./pages/b2b/Pricing";
 import BuildingConfig from "./pages/BuildingConfig";
 import BusinessPlanBuilder from "./pages/BusinessPlanBuilder";
 import MarketAnalysis from "./pages/MarketAnalysis";
+import FlashMarketAnalysisPage from "./pages/FlashMarketAnalysisPage";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="/building-config" element={<BuildingConfig />} />
               <Route path="/business-plan" element={<BusinessPlanBuilder />} />
               <Route path="/market-analysis" element={<MarketAnalysis />} />
+              <Route path="/market-analysis/flash" element={<FlashMarketAnalysisPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <GlobalChatWidget />
