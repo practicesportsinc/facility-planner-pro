@@ -163,7 +163,7 @@ const Header = () => {
                   >
                     <Link to="/market-analysis" className="flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
-                      Market Analysis
+                      Market Analysis / Biz Plan
                     </Link>
                   </Button>
                 </NavigationMenuItem>
@@ -340,7 +340,7 @@ const Header = () => {
                 >
                   <Link to="/market-analysis" className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    Market Analysis
+                    Market Analysis / Biz Plan
                   </Link>
                 </Button>
               </nav>
