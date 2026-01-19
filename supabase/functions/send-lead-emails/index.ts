@@ -424,10 +424,11 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('✅ Customer email sent successfully:', customerEmailResult.data?.id);
 
     // Send company notification email (always include attachment for sales team)
-    console.log('Sending company notification to:', COMPANY_EMAIL);
+    const companyRecipients = [COMPANY_EMAIL, 'info@practicesports.com'];
+    console.log('Sending company notification to:', companyRecipients);
     const companyEmailResult = await resend.emails.send({
       from: 'Practice Sports Leads <leads@sportsfacility.ai>',
-      to: [COMPANY_EMAIL, 'info@practicesports.com'],
+      to: companyRecipients,
       replyTo: 'info@practicesports.com',
       subject: `New Lead: ${payload.customerName} - ${formattedPartnershipType || 'Sports Facility'}`,
       html: companyHtml,
@@ -437,11 +438,12 @@ const handler = async (req: Request): Promise<Response> => {
     if (companyEmailResult.error) {
       console.error('Error sending company email:', {
         error: companyEmailResult.error,
+        recipients: companyRecipients,
         timestamp: new Date().toISOString()
       });
       // Don't throw here - customer email was successful
     } else {
-      console.log('Company email sent successfully:', companyEmailResult.data?.id);
+      console.log('✅ Company email sent successfully:', companyEmailResult.data?.id, 'to', companyRecipients.length, 'recipients:', companyRecipients);
     }
 
     return new Response(
