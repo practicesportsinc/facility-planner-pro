@@ -21,11 +21,6 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGINS[0],
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
 console.log('[analyze-location] Function loaded - v3 with competitive analysis');
 
 // Facility ratios per population (national averages)
@@ -148,6 +143,9 @@ function calculateCompetitiveAnalysis(
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+  
   console.log('[analyze-location] Request received:', req.method);
   
   if (req.method === 'OPTIONS') {

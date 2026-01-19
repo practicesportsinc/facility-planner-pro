@@ -23,11 +23,6 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGINS[0],
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
 // Rate limiting: 10 submissions per hour
 const RATE_LIMIT = {
   requests: 10,
@@ -179,6 +174,9 @@ interface LeadData {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
