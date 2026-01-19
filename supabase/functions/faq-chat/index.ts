@@ -22,12 +22,6 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
-// Legacy corsHeaders for compatibility - will be replaced with dynamic headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": ALLOWED_ORIGINS[0],
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
 const FAQ_KNOWLEDGE_BASE = `
 ## FACILITY SIZE & SPACE PLANNING
 
@@ -179,6 +173,9 @@ A: We offer free consultations, vendor introductions, project planning assistanc
 `;
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+  
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
