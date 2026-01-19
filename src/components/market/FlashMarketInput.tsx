@@ -16,7 +16,7 @@ export const FlashMarketInput = () => {
 
   const handleSubmit = () => {
     if (zipCode.length === 5) {
-      navigate(`/market-analysis?zip=${zipCode}`);
+      navigate(`/market-analysis/flash?zip=${zipCode}`);
     }
   };
 
