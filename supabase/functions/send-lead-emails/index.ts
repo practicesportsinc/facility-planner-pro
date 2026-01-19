@@ -90,7 +90,7 @@ const EmailPayloadSchema = z.object({
     roi: z.number().optional(),
     paybackPeriod: z.union([z.number(), z.string()]).optional(),
     breakEven: z.union([z.number(), z.string()]).optional()
-  }).optional(),
+  }).nullish(),
   // Equipment quote data
   equipmentItems: z.array(EquipmentCategorySchema).optional(),
   equipmentTotals: z.object({
