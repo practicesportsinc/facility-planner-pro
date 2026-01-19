@@ -46,7 +46,7 @@ const Header = () => {
   const handleDialogMarketSubmit = () => {
     if (dialogZipCode.length === 5) {
       setMarketDialogOpen(false);
-      navigate(`/market-analysis?zip=${dialogZipCode}`);
+      navigate(`/market-analysis/flash?zip=${dialogZipCode}`);
       setDialogZipCode("");
     }
   };
@@ -54,7 +54,7 @@ const Header = () => {
   const handleMobileMarketSubmit = () => {
     if (mobileZipCode.length === 5) {
       setMobileMenuOpen(false);
-      navigate(`/market-analysis?zip=${mobileZipCode}`);
+      navigate(`/market-analysis/flash?zip=${mobileZipCode}`);
       setMobileZipCode("");
     }
   };
