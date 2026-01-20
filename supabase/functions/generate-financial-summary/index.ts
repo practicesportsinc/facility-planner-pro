@@ -7,6 +7,8 @@ const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 // Allowed origins for CORS - restrict to known domains
 const ALLOWED_ORIGINS = [
+  'https://sportsfacility.ai',
+  'https://www.sportsfacility.ai',
   'https://facility-planner-pro.lovable.app',
   'https://id-preview--4da7e89e-10c0-46bf-bb1a-9914ee136192.lovable.app',
   'http://localhost:3000',
@@ -16,7 +18,10 @@ const ALLOWED_ORIGINS = [
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
   const allowedOrigin = origin && ALLOWED_ORIGINS.some(allowed => 
-    origin === allowed || origin.endsWith('.lovable.app') || origin.endsWith('.lovableproject.com')
+    origin === allowed || 
+    origin.endsWith('.lovable.app') || 
+    origin.endsWith('.lovableproject.com') ||
+    origin.endsWith('sportsfacility.ai')
   ) ? origin : ALLOWED_ORIGINS[0];
   
   return {
