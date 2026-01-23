@@ -25,6 +25,8 @@ export const SportQuestionnaire = ({ sport, onSubmit, onBack }: SportQuestionnai
   const [indoorOutdoor, setIndoorOutdoor] = useState<'indoor' | 'outdoor'>('indoor');
   const [clearHeight, setClearHeight] = useState(24);
   const [specialFeatures, setSpecialFeatures] = useState<string[]>([]);
+  const [includeConcrete, setIncludeConcrete] = useState(false);
+  const [includeLighting, setIncludeLighting] = useState(false);
 
   const isBaseball = sport === 'baseball_softball';
   const isBasketball = sport === 'basketball';
@@ -32,6 +34,13 @@ export const SportQuestionnaire = ({ sport, onSubmit, onBack }: SportQuestionnai
   const isPickleball = sport === 'pickleball';
 
   const handleSubmit = () => {
+    // Build special features array with outdoor options for pickleball
+    const allSpecialFeatures = [
+      ...specialFeatures,
+      ...(isPickleball && includeConcrete ? ['Concrete surface'] : []),
+      ...(isPickleball && includeLighting ? ['Outdoor lighting'] : []),
+    ];
+
     const inputs: EquipmentInputs = {
       sport,
       units,
@@ -41,7 +50,7 @@ export const SportQuestionnaire = ({ sport, onSubmit, onBack }: SportQuestionnai
       tournamentGrade: isVolleyball ? tournamentGrade : undefined,
       indoorOutdoor: isPickleball ? indoorOutdoor : undefined,
       clearHeight: isBasketball ? clearHeight : undefined,
-      specialFeatures,
+      specialFeatures: allSpecialFeatures,
     };
     onSubmit(inputs);
   };
@@ -221,7 +230,7 @@ export const SportQuestionnaire = ({ sport, onSubmit, onBack }: SportQuestionnai
           <Slider
             value={[units]}
             onValueChange={(val) => setUnits(val[0])}
-            min={2}
+            min={1}
             max={12}
             step={1}
             className="flex-1"
@@ -261,6 +270,28 @@ export const SportQuestionnaire = ({ sport, onSubmit, onBack }: SportQuestionnai
           </div>
         </RadioGroup>
       </div>
+
+      {indoorOutdoor === 'outdoor' && (
+        <div className="space-y-3 pt-2 border-t">
+          <Label className="text-sm font-medium">Outdoor additions (optional)</Label>
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="concrete" 
+              checked={includeConcrete}
+              onCheckedChange={(checked) => setIncludeConcrete(checked as boolean)}
+            />
+            <Label htmlFor="concrete">Include concrete pad ($12/SF)</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="lighting" 
+              checked={includeLighting}
+              onCheckedChange={(checked) => setIncludeLighting(checked as boolean)}
+            />
+            <Label htmlFor="lighting">Include court lighting</Label>
+          </div>
+        </div>
+      )}
     </>
   );
 
