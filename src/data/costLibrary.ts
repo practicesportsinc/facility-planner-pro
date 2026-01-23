@@ -153,6 +153,31 @@ export const COST_LIBRARY: Record<string, CostItem> = {
     marketNote: "User-adjustable; varies by market"
   },
 
+  // Outdoor Pickleball Infrastructure
+  outdoor_concrete_court: {
+    id: "outdoor_concrete_court",
+    name: "Outdoor Concrete Court Surface",
+    category: "flooring",
+    unit: "sf",
+    costTiers: { low: 10, mid: 12, high: 15 },
+    installFactorPct: 0,
+    description: "Concrete pad with acrylic sport coating for outdoor courts",
+    userAdjustable: true,
+    marketNote: "Standard outdoor court construction rate"
+  },
+
+  outdoor_court_lighting: {
+    id: "outdoor_court_lighting",
+    name: "Outdoor Court Lighting",
+    category: "building_systems",
+    unit: "court",
+    costTiers: { low: 8000, mid: 12000, high: 18000 },
+    installFactorPct: 25,
+    description: "Pole-mounted LED lighting system per outdoor court",
+    userAdjustable: true,
+    marketNote: "Includes poles, fixtures, and electrical"
+  },
+
   // Soccer Equipment
   soccer_goals: {
     id: "soccer_goals",

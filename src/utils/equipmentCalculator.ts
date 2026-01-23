@@ -256,13 +256,27 @@ const calculateFlooring = (inputs: EquipmentInputs): EquipmentCategory => {
 
     case 'pickleball':
       sqft = inputs.units * 800 * spaceMultiplier; // ~800 SF per court
-      const pbCostPerSF = inputs.indoorOutdoor === 'outdoor' ? 6 : 8;
-      items.push({
-        name: `${inputs.indoorOutdoor === 'outdoor' ? 'Outdoor' : 'Indoor'} Court Surface`,
-        quantity: sqft,
-        unitCost: pbCostPerSF,
-        totalCost: sqft * pbCostPerSF,
-      });
+      
+      // Check if concrete surface requested (outdoor only)
+      if (inputs.specialFeatures?.includes('Concrete surface')) {
+        const concreteCost = COST_LIBRARY['outdoor_concrete_court'];
+        const costPerSF = concreteCost?.costTiers.mid || 12;
+        items.push({
+          name: 'Concrete Court Surface',
+          quantity: sqft,
+          unitCost: costPerSF,
+          totalCost: sqft * costPerSF,
+        });
+      } else {
+        // Original indoor/outdoor surface logic
+        const pbCostPerSF = inputs.indoorOutdoor === 'outdoor' ? 6 : 8;
+        items.push({
+          name: `${inputs.indoorOutdoor === 'outdoor' ? 'Outdoor' : 'Indoor'} Court Surface`,
+          quantity: sqft,
+          unitCost: pbCostPerSF,
+          totalCost: sqft * pbCostPerSF,
+        });
+      }
       break;
 
     case 'soccer_indoor_small_sided':
@@ -320,16 +334,35 @@ const calculateSafety = (inputs: EquipmentInputs): EquipmentCategory => {
 
   }
 
-  // Add lighting estimate
-  const lightingItem = COST_LIBRARY['led-sports-lighting'];
-  if (lightingItem) {
-    const fixtureCount = inputs.units * 4; // ~4 fixtures per unit
-    items.push({
-      name: 'LED Sports Lighting',
-      quantity: fixtureCount,
-      unitCost: lightingItem.costTiers.mid,
-      totalCost: fixtureCount * lightingItem.costTiers.mid,
-    });
+  // Add lighting estimate - skip for outdoor pickleball with dedicated lighting option
+  const skipIndoorLighting = inputs.sport === 'pickleball' && inputs.indoorOutdoor === 'outdoor';
+  
+  if (!skipIndoorLighting) {
+    const lightingItem = COST_LIBRARY['led-sports-lighting'];
+    if (lightingItem) {
+      const fixtureCount = inputs.units * 4; // ~4 fixtures per unit
+      items.push({
+        name: 'LED Sports Lighting',
+        quantity: fixtureCount,
+        unitCost: lightingItem.costTiers.mid,
+        totalCost: fixtureCount * lightingItem.costTiers.mid,
+      });
+    }
+  }
+
+  // Outdoor pickleball lighting (pole-mounted)
+  if (inputs.sport === 'pickleball' && 
+      inputs.indoorOutdoor === 'outdoor' && 
+      inputs.specialFeatures?.includes('Outdoor lighting')) {
+    const outdoorLighting = COST_LIBRARY['outdoor_court_lighting'];
+    if (outdoorLighting) {
+      items.push({
+        name: 'Outdoor Court Lighting',
+        quantity: inputs.units,
+        unitCost: outdoorLighting.costTiers.mid,
+        totalCost: inputs.units * outdoorLighting.costTiers.mid,
+      });
+    }
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.totalCost, 0);
