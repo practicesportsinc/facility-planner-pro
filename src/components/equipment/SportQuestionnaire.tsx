@@ -27,6 +27,7 @@ export const SportQuestionnaire = ({ sport, onSubmit, onBack }: SportQuestionnai
   const [specialFeatures, setSpecialFeatures] = useState<string[]>([]);
   const [includeConcrete, setIncludeConcrete] = useState(false);
   const [includeLighting, setIncludeLighting] = useState(false);
+  const [fenceType, setFenceType] = useState<string>('none');
 
   const isBaseball = sport === 'baseball_softball';
   const isBasketball = sport === 'basketball';
@@ -39,6 +40,7 @@ export const SportQuestionnaire = ({ sport, onSubmit, onBack }: SportQuestionnai
       ...specialFeatures,
       ...(isPickleball && includeConcrete ? ['Concrete surface'] : []),
       ...(isPickleball && includeLighting ? ['Outdoor lighting'] : []),
+      ...(isPickleball && indoorOutdoor === 'outdoor' && fenceType !== 'none' ? [`Fencing:${fenceType}`] : []),
     ];
 
     const inputs: EquipmentInputs = {
@@ -289,6 +291,24 @@ export const SportQuestionnaire = ({ sport, onSubmit, onBack }: SportQuestionnai
               onCheckedChange={(checked) => setIncludeLighting(checked as boolean)}
             />
             <Label htmlFor="lighting">Include court lighting</Label>
+          </div>
+          
+          <div className="space-y-2 pt-2">
+            <Label className="text-sm">Perimeter fencing?</Label>
+            <RadioGroup value={fenceType} onValueChange={setFenceType}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="none" id="fence-none" />
+                <Label htmlFor="fence-none">No fencing</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="chainlink" id="fence-chainlink" />
+                <Label htmlFor="fence-chainlink">Chain-link ($20/LF)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="vinyl" id="fence-vinyl" />
+                <Label htmlFor="fence-vinyl">Vinyl ($35/LF)</Label>
+              </div>
+            </RadioGroup>
           </div>
         </div>
       )}
