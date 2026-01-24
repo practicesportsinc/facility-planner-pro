@@ -365,6 +365,38 @@ const calculateSafety = (inputs: EquipmentInputs): EquipmentCategory => {
     }
   }
 
+  // Outdoor pickleball fencing
+  if (inputs.sport === 'pickleball' && inputs.indoorOutdoor === 'outdoor') {
+    const fenceFeature = inputs.specialFeatures?.find(f => f.startsWith('Fencing:'));
+    if (fenceFeature) {
+      const fenceTypeValue = fenceFeature.split(':')[1]; // 'chainlink' or 'vinyl'
+      
+      // Standard pickleball court: 20x44ft = ~130LF perimeter per court
+      // Add buffer space: ~160LF total perimeter per court
+      const linearFeet = inputs.units * 160;
+      
+      if (fenceTypeValue === 'chainlink') {
+        const chainlinkCost = COST_LIBRARY['chainlink_fence'];
+        const costPerLF = chainlinkCost?.costTiers.mid || 20;
+        items.push({
+          name: 'Chain-Link Perimeter Fence',
+          quantity: linearFeet,
+          unitCost: costPerLF,
+          totalCost: linearFeet * costPerLF,
+        });
+      } else if (fenceTypeValue === 'vinyl') {
+        const vinylCost = COST_LIBRARY['vinyl_fence'];
+        const costPerLF = vinylCost?.costTiers.mid || 35;
+        items.push({
+          name: 'Vinyl Perimeter Fence',
+          quantity: linearFeet,
+          unitCost: costPerLF,
+          totalCost: linearFeet * costPerLF,
+        });
+      }
+    }
+  }
+
   const subtotal = items.reduce((sum, item) => sum + item.totalCost, 0);
 
   return {

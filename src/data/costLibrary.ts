@@ -178,6 +178,31 @@ export const COST_LIBRARY: Record<string, CostItem> = {
     marketNote: "Includes poles, fixtures, and electrical"
   },
 
+  // Fencing
+  chainlink_fence: {
+    id: "chainlink_fence",
+    name: "Chain-Link Fence",
+    category: "site_work",
+    unit: "lf",
+    costTiers: { low: 15, mid: 20, high: 25 },
+    installFactorPct: 0,
+    description: "4-6ft chain-link fence for outdoor courts, includes posts and installation",
+    userAdjustable: true,
+    marketNote: "Standard sports court fencing"
+  },
+
+  vinyl_fence: {
+    id: "vinyl_fence",
+    name: "Vinyl Fence",
+    category: "site_work",
+    unit: "lf",
+    costTiers: { low: 25, mid: 35, high: 45 },
+    installFactorPct: 0,
+    description: "4-6ft vinyl/PVC fence for outdoor courts, includes posts and installation",
+    userAdjustable: true,
+    marketNote: "Premium option, low maintenance"
+  },
+
   // Soccer Equipment
   soccer_goals: {
     id: "soccer_goals",
