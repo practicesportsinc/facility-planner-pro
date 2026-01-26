@@ -210,7 +210,7 @@ const calculateFlooring = (inputs: EquipmentInputs): EquipmentCategory => {
     case 'baseball_softball':
       sqft = inputs.units * 1200 * spaceMultiplier; // ~1200 SF per cage
       if (inputs.turfInstallation) {
-        const turfItem = COST_LIBRARY['turf-field'];
+        const turfItem = COST_LIBRARY.turf_installed;
         if (turfItem) {
           items.push({
             name: 'Artificial Turf Installation',
@@ -284,7 +284,7 @@ const calculateFlooring = (inputs: EquipmentInputs): EquipmentCategory => {
     case 'football':
     case 'multi_sport':
       sqft = 20000 * spaceMultiplier;
-      const turfItem = COST_LIBRARY['turf-field'];
+      const turfItem = COST_LIBRARY.turf_installed;
       if (turfItem) {
         items.push({
           name: 'Multi-Sport Turf Installation',
