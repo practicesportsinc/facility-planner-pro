@@ -40,6 +40,29 @@ export const EquipmentQuoteDisplay = ({
 
   const courtInfo = getPickleballCourtInfo();
 
+  // Calculate baseball lane info for display
+  const getBaseballLaneInfo = () => {
+    if (quote.sport !== 'baseball_softball') return null;
+    
+    const spaceMultiplier = quote.inputs.spaceSize === 'small' ? 0.8 
+      : quote.inputs.spaceSize === 'large' ? 1.2 
+      : 1;
+    const sqftPerLane = 1200 * spaceMultiplier;
+    const totalSqft = Math.round(quote.inputs.units * sqftPerLane);
+    
+    // Standard batting cage: 70' x ~15' = ~1,050 SF, with buffer ~1,200 SF
+    const laneWidth = quote.inputs.spaceSize === 'small' ? "12'" 
+      : quote.inputs.spaceSize === 'large' ? "18'" 
+      : "15'";
+    
+    return {
+      laneDimensions: `70' x ${laneWidth}`,
+      totalSqft,
+    };
+  };
+
+  const laneInfo = getBaseballLaneInfo();
+
   const handleDownload = () => {
     track('equipment_quote_downloaded', { 
       sport: quote.sport,
@@ -84,13 +107,15 @@ export const EquipmentQuoteDisplay = ({
 
       <Card className="p-8 mb-6">
         {/* Summary Stats */}
-        <div className={`grid grid-cols-2 ${courtInfo ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-4 mb-8`}>
+        <div className={`grid grid-cols-2 ${(courtInfo || laneInfo) ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-4 mb-8`}>
           <div className="text-center p-4 bg-muted/50 rounded-lg">
             <div className="text-sm text-muted-foreground mb-1">Sport</div>
             <div className="font-semibold">{SPORT_LABELS[quote.sport]}</div>
           </div>
           <div className="text-center p-4 bg-muted/50 rounded-lg">
-            <div className="text-sm text-muted-foreground mb-1">Courts</div>
+            <div className="text-sm text-muted-foreground mb-1">
+              {quote.sport === 'baseball_softball' ? 'Lanes' : 'Courts'}
+            </div>
             <div className="font-semibold">{quote.inputs.units}</div>
           </div>
           {/* Pad Size - only for pickleball */}
@@ -100,6 +125,16 @@ export const EquipmentQuoteDisplay = ({
               <div className="font-semibold">{courtInfo.padDimensions}</div>
               <div className="text-xs text-muted-foreground">
                 {courtInfo.totalSqft.toLocaleString()} SF total
+              </div>
+            </div>
+          )}
+          {/* Lane Size - only for baseball */}
+          {laneInfo && (
+            <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <div className="text-sm text-muted-foreground mb-1">Lane Size</div>
+              <div className="font-semibold">{laneInfo.laneDimensions}</div>
+              <div className="text-xs text-muted-foreground">
+                {laneInfo.totalSqft.toLocaleString()} SF total
               </div>
             </div>
           )}
@@ -165,7 +200,11 @@ export const EquipmentQuoteDisplay = ({
           equipmentTotals={quote.totals}
           facilityDetails={{
             sport: SPORT_LABELS[quote.sport],
-            size: `${quote.inputs.units} ${quote.inputs.units === 1 ? 'court' : 'courts'} (${quote.inputs.spaceSize})`,
+            size: `${quote.inputs.units} ${
+              quote.sport === 'baseball_softball' 
+                ? (quote.inputs.units === 1 ? 'lane' : 'lanes')
+                : (quote.inputs.units === 1 ? 'court' : 'courts')
+            } (${quote.inputs.spaceSize})`,
           }}
         />
       </Card>
