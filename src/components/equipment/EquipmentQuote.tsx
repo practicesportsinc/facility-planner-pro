@@ -7,6 +7,7 @@ import { SPORT_LABELS } from "@/components/home/SportIcons";
 import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
 import useAnalytics from "@/hooks/useAnalytics";
 import { toast } from "sonner";
+import { generateEquipmentQuotePDF } from "@/utils/equipmentQuotePdf";
 interface EquipmentQuoteDisplayProps {
   quote: EquipmentQuote;
   onRequestReview: () => void;
@@ -68,7 +69,8 @@ export const EquipmentQuoteDisplay = ({
       sport: quote.sport,
       total: quote.totals.grandTotal 
     });
-    toast.success("Quote download coming soon!");
+    generateEquipmentQuotePDF(quote);
+    toast.success("Quote downloaded!");
   };
 
   const handleRequestReview = () => {
