@@ -287,7 +287,7 @@ const calculateFlooring = (inputs: EquipmentInputs): EquipmentCategory => {
       const turfItem = COST_LIBRARY.turf_installed;
       if (turfItem) {
         items.push({
-          name: 'Multi-Sport Turf Installation',
+          name: 'Multi-Sport Turf',
           quantity: sqft,
           unitCost: turfItem.costTiers.mid,
           totalCost: sqft * turfItem.costTiers.mid,
