@@ -255,7 +255,8 @@ const calculateFlooring = (inputs: EquipmentInputs): EquipmentCategory => {
       break;
 
     case 'pickleball':
-      sqft = inputs.units * 800 * spaceMultiplier; // ~800 SF per court
+      // Standard pickleball pad: 60' x 30' = 1,800 SF per court (includes buffer zones)
+      sqft = inputs.units * 1800 * spaceMultiplier;
       
       // Check if concrete surface requested (outdoor only)
       if (inputs.specialFeatures?.includes('Concrete surface')) {
@@ -371,9 +372,8 @@ const calculateSafety = (inputs: EquipmentInputs): EquipmentCategory => {
     if (fenceFeature) {
       const fenceTypeValue = fenceFeature.split(':')[1]; // 'chainlink' or 'vinyl'
       
-      // Standard pickleball court: 20x44ft = ~130LF perimeter per court
-      // Add buffer space: ~160LF total perimeter per court
-      const linearFeet = inputs.units * 160;
+      // Standard pickleball pad: 60' x 30' = 180LF perimeter per court
+      const linearFeet = inputs.units * 180;
       
       if (fenceTypeValue === 'chainlink') {
         const chainlinkCost = COST_LIBRARY['chainlink_fence'];

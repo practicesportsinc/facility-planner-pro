@@ -22,6 +22,24 @@ export const EquipmentQuoteDisplay = ({
 }: EquipmentQuoteDisplayProps) => {
   const { track } = useAnalytics();
 
+  // Calculate pickleball court info for display
+  const getPickleballCourtInfo = () => {
+    if (quote.sport !== 'pickleball') return null;
+    
+    const spaceMultiplier = quote.inputs.spaceSize === 'small' ? 0.8 
+      : quote.inputs.spaceSize === 'large' ? 1.2 
+      : 1;
+    const sqftPerCourt = 1800 * spaceMultiplier;
+    const totalSqft = Math.round(quote.inputs.units * sqftPerCourt);
+    
+    return {
+      padDimensions: "60' x 30'",
+      totalSqft,
+    };
+  };
+
+  const courtInfo = getPickleballCourtInfo();
+
   const handleDownload = () => {
     track('equipment_quote_downloaded', { 
       sport: quote.sport,
@@ -66,15 +84,25 @@ export const EquipmentQuoteDisplay = ({
 
       <Card className="p-8 mb-6">
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className={`grid grid-cols-2 ${courtInfo ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-4 mb-8`}>
           <div className="text-center p-4 bg-muted/50 rounded-lg">
             <div className="text-sm text-muted-foreground mb-1">Sport</div>
             <div className="font-semibold">{SPORT_LABELS[quote.sport]}</div>
           </div>
           <div className="text-center p-4 bg-muted/50 rounded-lg">
-            <div className="text-sm text-muted-foreground mb-1">Units</div>
+            <div className="text-sm text-muted-foreground mb-1">Courts</div>
             <div className="font-semibold">{quote.inputs.units}</div>
           </div>
+          {/* Pad Size - only for pickleball */}
+          {courtInfo && (
+            <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <div className="text-sm text-muted-foreground mb-1">Pad Size</div>
+              <div className="font-semibold">{courtInfo.padDimensions}</div>
+              <div className="text-xs text-muted-foreground">
+                {courtInfo.totalSqft.toLocaleString()} SF total
+              </div>
+            </div>
+          )}
           <div className="text-center p-4 bg-muted/50 rounded-lg">
             <div className="text-sm text-muted-foreground mb-1">Space</div>
             <div className="font-semibold capitalize">{quote.inputs.spaceSize}</div>
