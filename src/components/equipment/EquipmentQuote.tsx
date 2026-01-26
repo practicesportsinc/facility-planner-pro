@@ -60,11 +60,11 @@ export const EquipmentQuoteDisplay = ({
         };
       }
       case 'volleyball': {
-        const sqftPerCourt = 3000 * spaceMultiplier;
+        const sqftPerCourt = 4000 * spaceMultiplier;
         const totalSqft = Math.round(quote.inputs.units * sqftPerCourt);
         return {
           label: 'Court Size',
-          dimensions: "60' x 30'",
+          dimensions: "80' x 50'",
           totalSqft,
         };
       }

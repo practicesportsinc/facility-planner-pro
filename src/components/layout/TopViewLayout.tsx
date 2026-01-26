@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from "react";
 
 /** ====== Nominal top-view dimensions (feet) incl. runouts ======
  * Match the SF you already use:
- * - Volleyball: 72' x 36' = 2,592 sf
+ * - Volleyball: 80' x 50' = 4,000 sf
  * - Pickleball: 60' x 30' = 1,800 sf
  * - Basketball (full, with runouts): 112' x 56' ≈ 6,272 sf (close to 6,240 preset)
  * - Basketball (half): 56' x 56' (visual convenience for half-area)
@@ -21,7 +21,7 @@ export type UnitKind =
   | "football_field";
 
 const UNIT_DIMS_FT: Record<UnitKind, { w: number; h: number; label: string }> = {
-  volleyball_court:       { w: 60,  h: 30, label: "Volleyball" },
+  volleyball_court:       { w: 80,  h: 50, label: "Volleyball" },
   pickleball_court:       { w: 60,  h: 30, label: "Pickleball" },
   basketball_court_full:  { w: 84,  h: 50, label: "Basketball (Full)" },
   basketball_court_half:  { w: 42,  h: 50, label: "Basketball (Half)" },

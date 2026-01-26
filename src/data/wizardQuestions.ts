@@ -312,7 +312,7 @@ export const generateRecommendations = (responses: any) => {
   const capacityMap: Record<string, number> = {
     baseball_softball: Math.floor(suggestedSize / 1500), // ~1500 sf per cage
     basketball: Math.floor(suggestedSize / 6000), // ~6000 sf per full court
-    volleyball: Math.floor(suggestedSize / 3000), // ~3000 sf per court
+    volleyball: Math.floor(suggestedSize / 4000), // ~4000 sf per court (80' x 50')
     pickleball: Math.floor(suggestedSize / 1200), // ~1200 sf per court
     soccer: Math.floor(suggestedSize / 18000), // ~18000 sf per small field
     football: Math.floor(suggestedSize / 16000), // ~16000 sf per training field

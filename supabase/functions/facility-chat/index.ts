@@ -169,7 +169,7 @@ const SPORT_REQUIREMENTS = `
 - Flooring: Hardwood or sport tile
 
 ### Volleyball
-- Court: ~4,500 SF per court (60' x 30' + buffer)
+- Court: ~4,000 SF per court (80' x 50')
 - Minimum Ceiling Height: 23-26'
 - Flooring: Hardwood or sport tile
 
