@@ -63,6 +63,32 @@ const PRODUCT_HELPERS = {
 // Helper function max that treats missing values as 0
 const max = (...args: number[]) => Math.max(...args.map(x => x || 0));
 
+// Safe formula evaluator - replaces new Function() to prevent code injection
+// Only supports the specific formula patterns used in PRODUCT_CATALOG
+function evaluateMaxFormula(
+  formula: string, 
+  counts: Record<string, number>, 
+  facilitySqft: number
+): number | null {
+  // Only pattern used: "facility_plan.total_sqft || 0"
+  if (formula === 'facility_plan.total_sqft || 0') {
+    return facilitySqft || 0;
+  }
+  
+  // Pattern matching for simple variable access with fallback
+  // e.g., "counts.baseball_tunnels || 0"
+  const simpleCountMatch = formula.match(/^counts\.(\w+)\s*\|\|\s*(\d+)$/);
+  if (simpleCountMatch) {
+    const key = simpleCountMatch[1];
+    const fallback = parseInt(simpleCountMatch[2], 10);
+    return counts[key] ?? fallback;
+  }
+  
+  // For any unrecognized formula, return null to use default max
+  console.warn('Unrecognized maxFormula pattern:', formula);
+  return null;
+}
+
 // Coerce array function to handle different data shapes
 function coerceArray(x: any): string[] {
   if (Array.isArray(x)) return x;
@@ -356,12 +382,13 @@ const Equipment = ({ data, onUpdate, onNext, onPrevious, allData }: EquipmentPro
             const isSelected = selected.has(item.key) || qtyVal > 0;
             const currentValue = qtyVal;
             
-            // Calculate max bound
+            // Calculate max bound using safe evaluation (no dynamic code execution)
+            // maxFormula is always from PRODUCT_CATALOG, a trusted static source
             let maxBound = item.max;
             if (item.maxFormula) {
               try {
-                const maxFunc = new Function('counts', 'facility_plan', 'Math', 'max', `return ${item.maxFormula}`);
-                maxBound = maxFunc(counts, { total_sqft: facilitySqft }, Math, max);
+                // Safe formula evaluation using a whitelist approach
+                maxBound = evaluateMaxFormula(item.maxFormula, counts, facilitySqft) ?? item.max;
               } catch {
                 maxBound = item.max;
               }
