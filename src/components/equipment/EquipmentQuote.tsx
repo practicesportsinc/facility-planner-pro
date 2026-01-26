@@ -23,46 +23,68 @@ export const EquipmentQuoteDisplay = ({
 }: EquipmentQuoteDisplayProps) => {
   const { track } = useAnalytics();
 
-  // Calculate pickleball court info for display
-  const getPickleballCourtInfo = () => {
-    if (quote.sport !== 'pickleball') return null;
-    
+  // Unified size info for all sports
+  const getSizeInfo = () => {
     const spaceMultiplier = quote.inputs.spaceSize === 'small' ? 0.8 
       : quote.inputs.spaceSize === 'large' ? 1.2 
       : 1;
-    const sqftPerCourt = 1800 * spaceMultiplier;
-    const totalSqft = Math.round(quote.inputs.units * sqftPerCourt);
-    
-    return {
-      padDimensions: "60' x 30'",
-      totalSqft,
-    };
+
+    switch (quote.sport) {
+      case 'baseball_softball': {
+        const sqftPerLane = 1200 * spaceMultiplier;
+        const totalSqft = Math.round(quote.inputs.units * sqftPerLane);
+        const laneWidth = quote.inputs.spaceSize === 'small' ? "12'" 
+          : quote.inputs.spaceSize === 'large' ? "18'" : "15'";
+        return {
+          label: 'Lane Size',
+          dimensions: `70' x ${laneWidth}`,
+          totalSqft,
+        };
+      }
+      case 'pickleball': {
+        const sqftPerCourt = 1800 * spaceMultiplier;
+        const totalSqft = Math.round(quote.inputs.units * sqftPerCourt);
+        return {
+          label: 'Pad Size',
+          dimensions: "60' x 30'",
+          totalSqft,
+        };
+      }
+      case 'basketball': {
+        const sqftPerCourt = 5000 * spaceMultiplier;
+        const totalSqft = Math.round(quote.inputs.units * sqftPerCourt);
+        return {
+          label: 'Court Size',
+          dimensions: "94' x 50'",
+          totalSqft,
+        };
+      }
+      case 'volleyball': {
+        const sqftPerCourt = 3000 * spaceMultiplier;
+        const totalSqft = Math.round(quote.inputs.units * sqftPerCourt);
+        return {
+          label: 'Court Size',
+          dimensions: "60' x 30'",
+          totalSqft,
+        };
+      }
+      case 'soccer_indoor_small_sided':
+      case 'football':
+      case 'multi_sport': {
+        const sqftPerField = 20000 * spaceMultiplier;
+        const totalSqft = Math.round(quote.inputs.units * sqftPerField);
+        return {
+          label: 'Field Size',
+          dimensions: "200' x 85'",
+          totalSqft,
+        };
+      }
+      default:
+        return null;
+    }
   };
 
-  const courtInfo = getPickleballCourtInfo();
-
-  // Calculate baseball lane info for display
-  const getBaseballLaneInfo = () => {
-    if (quote.sport !== 'baseball_softball') return null;
-    
-    const spaceMultiplier = quote.inputs.spaceSize === 'small' ? 0.8 
-      : quote.inputs.spaceSize === 'large' ? 1.2 
-      : 1;
-    const sqftPerLane = 1200 * spaceMultiplier;
-    const totalSqft = Math.round(quote.inputs.units * sqftPerLane);
-    
-    // Standard batting cage: 70' x ~15' = ~1,050 SF, with buffer ~1,200 SF
-    const laneWidth = quote.inputs.spaceSize === 'small' ? "12'" 
-      : quote.inputs.spaceSize === 'large' ? "18'" 
-      : "15'";
-    
-    return {
-      laneDimensions: `70' x ${laneWidth}`,
-      totalSqft,
-    };
-  };
-
-  const laneInfo = getBaseballLaneInfo();
+  const sizeInfo = getSizeInfo();
 
   const handleDownload = () => {
     track('equipment_quote_downloaded', { 
@@ -109,34 +131,26 @@ export const EquipmentQuoteDisplay = ({
 
       <Card className="p-8 mb-6">
         {/* Summary Stats */}
-        <div className={`grid grid-cols-2 ${(courtInfo || laneInfo) ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-4 mb-8`}>
+        <div className={`grid grid-cols-2 ${sizeInfo ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-4 mb-8`}>
           <div className="text-center p-4 bg-muted/50 rounded-lg">
             <div className="text-sm text-muted-foreground mb-1">Sport</div>
             <div className="font-semibold">{SPORT_LABELS[quote.sport]}</div>
           </div>
           <div className="text-center p-4 bg-muted/50 rounded-lg">
             <div className="text-sm text-muted-foreground mb-1">
-              {quote.sport === 'baseball_softball' ? 'Lanes' : 'Courts'}
+              {quote.sport === 'baseball_softball' ? 'Lanes' 
+                : ['soccer_indoor_small_sided', 'football', 'multi_sport'].includes(quote.sport) ? 'Fields'
+                : 'Courts'}
             </div>
             <div className="font-semibold">{quote.inputs.units}</div>
           </div>
-          {/* Pad Size - only for pickleball */}
-          {courtInfo && (
+          {/* Size Display - for all sports */}
+          {sizeInfo && (
             <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <div className="text-sm text-muted-foreground mb-1">Pad Size</div>
-              <div className="font-semibold">{courtInfo.padDimensions}</div>
+              <div className="text-sm text-muted-foreground mb-1">{sizeInfo.label}</div>
+              <div className="font-semibold">{sizeInfo.dimensions}</div>
               <div className="text-xs text-muted-foreground">
-                {courtInfo.totalSqft.toLocaleString()} SF total
-              </div>
-            </div>
-          )}
-          {/* Lane Size - only for baseball */}
-          {laneInfo && (
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <div className="text-sm text-muted-foreground mb-1">Lane Size</div>
-              <div className="font-semibold">{laneInfo.laneDimensions}</div>
-              <div className="text-xs text-muted-foreground">
-                {laneInfo.totalSqft.toLocaleString()} SF total
+                {sizeInfo.totalSqft.toLocaleString()} SF total
               </div>
             </div>
           )}
@@ -205,7 +219,9 @@ export const EquipmentQuoteDisplay = ({
             size: `${quote.inputs.units} ${
               quote.sport === 'baseball_softball' 
                 ? (quote.inputs.units === 1 ? 'lane' : 'lanes')
-                : (quote.inputs.units === 1 ? 'court' : 'courts')
+                : ['soccer_indoor_small_sided', 'football', 'multi_sport'].includes(quote.sport)
+                  ? (quote.inputs.units === 1 ? 'field' : 'fields')
+                  : (quote.inputs.units === 1 ? 'court' : 'courts')
             } (${quote.inputs.spaceSize})`,
           }}
         />
