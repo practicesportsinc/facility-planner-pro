@@ -21,7 +21,7 @@ export const COST_LIBRARY: Record<string, CostItem> = {
     name: "Turf (installed)",
     category: "flooring",
     unit: "sf",
-    costTiers: { low: 6, mid: 8, high: 11 },
+    costTiers: { low: 3, mid: 5, high: 10 },
     installFactorPct: 15,
     description: "Indoor synthetic turf with shock pad and installation",
     userAdjustable: true,
