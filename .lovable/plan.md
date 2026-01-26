@@ -1,164 +1,155 @@
 
 
-## Plan: Add Court/Field Size Display for All Sports
+## Plan: Update Volleyball Court Dimensions to 80' x 50'
 
 ### Overview
-Extend the court/lane size display to all sports in the equipment quote summary, similar to what's already done for pickleball and baseball/softball.
+Update all volleyball court dimension references from 60' x 30' (3,000 SF) to the industry-standard 80' x 50' (4,000 SF).
 
 ---
 
-### Sport Dimensions Reference
+### Dimension Calculation
 
-| Sport | Label | Base Dimensions | SF per Unit |
-|-------|-------|-----------------|-------------|
-| Baseball/Softball | Lane Size | 70' x 12'/15'/18' | 1,200 |
-| Pickleball | Pad Size | 60' x 30' | 1,800 |
-| Basketball | Court Size | 94' x 50' | 5,000 |
-| Volleyball | Court Size | 60' x 30' | 3,000 |
-| Soccer | Field Size | 200' x 85' | 20,000 |
-| Football | Field Size | 200' x 85' | 20,000 |
-| Multi-Sport | Field Size | 200' x 85' | 20,000 |
+| Before | After |
+|--------|-------|
+| 60' x 30' = 1,800 SF | 80' x 50' = 4,000 SF |
+| + buffer = ~3,000 SF | (includes standard runouts/buffers) |
 
 ---
 
-### Changes Required
+### Files to Update
 
-**File: `src/components/equipment/EquipmentQuote.tsx`**
-
-#### 1. Replace separate helper functions with a unified `getSizeInfo` function
-
-Replace the two separate functions (`getPickleballCourtInfo` and `getBaseballLaneInfo`) with one unified function that handles all sports:
+#### 1. `src/components/equipment/EquipmentQuote.tsx`
+Update the `getSizeInfo` function for volleyball:
 
 ```typescript
-const getSizeInfo = () => {
-  const spaceMultiplier = quote.inputs.spaceSize === 'small' ? 0.8 
-    : quote.inputs.spaceSize === 'large' ? 1.2 
-    : 1;
+// Before (lines 62-69)
+case 'volleyball': {
+  const sqftPerCourt = 3000 * spaceMultiplier;
+  ...
+  dimensions: "60' x 30'",
+}
 
-  switch (quote.sport) {
-    case 'baseball_softball': {
-      const sqftPerLane = 1200 * spaceMultiplier;
-      const totalSqft = Math.round(quote.inputs.units * sqftPerLane);
-      const laneWidth = quote.inputs.spaceSize === 'small' ? "12'" 
-        : quote.inputs.spaceSize === 'large' ? "18'" : "15'";
-      return {
-        label: 'Lane Size',
-        dimensions: `70' x ${laneWidth}`,
-        totalSqft,
-      };
-    }
-    case 'pickleball': {
-      const sqftPerCourt = 1800 * spaceMultiplier;
-      const totalSqft = Math.round(quote.inputs.units * sqftPerCourt);
-      return {
-        label: 'Pad Size',
-        dimensions: "60' x 30'",
-        totalSqft,
-      };
-    }
-    case 'basketball': {
-      const sqftPerCourt = 5000 * spaceMultiplier;
-      const totalSqft = Math.round(quote.inputs.units * sqftPerCourt);
-      return {
-        label: 'Court Size',
-        dimensions: "94' x 50'",
-        totalSqft,
-      };
-    }
-    case 'volleyball': {
-      const sqftPerCourt = 3000 * spaceMultiplier;
-      const totalSqft = Math.round(quote.inputs.units * sqftPerCourt);
-      return {
-        label: 'Court Size',
-        dimensions: "60' x 30'",
-        totalSqft,
-      };
-    }
-    case 'soccer_indoor_small_sided':
-    case 'football':
-    case 'multi_sport': {
-      const totalSqft = Math.round(20000 * spaceMultiplier);
-      return {
-        label: 'Field Size',
-        dimensions: "200' x 85'",
-        totalSqft,
-      };
-    }
-    default:
-      return null;
-  }
-};
-
-const sizeInfo = getSizeInfo();
-```
-
-#### 2. Simplify the grid layout logic
-
-Update the grid column check from `(courtInfo || laneInfo)` to just `sizeInfo`:
-
-```typescript
-<div className={`grid grid-cols-2 ${sizeInfo ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-4 mb-8`}>
-```
-
-#### 3. Replace separate display blocks with unified size display
-
-Replace the two conditional blocks for pickleball and baseball with one unified block:
-
-```typescript
-{/* Size Display - for all sports */}
-{sizeInfo && (
-  <div className="text-center p-4 bg-muted/50 rounded-lg">
-    <div className="text-sm text-muted-foreground mb-1">{sizeInfo.label}</div>
-    <div className="font-semibold">{sizeInfo.dimensions}</div>
-    <div className="text-xs text-muted-foreground">
-      {sizeInfo.totalSqft.toLocaleString()} SF total
-    </div>
-  </div>
-)}
-```
-
-#### 4. Update unit label logic for soccer/football
-
-Extend the Courts/Lanes/Fields label logic:
-
-```typescript
-<div className="text-sm text-muted-foreground mb-1">
-  {quote.sport === 'baseball_softball' ? 'Lanes' 
-    : ['soccer_indoor_small_sided', 'football', 'multi_sport'].includes(quote.sport) ? 'Fields'
-    : 'Courts'}
-</div>
-```
-
-#### 5. Update facilityDetails size string
-
-Extend the terminology in the PricingDisclaimer payload:
-
-```typescript
-size: `${quote.inputs.units} ${
-  quote.sport === 'baseball_softball' 
-    ? (quote.inputs.units === 1 ? 'lane' : 'lanes')
-    : ['soccer_indoor_small_sided', 'football', 'multi_sport'].includes(quote.sport)
-      ? (quote.inputs.units === 1 ? 'field' : 'fields')
-      : (quote.inputs.units === 1 ? 'court' : 'courts')
-} (${quote.inputs.spaceSize})`,
+// After
+case 'volleyball': {
+  const sqftPerCourt = 4000 * spaceMultiplier;
+  ...
+  dimensions: "80' x 50'",
+}
 ```
 
 ---
 
-### Expected Result
+#### 2. `src/utils/equipmentCalculator.ts`
+Update the flooring calculation for volleyball:
 
-**Basketball Quote Summary:**
-| Sport | Courts | Court Size | Space | Total |
-|-------|--------|------------|-------|-------|
-| Basketball | 2 | 94' x 50' (10,000 SF total) | Medium | $XX,XXX |
+```typescript
+// Before (line 242)
+sqft = inputs.units * 3000 * spaceMultiplier; // ~3000 SF per court
 
-**Soccer Quote Summary:**
-| Sport | Fields | Field Size | Space | Total |
-|-------|--------|------------|-------|-------|
-| Soccer | 1 | 200' x 85' (20,000 SF total) | Medium | $XX,XXX |
+// After
+sqft = inputs.units * 4000 * spaceMultiplier; // ~4000 SF per court (80' x 50')
+```
+
+---
+
+#### 3. `src/data/sportPresets.ts`
+Update the preset square footage:
+
+```typescript
+// Before (line 76)
+perUnitSpaceSf: { volleyball_courts: 2592 }, // with runouts
+
+// After
+perUnitSpaceSf: { volleyball_courts: 4000 }, // 80' x 50' with runouts
+```
+
+---
+
+#### 4. `src/data/wizardQuestions.ts`
+Update the capacity estimation:
+
+```typescript
+// Before (line 315)
+volleyball: Math.floor(suggestedSize / 3000), // ~3000 sf per court
+
+// After
+volleyball: Math.floor(suggestedSize / 4000), // ~4000 sf per court (80' x 50')
+```
+
+---
+
+#### 5. `src/components/calculator/steps/KpiResults.tsx`
+Update the per-unit SF for KPI calculations:
+
+```typescript
+// Before (line 59)
+volleyball_courts: 2592,
+
+// After
+volleyball_courts: 4000,
+```
+
+---
+
+#### 6. `src/components/calculator/steps/FacilityPlan.tsx`
+Update recommended base size:
+
+```typescript
+// Before (line 78)
+volleyball: 3000,
+
+// After
+volleyball: 4000,
+```
+
+---
+
+#### 7. `src/components/layout/TopViewLayout.tsx`
+Update the dimension comment and visual layout:
+
+```typescript
+// Before (line 5)
+* - Volleyball: 72' x 36' = 2,592 sf
+
+// After
+* - Volleyball: 80' x 50' = 4,000 sf
+```
+
+---
+
+#### 8. `supabase/functions/facility-chat/index.ts`
+Update AI chat knowledge:
+
+```typescript
+// Before (line 172)
+- Court: ~4,500 SF per court (60' x 30' + buffer)
+
+// After
+- Court: ~4,000 SF per court (80' x 50')
+```
+
+---
+
+### Impact Summary
+
+For a 4-court volleyball facility:
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Court Dimensions | 60' x 30' | 80' x 50' |
+| SF per Court | 3,000 | 4,000 |
+| Total SF (4 courts) | 12,000 | 16,000 |
+| Flooring Cost (@ $8/SF) | $96,000 | $128,000 |
 
 ---
 
 ### Files to Modify
-1. `src/components/equipment/EquipmentQuote.tsx` - Unify size display logic for all sports
+1. `src/components/equipment/EquipmentQuote.tsx` - Update getSizeInfo dimensions
+2. `src/utils/equipmentCalculator.ts` - Update flooring calculation
+3. `src/data/sportPresets.ts` - Update perUnitSpaceSf
+4. `src/data/wizardQuestions.ts` - Update capacity estimation
+5. `src/components/calculator/steps/KpiResults.tsx` - Update perUnitSF
+6. `src/components/calculator/steps/FacilityPlan.tsx` - Update base size
+7. `src/components/layout/TopViewLayout.tsx` - Update comment and visual dimensions
+8. `supabase/functions/facility-chat/index.ts` - Update AI knowledge base
 
