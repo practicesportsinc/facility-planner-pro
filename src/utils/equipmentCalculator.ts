@@ -282,18 +282,22 @@ const calculateFlooring = (inputs: EquipmentInputs): EquipmentCategory => {
 
     case 'soccer_indoor_small_sided':
     case 'football':
-    case 'multi_sport':
-      sqft = 20000 * spaceMultiplier;
+    case 'multi_sport': {
+      sqft = inputs.units * 20000 * spaceMultiplier;
       const turfItem = COST_LIBRARY.turf_installed;
       if (turfItem) {
+        // Soccer and football use high-tier turf for professional quality
+        const usesHighTierTurf = inputs.sport === 'soccer_indoor_small_sided' || inputs.sport === 'football';
+        const turfCost = usesHighTierTurf ? turfItem.costTiers.high : turfItem.costTiers.mid;
         items.push({
           name: 'Multi-Sport Turf',
           quantity: sqft,
-          unitCost: turfItem.costTiers.mid,
-          totalCost: sqft * turfItem.costTiers.mid,
+          unitCost: turfCost,
+          totalCost: sqft * turfCost,
         });
       }
       break;
+    }
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.totalCost, 0);
