@@ -6,22 +6,51 @@ import LeadGate from "@/components/shared/LeadGate";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface EquipmentLineItem {
+  name: string;
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
+}
+
+interface EquipmentCategory {
+  category: string;
+  items: EquipmentLineItem[];
+  subtotal: number;
+}
+
+interface EquipmentTotals {
+  equipment: number;
+  flooring: number;
+  installation: number;
+  grandTotal: number;
+}
+
 interface PricingDisclaimerProps {
   className?: string;
   showButton?: boolean;
   buttonLabel?: string;
+  equipmentItems?: EquipmentCategory[];
+  equipmentTotals?: EquipmentTotals;
+  facilityDetails?: {
+    sport?: string;
+    size?: string;
+  };
 }
 
 export const PricingDisclaimer = ({ 
   className, 
   showButton = true,
-  buttonLabel = "Finalize Best Pricing"
+  buttonLabel = "Finalize Best Pricing",
+  equipmentItems,
+  equipmentTotals,
+  facilityDetails,
 }: PricingDisclaimerProps) => {
   const [showLeadGate, setShowLeadGate] = useState(false);
 
   const handleLeadSubmit = async (data: { name: string; email: string; phone?: string; city?: string; state?: string }) => {
     try {
-      // Save lead to database
+      // Save lead to database with equipment summary
       const { error: dbError } = await supabase.from('leads').insert({
         name: data.name,
         email: data.email,
@@ -29,11 +58,14 @@ export const PricingDisclaimer = ({
         city: data.city || null,
         state: data.state || null,
         source: 'finalize-pricing',
+        facility_type: facilityDetails?.sport || null,
+        facility_size: facilityDetails?.size || null,
+        estimated_budget: equipmentTotals?.grandTotal || null,
       });
 
       if (dbError) throw dbError;
 
-      // Sync to Google Sheets
+      // Sync to Google Sheets with equipment details
       await supabase.functions.invoke('sync-lead-to-sheets', {
         body: {
           name: data.name,
@@ -43,10 +75,15 @@ export const PricingDisclaimer = ({
           state: data.state,
           source: 'finalize-pricing',
           source_detail: 'pricing-disclaimer-cta',
+          facilityType: facilityDetails?.sport,
+          facilitySize: facilityDetails?.size,
+          estimatedBudget: equipmentTotals?.grandTotal,
+          equipmentItems: equipmentItems,
+          equipmentTotals: equipmentTotals,
         }
       });
 
-      // Send confirmation emails
+      // Send confirmation emails WITH equipment data
       await supabase.functions.invoke('send-lead-emails', {
         body: {
           customerEmail: data.email,
@@ -58,6 +95,9 @@ export const PricingDisclaimer = ({
             city: data.city,
             state: data.state,
           },
+          facilityDetails: facilityDetails,
+          equipmentItems: equipmentItems,
+          equipmentTotals: equipmentTotals,
           source: 'finalize-pricing',
         }
       });

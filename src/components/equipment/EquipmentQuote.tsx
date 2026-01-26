@@ -159,7 +159,15 @@ export const EquipmentQuoteDisplay = ({
         </div>
 
         {/* Disclaimer */}
-        <PricingDisclaimer className="mt-6" />
+        <PricingDisclaimer 
+          className="mt-6"
+          equipmentItems={quote.lineItems}
+          equipmentTotals={quote.totals}
+          facilityDetails={{
+            sport: SPORT_LABELS[quote.sport],
+            size: `${quote.inputs.units} ${quote.inputs.units === 1 ? 'court' : 'courts'} (${quote.inputs.spaceSize})`,
+          }}
+        />
       </Card>
 
       {/* Action Buttons */}
