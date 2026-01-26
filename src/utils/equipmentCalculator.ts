@@ -239,7 +239,7 @@ const calculateFlooring = (inputs: EquipmentInputs): EquipmentCategory => {
       break;
 
     case 'volleyball':
-      sqft = inputs.units * 3000 * spaceMultiplier; // ~3000 SF per court
+      sqft = inputs.units * 4000 * spaceMultiplier; // ~4000 SF per court (80' x 50')
       const vbFlooringCostMap: Record<string, number> = {
         wood: 12,
         'sport-tile': 8,

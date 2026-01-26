@@ -75,7 +75,7 @@ const FacilityPlan = ({ data, onUpdate, onNext, onPrevious, allData }: FacilityP
   const getRecommendedSize = () => {
     const baseSizes = {
       basketball: 5000,
-      volleyball: 3000,
+      volleyball: 4000,
       baseball: 8000,
       pickleball: 2000,
       soccer: 10000,

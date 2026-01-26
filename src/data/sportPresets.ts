@@ -73,7 +73,7 @@ export const SPORT_PRESETS: Record<string, SportPreset> = {
     name: "Volleyball",
     description: "Volleyball courts with proper clearances",
     recommendedUnits: { volleyball_courts: 4 },
-    perUnitSpaceSf: { volleyball_courts: 2592 }, // with runouts
+    perUnitSpaceSf: { volleyball_courts: 4000 }, // 80' x 50' with runouts
     minClearHeight: { min: 23, max: 26 },
     flooringType: "Sport tile or wood",
     typicalAmenities: [
