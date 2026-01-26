@@ -1,102 +1,153 @@
 
 
-## Plan: Update Pickleball Court Dimensions with Buffer Zone
+## Plan: Include Equipment Pricing & Specs in Lead Emails
 
-### Overview
-Update pickleball court sizing to reflect realistic dimensions including buffer zones. A standard pickleball court is 20' x 44', but with required buffer zones, the typical concrete pad is **60' x 30' (1,800 SF)**.
+### Problem Identified
+When a user submits an inquiry via the "Finalize Best Pricing" button on the Equipment Quote page, the confirmation emails sent to both the customer and your team do not include the equipment pricing and specifications. The emails only contain basic contact information.
 
----
+### Root Cause
+The `PricingDisclaimer` component (which contains the "Finalize Best Pricing" button) does not receive the equipment quote data from its parent component. When it calls the `send-lead-emails` Edge Function, it only sends:
+- Customer name/email/phone
+- City/state
+- Source: "finalize-pricing"
 
-### Current vs. Corrected Dimensions
+The Edge Function and email templates **already support** equipment data (`equipmentItems`, `equipmentTotals`, `facilityDetails`) - they're just not receiving it.
 
-| Measurement | Current | Corrected |
-|-------------|---------|-----------|
-| Court only | 20' x 44' (880 SF) | 20' x 44' (880 SF) |
-| **With buffer (pad size)** | 800 SF | **1,800 SF (60' x 30')** |
-| Perimeter for fencing | 160 LF | **180 LF** |
+### Solution Overview
+Update the `PricingDisclaimer` component to accept optional equipment quote data as props and pass it through to the email function. Then update the `EquipmentQuoteDisplay` component to pass the quote data to `PricingDisclaimer`.
 
 ---
 
 ### Changes Required
 
-#### 1. Update Equipment Calculator - Square Footage
+#### 1. Update PricingDisclaimer Component
 
-**File: `src/utils/equipmentCalculator.ts`**
+**File: `src/components/ui/pricing-disclaimer.tsx`**
 
-Update the pickleball square footage calculation (line 258):
-
-```typescript
-case 'pickleball':
-  // Standard pickleball pad: 60' x 30' = 1,800 SF per court (includes buffer zones)
-  sqft = inputs.units * 1800 * spaceMultiplier;
-```
-
-#### 2. Update Fencing Perimeter Calculation
-
-**Same file, line 376:**
+Add new optional props to accept equipment data:
 
 ```typescript
-// Standard pickleball pad: 60' x 30' = 180LF perimeter per court
-const linearFeet = inputs.units * 180;
-```
+interface EquipmentCategory {
+  category: string;
+  items: { name: string; quantity: number; unitCost: number; totalCost: number }[];
+  subtotal: number;
+}
 
-#### 3. Add Court Size Display to Equipment Quote
+interface EquipmentTotals {
+  equipment: number;
+  flooring: number;
+  installation: number;
+  grandTotal: number;
+}
 
-**File: `src/components/equipment/EquipmentQuote.tsx`**
-
-Add a helper function and display court size in the summary stats:
-
-```typescript
-// Calculate pickleball court info for display
-const getPickleballCourtInfo = () => {
-  if (quote.sport !== 'pickleball') return null;
-  
-  const spaceMultiplier = quote.inputs.spaceSize === 'small' ? 0.8 
-    : quote.inputs.spaceSize === 'large' ? 1.2 
-    : 1;
-  const sqftPerCourt = 1800 * spaceMultiplier;
-  const totalSqft = Math.round(quote.inputs.units * sqftPerCourt);
-  
-  return {
-    padDimensions: "60' x 30'",  // Standard pad with buffer
-    courtDimensions: "20' x 44'", // Playing area
-    totalSqft,
+interface PricingDisclaimerProps {
+  className?: string;
+  showButton?: boolean;
+  buttonLabel?: string;
+  // New props for equipment data
+  equipmentItems?: EquipmentCategory[];
+  equipmentTotals?: EquipmentTotals;
+  facilityDetails?: {
+    sport?: string;
+    size?: string;
   };
-};
+}
 ```
 
-Update the summary stats grid to show pad size:
+Update `handleLeadSubmit` to include equipment data in both the database insert and email payload:
 
-```tsx
-{/* Court Size - only for pickleball */}
-{courtInfo && (
-  <div className="text-center p-4 bg-muted/50 rounded-lg">
-    <div className="text-sm text-muted-foreground mb-1">Pad Size</div>
-    <div className="font-semibold">{courtInfo.padDimensions}</div>
-    <div className="text-xs text-muted-foreground">
-      {courtInfo.totalSqft.toLocaleString()} SF total
-    </div>
-  </div>
-)}
+```typescript
+// Save to database with equipment summary
+const { error: dbError } = await supabase.from('leads').insert({
+  name: data.name,
+  email: data.email,
+  phone: data.phone || null,
+  city: data.city || null,
+  state: data.state || null,
+  source: 'finalize-pricing',
+  facility_type: facilityDetails?.sport || null,
+  facility_size: facilityDetails?.size || null,
+  estimated_budget: equipmentTotals?.grandTotal || null,
+});
+
+// Sync to Google Sheets with equipment details
+await supabase.functions.invoke('sync-lead-to-sheets', {
+  body: {
+    name: data.name,
+    email: data.email,
+    phone: data.phone,
+    city: data.city,
+    state: data.state,
+    source: 'finalize-pricing',
+    facilityType: facilityDetails?.sport,
+    facilitySize: facilityDetails?.size,
+    estimatedBudget: equipmentTotals?.grandTotal,
+    equipmentItems: equipmentItems,
+    equipmentTotals: equipmentTotals,
+  }
+});
+
+// Send emails WITH equipment data
+await supabase.functions.invoke('send-lead-emails', {
+  body: {
+    customerEmail: data.email,
+    customerName: data.name,
+    leadData: {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      city: data.city,
+      state: data.state,
+    },
+    facilityDetails: facilityDetails,
+    equipmentItems: equipmentItems,
+    equipmentTotals: equipmentTotals,
+    source: 'finalize-pricing',
+  }
+});
 ```
 
 ---
 
-### Impact on Pricing
+#### 2. Update EquipmentQuoteDisplay Component
 
-For a single outdoor pickleball court with concrete base:
+**File: `src/components/equipment/EquipmentQuote.tsx`**
 
-| Item | Current | Updated |
-|------|---------|---------|
-| Concrete (at $12/SF) | 800 SF × $12 = $9,600 | 1,800 SF × $12 = **$21,600** |
-| Court Tiles (at $6/SF) | 800 SF × $6 = $4,800 | 1,800 SF × $6 = **$10,800** |
-| Fencing (chain-link) | 160 LF × $20 = $3,200 | 180 LF × $20 = **$3,600** |
+Pass the quote data to `PricingDisclaimer`:
 
-This reflects more accurate real-world costs for outdoor pickleball court construction.
+```tsx
+<PricingDisclaimer 
+  className="mt-6"
+  equipmentItems={quote.lineItems}
+  equipmentTotals={quote.totals}
+  facilityDetails={{
+    sport: SPORT_LABELS[quote.sport],
+    size: `${quote.inputs.units} ${quote.inputs.units === 1 ? 'court' : 'courts'} (${quote.inputs.spaceSize})`,
+  }}
+/>
+```
+
+---
+
+### Expected Result
+
+After this change, when a user submits the "Finalize Best Pricing" form:
+
+**Customer Email Will Include:**
+- Facility summary (sport, size)
+- Complete equipment quote with line items
+- Category breakdowns (Core Equipment, Flooring & Surfaces, Safety & Lighting)
+- Equipment totals (equipment, flooring, installation, grand total)
+
+**Company Email Will Include:**
+- All contact information
+- Facility details (sport, size)
+- Complete itemized equipment quote
+- All pricing totals
 
 ---
 
 ### Files to Modify
-1. `src/utils/equipmentCalculator.ts` - Update SF (800 → 1,800) and fencing LF (160 → 180)
-2. `src/components/equipment/EquipmentQuote.tsx` - Add pad size display with "60' x 30'" dimensions
+1. `src/components/ui/pricing-disclaimer.tsx` - Add equipment data props and pass to API calls
+2. `src/components/equipment/EquipmentQuote.tsx` - Pass quote data to PricingDisclaimer
 
