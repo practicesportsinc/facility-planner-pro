@@ -63,7 +63,7 @@ export type LeadFormData = z.infer<typeof leadSchema>;
 
 // Rate limiting configuration
 const RATE_LIMIT_KEY = 'lead_submission_timestamps';
-const MAX_SUBMISSIONS = 3; // Maximum submissions allowed
+const MAX_SUBMISSIONS = 10; // Maximum submissions allowed
 const TIME_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
 
 export interface RateLimitResult {
