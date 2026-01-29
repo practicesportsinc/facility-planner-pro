@@ -129,6 +129,7 @@ export const FlashMarketAnalysis = () => {
 
   const handleDownloadReport = async (leadData: any) => {
     try {
+      // Sync to Google Sheets
       await supabase.functions.invoke('sync-lead-to-sheets', {
         body: {
           ...leadData,
@@ -136,12 +137,30 @@ export const FlashMarketAnalysis = () => {
           source_detail: `report-download-${zipCode}`,
         },
       });
+
+      // Send confirmation emails to customer and company
+      await supabase.functions.invoke('send-lead-emails', {
+        body: {
+          customerEmail: leadData.email,
+          customerName: leadData.name,
+          leadData: {
+            name: leadData.name,
+            email: leadData.email,
+            phone: leadData.phone,
+            city: leadData.city || marketData?.location.city,
+            state: leadData.state || marketData?.location.state,
+          },
+          facilityDetails: {
+            location: `${marketData?.location.city}, ${marketData?.location.state} ${zipCode}`,
+          },
+          source: 'flash-market-analysis',
+        },
+      });
       
-      // Generate simple PDF or text report
-      toast.success("Report downloaded successfully!");
+      toast.success("Report sent to your email!");
       setShowLeadGate(false);
     } catch (error) {
-      console.error('Error syncing lead:', error);
+      console.error('Error processing lead:', error);
       toast.success("Report downloaded successfully!");
       setShowLeadGate(false);
     }
