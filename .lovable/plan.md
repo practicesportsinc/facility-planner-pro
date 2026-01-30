@@ -1,68 +1,158 @@
 
+## Plan: Save Progress & Resume via Email Link for Business Plan Builder
 
-## Plan: Fix Demographic Field Name Mismatch
+### Overview
+Add a "Save Progress" feature to the Business Plan Builder that allows users to:
+1. Save their current progress at any point
+2. Receive an email with a unique link to resume their work
+3. Return later and continue where they left off
 
-### Issue Identified
-The "Market & Demographics" step shows **$0** for Median Income and **0%** for Youth Population because of a property name mismatch between the edge function response and the component's expected format.
+### Architecture
 
-### Root Cause Analysis
-
-**Edge Function (`analyze-location/index.ts`) returns:**
-```javascript
-demographics: {
-  medianIncome: 72000,        // ❌ Component expects: medianHouseholdIncome
-  youthPercentage: 21,        // ❌ Component expects: youthPopulation
-  // ...other fields match
-}
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│                        User Flow                                    │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  1. User clicks "Save Progress" button                              │
+│           ↓                                                         │
+│  2. Modal asks for email (if not already known)                     │
+│           ↓                                                         │
+│  3. Data saved to Supabase `business_plan_drafts` table             │
+│           ↓                                                         │
+│  4. Email sent with unique resume link                              │
+│           ↓                                                         │
+│  5. User clicks link → returns to exact step with all data intact   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-**MarketAnalysisStep expects:**
-```javascript
-result.demographics?.medianHouseholdIncome  // Doesn't exist → returns 0
-result.demographics?.youthPopulation        // Doesn't exist → returns 0
-```
+### Components to Create/Modify
 
-### Fix Required
+#### 1. Database Table: `business_plan_drafts`
 
-**File: `supabase/functions/analyze-location/index.ts`**
+New table to store draft progress:
 
-Update the demographics object (lines 166-174) to use the field names expected by the component:
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| resume_token | text | Unique token for resume URL |
+| email | text | User's email (for lookup) |
+| current_step | integer | Which step they're on (0-9) |
+| plan_data | jsonb | Full BusinessPlanData object |
+| created_at | timestamp | When draft was created |
+| updated_at | timestamp | Last update time |
+| expires_at | timestamp | When the link expires (30 days) |
 
+#### 2. New Edge Function: `save-business-plan-draft`
+
+Handles saving draft and sending resume email:
+- Accepts email and plan data
+- Generates unique resume token
+- Saves to `business_plan_drafts` table
+- Calls `send-lead-emails` with resume link
+
+#### 3. New Email Template: `resume-business-plan.tsx`
+
+Email with:
+- Greeting with customer name
+- Summary of progress (current step, facility name)
+- Prominent "Resume Your Plan" button with unique link
+- Expiration notice (30 days)
+- Standard footer
+
+#### 4. Frontend: Save Progress Button & Modal
+
+**File: `src/pages/BusinessPlanBuilder.tsx`**
+- Add "Save Progress" button in the navigation area
+- Show modal to collect email (or confirm if already known)
+- Display success message with confirmation
+
+#### 5. Frontend: Resume Route Handler
+
+**File: `src/pages/BusinessPlanBuilder.tsx`**
+- Check URL for `?resume=TOKEN` parameter
+- If present, fetch draft from database
+- Hydrate BusinessPlanContext with saved data
+- Navigate to the saved step
+
+#### 6. Update BusinessPlanContext
+
+**File: `src/contexts/BusinessPlanContext.tsx`**
+- Add `loadFromDraft(data, step)` function to restore state
+- Add `getDraftData()` function to get current state for saving
+
+### Files to Create
+
+1. **`supabase/functions/save-business-plan-draft/index.ts`** - Edge function to save draft and send email
+2. **`supabase/functions/send-lead-emails/_templates/resume-business-plan.tsx`** - Email template with resume link
+3. **Database migration** - Create `business_plan_drafts` table
+
+### Files to Modify
+
+1. **`src/pages/BusinessPlanBuilder.tsx`** - Add Save Progress button, modal, and resume token handling
+2. **`src/contexts/BusinessPlanContext.tsx`** - Add `loadFromDraft` and `getDraftData` functions
+3. **`supabase/functions/send-lead-emails/index.ts`** - Add handler for resume email type
+
+### Technical Details
+
+**Resume Token Generation:**
 ```typescript
-// Before (current)
-const demographics = {
-  population10Min: 75000,
-  population15Min: 150000,
-  population20Min: 250000,
-  medianIncome: 72000,           // ❌ Wrong name
-  youthPercentage: 21,           // ❌ Wrong name
-  familiesWithChildren: 30,
-  populationGrowthRate: 0.6,
-};
-
-// After (fixed)
-const demographics = {
-  population10Min: 75000,
-  population15Min: 150000,
-  population20Min: 250000,
-  medianHouseholdIncome: 72000,  // ✅ Matches component
-  youthPopulation: 21,           // ✅ Matches component
-  familiesWithChildren: 30,
-  populationGrowthRate: 0.6,
-};
+const resumeToken = crypto.randomUUID().replace(/-/g, '');
+// Example: 8f42b1c35d9e4a7bb2e19c3f4d5a6e7b
 ```
 
-### Impact
+**Resume URL Format:**
+```
+https://facility-planner-pro.lovable.app/business-plan?resume=8f42b1c35d9e4a7bb2e19c3f4d5a6e7b
+```
 
-| Field | Before | After |
-|-------|--------|-------|
-| Median Income | $0 | $72,000 |
-| Youth Population | 0% | 21% |
-| Other demographics | Working | Working |
+**Draft Expiration:** 30 days from last update
 
-### File to Modify
-1. `supabase/functions/analyze-location/index.ts` - Lines 170-171: Rename `medianIncome` to `medianHouseholdIncome` and `youthPercentage` to `youthPopulation`
+**Email Content Preview:**
+```text
+Subject: Continue Your Sports Facility Business Plan
 
-### Note
-After the fix, the Edge Function will need to be redeployed to take effect.
+Hi [Name],
 
+Your business plan progress has been saved. Click below to continue 
+where you left off:
+
+[Resume Your Business Plan] ← button
+
+Progress Summary:
+- Facility: [Name or "Untitled"]
+- Step: [X] of 10 ([Step Name])
+- Last saved: [Date/Time]
+
+This link expires in 30 days.
+
+---
+SportsFacility.ai
+Practice Sports, Inc.
+```
+
+### User Experience
+
+1. **Saving Progress:**
+   - "Save Progress" button visible on all steps
+   - If email unknown, modal prompts for email
+   - Success toast: "Progress saved! Check your email for the resume link."
+
+2. **Resuming Progress:**
+   - User clicks email link
+   - Page loads with all their data restored
+   - Toast: "Welcome back! Your progress has been restored."
+   - Automatically scrolls to their saved step
+
+3. **Expiration Handling:**
+   - If token expired or not found, show friendly message
+   - Offer to start fresh
+
+### Implementation Order
+
+1. Create database migration for `business_plan_drafts` table
+2. Create resume email template
+3. Create save-business-plan-draft edge function
+4. Update BusinessPlanContext with load/get functions
+5. Update BusinessPlanBuilder page with save button and resume handling
