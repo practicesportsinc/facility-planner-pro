@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_plan_drafts: {
+        Row: {
+          created_at: string
+          current_step: number
+          email: string
+          expires_at: string
+          id: string
+          name: string | null
+          plan_data: Json
+          resume_token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_step?: number
+          email: string
+          expires_at?: string
+          id?: string
+          name?: string | null
+          plan_data?: Json
+          resume_token: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_step?: number
+          email?: string
+          expires_at?: string
+          id?: string
+          name?: string | null
+          plan_data?: Json
+          resume_token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           business_name: string | null

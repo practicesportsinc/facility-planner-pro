@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { BusinessPlanProvider, useBusinessPlan } from '@/contexts/BusinessPlanContext';
 import Layout from '@/components/layout/Layout';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Check, ChevronLeft, ChevronRight, FileText, ExternalLink, TrendingUp } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, FileText, ExternalLink, TrendingUp, Save, Loader2 } from 'lucide-react';
 import LeadGate from '@/components/shared/LeadGate';
+import SaveProgressModal from '@/components/business-plan/SaveProgressModal';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import ProjectOverviewStep from '@/components/business-plan/ProjectOverviewStep';
 import MarketAnalysisStep from '@/components/business-plan/MarketAnalysisStep';
 import SportSelectionStep from '@/components/business-plan/SportSelectionStep';
@@ -32,9 +34,96 @@ const STEPS = [
 ];
 
 function WizardContent() {
-  const { currentStep, setCurrentStep, goToNext, goToPrevious, isStepComplete } = useBusinessPlan();
+  const { currentStep, setCurrentStep, goToNext, goToPrevious, isStepComplete, data, loadFromDraft, getDraftData } = useBusinessPlan();
+  const [searchParams, setSearchParams] = useSearchParams();
   const progress = ((currentStep + 1) / STEPS.length) * 100;
   const [showSamplePlanGate, setShowSamplePlanGate] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+  const [savedEmail, setSavedEmail] = useState('');
+
+  // Check for resume token on mount
+  useEffect(() => {
+    const resumeToken = searchParams.get('resume');
+    if (resumeToken) {
+      loadDraftFromToken(resumeToken);
+    }
+  }, []);
+
+  const loadDraftFromToken = async (token: string) => {
+    setIsLoadingDraft(true);
+    try {
+      const { data: response, error } = await supabase.functions.invoke('save-business-plan-draft', {
+        method: 'GET',
+        body: undefined,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Use fetch directly since we need to pass query params
+      const functionUrl = `https://apdxtdarwacdcuhvtaag.supabase.co/functions/v1/save-business-plan-draft?token=${token}`;
+      const fetchResponse = await fetch(functionUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwZHh0ZGFyd2FjZGN1aHZ0YWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyMDI1NjksImV4cCI6MjA3MDc3ODU2OX0.flGfUtz-B-RXJdPX4fnbUil8I23khgtyK29h3AnF0n0`,
+        },
+      });
+
+      const result = await fetchResponse.json();
+
+      if (!fetchResponse.ok || result.error) {
+        if (result.error === 'Draft not found or expired') {
+          toast.error('This resume link has expired or is invalid. Please start a new business plan.');
+        } else {
+          toast.error('Failed to load your saved progress. Please try again.');
+        }
+        // Clear the resume param from URL
+        setSearchParams({});
+        return;
+      }
+
+      // Load the draft data into context
+      loadFromDraft(result.draft.planData, result.draft.currentStep);
+      setSavedEmail(result.draft.email);
+      
+      toast.success('Welcome back! Your progress has been restored.');
+      
+      // Clear the resume param from URL to prevent reloading on refresh
+      setSearchParams({});
+    } catch (err) {
+      console.error('Error loading draft:', err);
+      toast.error('Failed to load your saved progress. Please try again.');
+      setSearchParams({});
+    } finally {
+      setIsLoadingDraft(false);
+    }
+  };
+
+  const handleSaveProgress = async (email: string, name: string) => {
+    const { planData, currentStep } = getDraftData();
+    
+    const { data: response, error } = await supabase.functions.invoke('save-business-plan-draft', {
+      body: {
+        email,
+        name,
+        currentStep,
+        planData,
+      },
+    });
+
+    if (error) {
+      throw new Error('Failed to save progress');
+    }
+
+    if (response?.error) {
+      throw new Error(response.error);
+    }
+
+    setSavedEmail(email);
+    toast.success('Progress saved! Check your email for the resume link.');
+  };
 
   const handleSamplePlanSubmit = async (leadData: any) => {
     try {
@@ -68,14 +157,37 @@ function WizardContent() {
     }
   };
 
+  if (isLoadingDraft) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Loading your saved progress...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="min-h-screen bg-background py-8">
         <div className="container mx-auto px-4 max-w-5xl">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Business Plan Builder</h1>
-            <p className="text-muted-foreground">Create a comprehensive, investor-ready business plan for your sports facility</p>
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Business Plan Builder</h1>
+              <p className="text-muted-foreground">Create a comprehensive, investor-ready business plan for your sports facility</p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowSaveModal(true)}
+              className="flex items-center gap-2 shrink-0"
+            >
+              <Save className="w-4 h-4" />
+              Save Progress
+            </Button>
           </div>
 
           {/* Quick Market Analysis Banner */}
@@ -122,6 +234,15 @@ function WizardContent() {
             title="Download Sample Business Plan"
             description="Enter your information to view our professional sample business plan"
             showOutreachField={false}
+          />
+
+          {/* Save Progress Modal */}
+          <SaveProgressModal
+            isOpen={showSaveModal}
+            onClose={() => setShowSaveModal(false)}
+            onSave={handleSaveProgress}
+            defaultEmail={savedEmail}
+            defaultName={data.projectOverview.facilityName ? `${data.projectOverview.facilityName} Team` : ''}
           />
 
           {/* Progress Bar */}

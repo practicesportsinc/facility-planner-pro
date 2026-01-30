@@ -13,6 +13,8 @@ interface BusinessPlanContextType {
   goToNext: () => void;
   goToPrevious: () => void;
   isStepComplete: (step: number) => boolean;
+  loadFromDraft: (planData: BusinessPlanData, step: number) => void;
+  getDraftData: () => { planData: BusinessPlanData; currentStep: number };
 }
 
 const BusinessPlanContext = createContext<BusinessPlanContextType | undefined>(undefined);
@@ -50,6 +52,15 @@ export function BusinessPlanProvider({ children }: { children: React.ReactNode }
   const goToPrevious = useCallback(() => {
     setCurrentStep(prev => Math.max(prev - 1, 0));
   }, []);
+
+  const loadFromDraft = useCallback((planData: BusinessPlanData, step: number) => {
+    setData(planData);
+    setCurrentStep(step);
+  }, []);
+
+  const getDraftData = useCallback(() => {
+    return { planData: data, currentStep };
+  }, [data, currentStep]);
 
   const isStepComplete = useCallback((step: number): boolean => {
     switch (step) {
@@ -89,6 +100,8 @@ export function BusinessPlanProvider({ children }: { children: React.ReactNode }
         goToNext,
         goToPrevious,
         isStepComplete,
+        loadFromDraft,
+        getDraftData,
       }}
     >
       {children}

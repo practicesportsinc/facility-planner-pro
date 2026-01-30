@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.generate-full-business-plan]
 verify_jwt = false
+
+[functions.save-business-plan-draft]
+verify_jwt = false

@@ -7,6 +7,7 @@ import { renderAsync } from 'npm:@react-email/components@0.0.22';
 import { CustomerConfirmationEmail } from './_templates/customer-confirmation.tsx';
 import { CompanyNotificationEmail } from './_templates/company-notification.tsx';
 import { B2BConfirmationEmail } from './_templates/b2b-confirmation.tsx';
+import { ResumeBusinessPlanEmail } from './_templates/resume-business-plan.tsx';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
@@ -114,7 +115,16 @@ const EmailPayloadSchema = z.object({
   }).optional(),
   // PDF attachment for full report
   pdfAttachment: PdfAttachmentSchema.optional(),
-  source: z.string().min(1).max(100)
+  source: z.string().min(1).max(100),
+  // Resume email data
+  resumeData: z.object({
+    resumeUrl: z.string().url(),
+    facilityName: z.string(),
+    currentStep: z.number(),
+    totalSteps: z.number(),
+    stepLabel: z.string(),
+    expiresAt: z.string(),
+  }).optional(),
 });
 
 async function checkRateLimit(
@@ -244,6 +254,14 @@ interface EmailPayload {
     content: string;
   };
   source: string;
+  resumeData?: {
+    resumeUrl: string;
+    facilityName: string;
+    currentStep: number;
+    totalSteps: number;
+    stepLabel: string;
+    expiresAt: string;
+  };
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -297,9 +315,10 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Payload validated successfully');
     console.log('Processing lead email request from:', payload.source, 'Remaining:', rateLimit.remaining);
 
-    // Determine if this is a B2B inquiry
+    // Determine email type
     const isB2BInquiry = payload.source === 'b2b-contact';
-    console.log('Is B2B inquiry:', isB2BInquiry);
+    const isResumeEmail = payload.source === 'business-plan-resume';
+    console.log('Is B2B inquiry:', isB2BInquiry, 'Is Resume email:', isResumeEmail);
 
     // Format partnership type for display
     const formattedPartnershipType = isB2BInquiry 
@@ -309,6 +328,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Render appropriate customer confirmation email based on source
     let customerHtml: string;
+    let emailSubject: string;
+
     try {
       console.log('Starting customer email rendering...');
       console.log('Customer email props:', {
@@ -316,36 +337,55 @@ const handler = async (req: Request): Promise<Response> => {
         partnershipType: formattedPartnershipType,
         hasMessage: !!(payload.leadData?.message && payload.leadData.message !== 'b2b'),
         isB2B: isB2BInquiry,
+        isResume: isResumeEmail,
         hasEquipment: !!(payload.equipmentItems && payload.equipmentItems.length > 0)
       });
       
-      customerHtml = isB2BInquiry
-        ? await renderAsync(
-            React.createElement(B2BConfirmationEmail, {
-              customerName: payload.customerName,
-              partnershipType: formattedPartnershipType,
-              message: payload.leadData?.message && payload.leadData.message !== 'b2b' 
-                ? payload.leadData.message 
-                : undefined,
-            })
-          )
-        : await renderAsync(
-            React.createElement(CustomerConfirmationEmail, {
-              customerName: payload.customerName,
-              facilityDetails: payload.facilityDetails,
-              estimates: payload.estimates,
-              equipmentItems: payload.equipmentItems,
-              equipmentTotals: payload.equipmentTotals,
-              buildingLineItems: payload.buildingLineItems,
-              buildingTotals: payload.buildingTotals,
-            })
-          );
+      if (isResumeEmail && payload.resumeData) {
+        customerHtml = await renderAsync(
+          React.createElement(ResumeBusinessPlanEmail, {
+            customerName: payload.customerName,
+            resumeUrl: payload.resumeData.resumeUrl,
+            facilityName: payload.resumeData.facilityName,
+            currentStep: payload.resumeData.currentStep,
+            totalSteps: payload.resumeData.totalSteps,
+            stepLabel: payload.resumeData.stepLabel,
+            expiresAt: payload.resumeData.expiresAt,
+          })
+        );
+        emailSubject = 'Continue Your Sports Facility Business Plan';
+      } else if (isB2BInquiry) {
+        customerHtml = await renderAsync(
+          React.createElement(B2BConfirmationEmail, {
+            customerName: payload.customerName,
+            partnershipType: formattedPartnershipType,
+            message: payload.leadData?.message && payload.leadData.message !== 'b2b' 
+              ? payload.leadData.message 
+              : undefined,
+          })
+        );
+        emailSubject = 'Thank you for your partnership inquiry';
+      } else {
+        customerHtml = await renderAsync(
+          React.createElement(CustomerConfirmationEmail, {
+            customerName: payload.customerName,
+            facilityDetails: payload.facilityDetails,
+            estimates: payload.estimates,
+            equipmentItems: payload.equipmentItems,
+            equipmentTotals: payload.equipmentTotals,
+            buildingLineItems: payload.buildingLineItems,
+            buildingTotals: payload.buildingTotals,
+          })
+        );
+        emailSubject = 'Thank you for your facility planning request';
+      }
       console.log('✅ Customer email rendered successfully, length:', customerHtml.length);
     } catch (renderError: any) {
       console.error('❌ Failed to render customer email:', {
         error: renderError.message,
         stack: renderError.stack,
         isB2B: isB2BInquiry,
+        isResume: isResumeEmail,
         partnershipType: formattedPartnershipType,
         errorName: renderError.name
       });
@@ -382,8 +422,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Company email rendering failed: ${renderError.message}`);
     }
 
-    // Prepare PDF attachment for Resend if provided
-    const attachments = payload.pdfAttachment ? [{
+    // Prepare PDF attachment for Resend if provided (skip for resume emails)
+    const attachments = (!isResumeEmail && payload.pdfAttachment) ? [{
       filename: payload.pdfAttachment.filename,
       content: payload.pdfAttachment.content,
     }] : undefined;
@@ -395,7 +435,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Email config:', {
       from: 'Practice Sports <noreply@sportsfacility.ai>',
       to: payload.customerEmail,
-      subject: isB2BInquiry ? 'Thank you for your partnership inquiry' : 'Thank you for your facility planning request',
+      subject: emailSubject,
       htmlLength: customerHtml.length,
       hasAttachment: !!attachments
     });
@@ -404,9 +444,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: 'Practice Sports <noreply@sportsfacility.ai>',
       to: [payload.customerEmail],
       replyTo: 'info@practicesports.com',
-      subject: isB2BInquiry 
-        ? 'Thank you for your partnership inquiry'
-        : 'Thank you for your facility planning request',
+      subject: emailSubject,
       html: customerHtml,
       attachments: attachments,
     });
@@ -427,6 +465,20 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log('✅ Customer email sent successfully:', customerEmailResult.data?.id);
+
+    // Skip company notification for resume emails
+    if (isResumeEmail) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          customerEmailId: customerEmailResult.data?.id,
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
 
     // Send company notification email (always include attachment for sales team)
     const companyRecipients = [COMPANY_EMAIL, 'info@practicesports.com'];
