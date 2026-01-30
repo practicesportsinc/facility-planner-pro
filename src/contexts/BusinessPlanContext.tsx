@@ -81,7 +81,7 @@ export function BusinessPlanProvider({ children }: { children: React.ReactNode }
       case 7: // Risk Assessment
         return data.riskAssessment.keyRisks.length > 0;
       case 8: // Timeline
-        return !!(data.timeline.targetOpeningDate);
+        return !!(data.timeline.targetOpeningDate) && data.timeline.phases.length > 0;
       case 9: // Review
         return true;
       default:

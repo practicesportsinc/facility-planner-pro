@@ -146,9 +146,12 @@ export default function ReviewGenerateStep() {
     },
     { 
       name: 'Timeline', 
-      complete: data.timeline.phases.length > 0, 
+      complete: !!data.timeline.targetOpeningDate && data.timeline.phases.length > 0, 
       step: 8,
-      missing: data.timeline.phases.length === 0 ? ['At least one phase'] : []
+      missing: [
+        !data.timeline.targetOpeningDate && 'Target Opening Date',
+        data.timeline.phases.length === 0 && 'At least one phase',
+      ].filter(Boolean) as string[]
     },
   ];
 
