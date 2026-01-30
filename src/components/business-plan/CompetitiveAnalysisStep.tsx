@@ -262,7 +262,9 @@ export default function CompetitiveAnalysisStep() {
 
       {/* Differentiation Strategy */}
       <div className="space-y-2">
-        <Label htmlFor="diffStrategy" className="text-base font-medium">Differentiation Strategy</Label>
+        <Label htmlFor="diffStrategy" className="text-base font-medium">
+          Differentiation Strategy <span className="text-destructive text-sm">(required)</span>
+        </Label>
         <p className="text-sm text-muted-foreground">Summarize your competitive positioning in 1-2 sentences</p>
         <Textarea
           id="diffStrategy"
