@@ -13,6 +13,7 @@ import { ValuePill } from "@/components/ui/value-pill";
 import { ValueLegend } from "@/components/ui/value-legend";
 import { formatMoney } from "@/lib/utils";
 import { PricingDisclaimer } from "@/components/ui/pricing-disclaimer";
+import { generateEasyWizardPdf } from "@/utils/easyWizardPdf";
 
 interface KpiCard {
   key: string;
@@ -254,7 +255,7 @@ export const EasyResults = ({
         console.error('Error dispatching lead:', error);
       }
 
-      // Send lead emails with itemized facility breakdown
+      // Send lead emails with itemized facility breakdown and PDF attachment
       try {
         // Get wizard data for itemized breakdown
         const facilityData = JSON.parse(localStorage.getItem('wizard-facility-size') || '{}');
@@ -330,6 +331,48 @@ export const EasyResults = ({
           grandTotal: kpis.capex_total || 0,
         };
 
+        // Generate PDF for email attachment
+        let pdfBase64: string | undefined;
+        try {
+          console.log('[EasyResults] Generating PDF for email attachment...');
+          const pdfBlob = await generateEasyWizardPdf({
+            leadData: {
+              name: leadData.name,
+              email: leadData.email,
+              phone: leadData.phone,
+              city: leadData.city,
+              state: leadData.state,
+            },
+            facilityDetails: {
+              sports: sportsData || project.selectedSports || [],
+              size: sf ? `${sf.toLocaleString()} sq ft` : project.facilitySize || 'N/A',
+              projectType: `${sportsData?.join(', ') || project.selectedSports?.join(', ') || 'Multi-Sport'} Facility`,
+            },
+            kpis: {
+              capex: kpis.capex_total || 0,
+              monthlyRevenue: kpis.monthly_revenue || 0,
+              monthlyOpex: kpis.monthly_opex || 0,
+              monthlyEbitda: kpis.monthly_ebitda || 0,
+              breakEvenMonths: kpis.break_even_months || null,
+              grossSf: sf || 0,
+            },
+            equipmentItems: equipmentLineItems.length > 0 ? equipmentLineItems : undefined,
+          });
+          
+          // Convert blob to base64
+          const arrayBuffer = await pdfBlob.arrayBuffer();
+          const bytes = new Uint8Array(arrayBuffer);
+          let binary = '';
+          for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          pdfBase64 = btoa(binary);
+          console.log('[EasyResults] PDF generated successfully, size:', pdfBase64.length, 'chars');
+        } catch (pdfError) {
+          console.error('[EasyResults] Error generating PDF:', pdfError);
+          // Continue without PDF if generation fails
+        }
+
         await supabase.functions.invoke('send-lead-emails', {
           body: {
             customerEmail: leadData.email,
@@ -360,10 +403,15 @@ export const EasyResults = ({
             equipmentTotals: formattedEquipmentTotals,
             buildingLineItems: buildingLineItems,
             buildingTotals: buildingTotals,
+            // Include PDF attachment if generated successfully
+            pdfAttachment: pdfBase64 ? {
+              filename: `${leadData.name.replace(/\s+/g, '_')}_Facility_Plan.pdf`,
+              content: pdfBase64,
+            } : undefined,
             source: 'easy-wizard',
           },
         });
-        console.log('Lead emails sent successfully');
+        console.log('[EasyResults] Lead emails sent successfully', pdfBase64 ? 'with PDF attachment' : 'without PDF');
       } catch (error) {
         console.error('Error sending lead emails:', error);
         // Don't block the user flow if email fails
