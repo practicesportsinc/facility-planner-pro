@@ -1,213 +1,131 @@
 
 
-## Plan: Improve Incomplete Section Feedback on Business Plan Review Page
+## Plan: Implement PDF Email Delivery for "Email Me This Plan" Button
 
-### Problem
-On the Review & Generate step, when the "Download Business Plan PDF" button is disabled, users only see:
-- Yellow/green colored section buttons (which section is incomplete)
-- A generic message: "Please complete all sections before generating your business plan"
+### Problem Identified
+The "Email me this plan" button in the Easy Wizard Results page captures lead information and sends a confirmation email with facility estimates, but **does NOT generate or attach a PDF**. The code explicitly has a `// TODO: Implement actual PDF generation` comment.
 
-Users have no way of knowing **which specific field** is missing within an incomplete section, leading to frustration and confusion.
+When users click "Email me this plan", they expect to receive a PDF business plan in their inbox, but they only receive a text-based confirmation email.
 
 ### Solution
-Enhance the completion status display to show:
-1. **Specific missing field names** under each incomplete section
-2. **Required field indicators** on the actual form fields (optional enhancement)
+Generate a PDF report using the existing `wizardReportPdf.ts` utility and attach it to the confirmation email sent to the user.
 
----
-
-### Changes to Make
-
-#### 1. Enhanced Section Completion Checks (`ReviewGenerateStep.tsx`)
-
-Update the `sections` array to include detailed information about what's missing in each section:
-
-```typescript
-const sections = [
-  { 
-    name: 'Project Overview', 
-    complete: !!data.projectOverview.facilityName && !!data.projectOverview.city && !!data.projectOverview.state,
-    step: 0,
-    missing: [
-      !data.projectOverview.facilityName && 'Facility Name',
-      !data.projectOverview.city && 'City',
-      !data.projectOverview.state && 'State',
-    ].filter(Boolean)
-  },
-  { 
-    name: 'Competitive Analysis', 
-    complete: !!data.competitiveAnalysis.differentiationStrategy, 
-    step: 3,
-    missing: [
-      !data.competitiveAnalysis.differentiationStrategy && 'Differentiation Strategy',
-    ].filter(Boolean)
-  },
-  // ... similar for all sections
-];
-```
-
-#### 2. Display Missing Fields in UI
-
-Update the completion status card to show what's missing:
+### Architecture
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│  ⚠ Completion Status: 8/9 Sections                      │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  [Overview ✓] [Market ✓] [Sports ✓] [Competition ⚠]     │
-│  [Facility ✓] [Operations ✓] [Financials ✓]             │
-│  [Risks ✓] [Timeline ✓]                                 │
-│                                                         │
-│  ⚠ Missing fields:                                      │
-│  • Competitive Analysis: Differentiation Strategy       │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                   Current Flow (Broken)                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  User clicks "Email me this plan"                                   │
+│           ↓                                                         │
+│  LeadGate collects email                                            │
+│           ↓                                                         │
+│  send-lead-emails sends confirmation (NO PDF)                       │
+│           ↓                                                         │
+│  User receives email → No PDF attached! ❌                          │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                   Fixed Flow (Proposed)                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  User clicks "Email me this plan"                                   │
+│           ↓                                                         │
+│  LeadGate collects email                                            │
+│           ↓                                                         │
+│  Generate PDF using wizardReportPdf utility                         │
+│           ↓                                                         │
+│  Convert PDF to base64                                              │
+│           ↓                                                         │
+│  send-lead-emails sends confirmation WITH PDF attached ✅           │
+│           ↓                                                         │
+│  User receives email → PDF attached!                                │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
-
-#### 3. Add Required Field Indicators (Optional Enhancement)
-
-Add visual "required" indicators to mandatory fields in each step component:
-
-```typescript
-<Label htmlFor="diffStrategy" className="text-base font-medium">
-  Differentiation Strategy <span className="text-destructive">*</span>
-</Label>
-```
-
----
 
 ### Implementation Details
 
-#### File: `src/components/business-plan/ReviewGenerateStep.tsx`
+#### File: `src/components/wizard/easy/EasyResults.tsx`
 
-**Update section validation (lines 94-104):**
+**Changes to `handleLeadSubmit` function (around line 234-404):**
+
+1. Before calling `send-lead-emails`, generate the PDF report:
 
 ```typescript
-const sections = [
-  { 
-    name: 'Project Overview', 
-    complete: !!data.projectOverview.facilityName && !!data.projectOverview.city && !!data.projectOverview.state, 
-    step: 0,
-    missing: [
-      !data.projectOverview.facilityName && 'Facility Name',
-      !data.projectOverview.city && 'City',
-      !data.projectOverview.state && 'State',
-    ].filter(Boolean) as string[]
-  },
-  { 
-    name: 'Market Analysis', 
-    complete: data.marketAnalysis.customerSegments.length > 0, 
-    step: 1,
-    missing: data.marketAnalysis.customerSegments.length === 0 ? ['Customer Segments'] : []
-  },
-  { 
-    name: 'Sport Selection', 
-    complete: selectedSports.length > 0, 
-    step: 2,
-    missing: selectedSports.length === 0 ? ['At least one sport'] : []
-  },
-  { 
-    name: 'Competitive Analysis', 
-    complete: !!data.competitiveAnalysis.differentiationStrategy, 
-    step: 3,
-    missing: !data.competitiveAnalysis.differentiationStrategy ? ['Differentiation Strategy'] : []
-  },
-  { 
-    name: 'Facility Design', 
-    complete: data.facilityDesign.totalSquareFootage > 0, 
-    step: 4,
-    missing: data.facilityDesign.totalSquareFootage === 0 ? ['Total Square Footage'] : []
-  },
-  { 
-    name: 'Programming', 
-    complete: data.programming.rentalPricing.standardRate > 0, 
-    step: 5,
-    missing: data.programming.rentalPricing.standardRate === 0 ? ['Standard Rental Rate'] : []
-  },
-  { 
-    name: 'Financials', 
-    complete: data.financials.startupCosts.buildoutConstruction > 0, 
-    step: 6,
-    missing: data.financials.startupCosts.buildoutConstruction === 0 ? ['Buildout/Construction Cost'] : []
-  },
-  { 
-    name: 'Risk Assessment', 
-    complete: data.riskAssessment.keyRisks.length > 0, 
-    step: 7,
-    missing: data.riskAssessment.keyRisks.length === 0 ? ['At least one risk'] : []
-  },
-  { 
-    name: 'Timeline', 
-    complete: data.timeline.phases.length > 0, 
-    step: 8,
-    missing: data.timeline.phases.length === 0 ? ['At least one phase'] : []
-  },
-];
+import { generateWizardReportPdf } from '@/utils/wizardReportPdf';
+
+// Inside handleLeadSubmit, before the send-lead-emails call:
+// Generate PDF for email attachment
+let pdfBase64: string | undefined;
+try {
+  const pdfBlob = await generateWizardReportPdf({
+    leadData,
+    facilityDetails: {
+      sports: sportsData || project.selectedSports || [],
+      size: sf ? `${sf} sq ft` : project.facilitySize,
+      projectType: `${sportsData?.join(', ') || 'Multi-Sport'} Facility`,
+    },
+    kpis: {
+      capex: kpis.capex_total,
+      monthlyRevenue: kpis.monthly_revenue,
+      monthlyOpex: kpis.monthly_opex,
+      monthlyEbitda: kpis.monthly_ebitda,
+      breakEvenMonths: kpis.break_even_months,
+      grossSf: kpis.gross_sf,
+    },
+  });
+  
+  // Convert blob to base64
+  const arrayBuffer = await pdfBlob.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  pdfBase64 = btoa(binary);
+} catch (error) {
+  console.error('Error generating PDF:', error);
+  // Continue without PDF if generation fails
+}
 ```
 
-**Add missing fields summary below the section buttons (after line 140):**
+2. Include the PDF attachment in the `send-lead-emails` call:
 
-```tsx
-{/* Show missing fields if any */}
-{!allComplete && (
-  <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-    <p className="text-sm font-medium text-yellow-400 mb-2">Missing required fields:</p>
-    <ul className="text-sm text-muted-foreground space-y-1">
-      {sections
-        .filter(s => !s.complete)
-        .map(section => (
-          <li key={section.name} className="flex items-start gap-2">
-            <span className="text-yellow-400">•</span>
-            <span>
-              <button 
-                onClick={() => setCurrentStep(section.step)}
-                className="text-yellow-400 hover:underline font-medium"
-              >
-                {section.name}
-              </button>
-              : {section.missing.join(', ')}
-            </span>
-          </li>
-        ))
-      }
-    </ul>
-  </div>
-)}
+```typescript
+await supabase.functions.invoke('send-lead-emails', {
+  body: {
+    // ... existing fields ...
+    pdfAttachment: pdfBase64 ? {
+      filename: `${leadData.name.replace(/\s+/g, '_')}_FacilityPlan.pdf`,
+      content: pdfBase64,
+    } : undefined,
+    source: 'easy-wizard',
+  },
+});
 ```
 
-#### File: `src/components/business-plan/CompetitiveAnalysisStep.tsx`
+#### File: `src/utils/wizardReportPdf.ts`
 
-**Add required indicator to Differentiation Strategy field (line 265):**
-
-```tsx
-<Label htmlFor="diffStrategy" className="text-base font-medium">
-  Differentiation Strategy <span className="text-destructive text-sm">(required)</span>
-</Label>
-```
-
----
+**Check if function needs updates:**
+- Review the existing `generateWizardReportPdf` function to ensure it can accept the necessary parameters
+- Ensure it returns a Blob or can be converted to base64 format
 
 ### Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/components/business-plan/ReviewGenerateStep.tsx` | Add `missing` array to sections, display missing field summary |
-| `src/components/business-plan/CompetitiveAnalysisStep.tsx` | Add required indicator to Differentiation Strategy label |
-| `src/components/business-plan/ProjectOverviewStep.tsx` | Add required indicators to Facility Name, City, State fields |
+| `src/components/wizard/easy/EasyResults.tsx` | Add PDF generation before email, include as attachment |
+| `src/utils/wizardReportPdf.ts` | Verify/update function signature to support required parameters |
 
----
+### Technical Considerations
 
-### User Experience After Implementation
+1. **PDF Size**: The generated PDF must be reasonable size (under 10MB for email attachment limits)
+2. **Error Handling**: If PDF generation fails, the email should still send (just without attachment)
+3. **Loading State**: Consider adding a loading indicator during PDF generation as it may take a moment
 
-**Before (current):**
-- User sees yellow "Competitive Analysis" button
-- No indication of what's missing
-- User must click through and guess
-
-**After (improved):**
-- User sees yellow "Competitive Analysis" button
-- Below: "Missing required fields: • Competitive Analysis: Differentiation Strategy"
-- Clicking the section name jumps to that step
-- The field itself is marked as "(required)"
+### Expected Result
+After implementation, users who click "Email me this plan" will receive an email with:
+- Confirmation message with facility estimates (existing)
+- **Attached PDF report** with their complete facility plan (new)
 
