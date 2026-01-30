@@ -42,27 +42,32 @@ export default function TimelineStep() {
 
   // Initialize phases if empty
   React.useEffect(() => {
-    if (timeline.phases.length === 0 && projectOverview.targetOpeningDate) {
-      const openingDate = parseISO(`${projectOverview.targetOpeningDate}-01`);
+    if (timeline.phases.length === 0) {
+      // Use targetOpeningDate if available, otherwise default to 12 months from now
+      const baseDate = projectOverview.targetOpeningDate 
+        ? parseISO(`${projectOverview.targetOpeningDate}-01`)
+        : addMonths(new Date(), 12);
+      
       const phases: TimelinePhase[] = DEFAULT_PHASES.map((p, i) => ({
         ...p,
-        startDate: format(addMonths(openingDate, -12 + i), 'yyyy-MM'),
-        endDate: format(addMonths(openingDate, -11 + i), 'yyyy-MM'),
+        startDate: format(addMonths(baseDate, -12 + i), 'yyyy-MM'),
+        endDate: format(addMonths(baseDate, -11 + i), 'yyyy-MM'),
       }));
+      
       updateData('timeline', { 
         phases,
-        targetOpeningDate: projectOverview.targetOpeningDate 
+        targetOpeningDate: timeline.targetOpeningDate || projectOverview.targetOpeningDate || format(baseDate, 'yyyy-MM')
       });
     }
     
     if (timeline.checklist.length === 0) {
-      const checklist: ChecklistItem[] = DEFAULT_CHECKLIST.map((c, i) => ({
+      const checklist: ChecklistItem[] = DEFAULT_CHECKLIST.map((c) => ({
         ...c,
         dueDate: '',
       }));
       updateData('timeline', { checklist });
     }
-  }, [projectOverview.targetOpeningDate]);
+  }, []);
 
   const updatePhase = (index: number, field: keyof TimelinePhase, value: any) => {
     const updated = timeline.phases.map((p, i) =>
