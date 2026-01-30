@@ -90,17 +90,66 @@ export default function ReviewGenerateStep() {
   const completedPhases = data.timeline.phases.filter(p => p.status === 'completed').length;
   const completedChecklist = data.timeline.checklist.filter(c => c.completed).length;
 
-  // Section completion checks
+  // Section completion checks with missing field details
   const sections = [
-    { name: 'Project Overview', complete: !!data.projectOverview.facilityName && !!data.projectOverview.city, step: 0 },
-    { name: 'Market Analysis', complete: data.marketAnalysis.customerSegments.length > 0, step: 1 },
-    { name: 'Sport Selection', complete: selectedSports.length > 0, step: 2 },
-    { name: 'Competitive Analysis', complete: !!data.competitiveAnalysis.differentiationStrategy, step: 3 },
-    { name: 'Facility Design', complete: data.facilityDesign.totalSquareFootage > 0, step: 4 },
-    { name: 'Programming', complete: data.programming.rentalPricing.standardRate > 0, step: 5 },
-    { name: 'Financials', complete: data.financials.startupCosts.buildoutConstruction > 0, step: 6 },
-    { name: 'Risk Assessment', complete: data.riskAssessment.keyRisks.length > 0, step: 7 },
-    { name: 'Timeline', complete: data.timeline.phases.length > 0, step: 8 },
+    { 
+      name: 'Project Overview', 
+      complete: !!data.projectOverview.facilityName && !!data.projectOverview.city && !!data.projectOverview.state, 
+      step: 0,
+      missing: [
+        !data.projectOverview.facilityName && 'Facility Name',
+        !data.projectOverview.city && 'City',
+        !data.projectOverview.state && 'State',
+      ].filter(Boolean) as string[]
+    },
+    { 
+      name: 'Market Analysis', 
+      complete: data.marketAnalysis.customerSegments.length > 0, 
+      step: 1,
+      missing: data.marketAnalysis.customerSegments.length === 0 ? ['Customer Segments'] : []
+    },
+    { 
+      name: 'Sport Selection', 
+      complete: selectedSports.length > 0, 
+      step: 2,
+      missing: selectedSports.length === 0 ? ['At least one sport'] : []
+    },
+    { 
+      name: 'Competitive Analysis', 
+      complete: !!data.competitiveAnalysis.differentiationStrategy, 
+      step: 3,
+      missing: !data.competitiveAnalysis.differentiationStrategy ? ['Differentiation Strategy'] : []
+    },
+    { 
+      name: 'Facility Design', 
+      complete: data.facilityDesign.totalSquareFootage > 0, 
+      step: 4,
+      missing: data.facilityDesign.totalSquareFootage === 0 ? ['Total Square Footage'] : []
+    },
+    { 
+      name: 'Programming', 
+      complete: data.programming.rentalPricing.standardRate > 0, 
+      step: 5,
+      missing: data.programming.rentalPricing.standardRate === 0 ? ['Standard Rental Rate'] : []
+    },
+    { 
+      name: 'Financials', 
+      complete: data.financials.startupCosts.buildoutConstruction > 0, 
+      step: 6,
+      missing: data.financials.startupCosts.buildoutConstruction === 0 ? ['Buildout/Construction Cost'] : []
+    },
+    { 
+      name: 'Risk Assessment', 
+      complete: data.riskAssessment.keyRisks.length > 0, 
+      step: 7,
+      missing: data.riskAssessment.keyRisks.length === 0 ? ['At least one risk'] : []
+    },
+    { 
+      name: 'Timeline', 
+      complete: data.timeline.phases.length > 0, 
+      step: 8,
+      missing: data.timeline.phases.length === 0 ? ['At least one phase'] : []
+    },
   ];
 
   const completedSections = sections.filter(s => s.complete).length;
@@ -137,6 +186,31 @@ export default function ReviewGenerateStep() {
               </button>
             ))}
           </div>
+          {/* Show missing fields if any */}
+          {!allComplete && (
+            <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+              <p className="text-sm font-medium text-yellow-400 mb-2">Missing required fields:</p>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                {sections
+                  .filter(s => !s.complete)
+                  .map(section => (
+                    <li key={section.name} className="flex items-start gap-2">
+                      <span className="text-yellow-400">•</span>
+                      <span>
+                        <button 
+                          onClick={() => setCurrentStep(section.step)}
+                          className="text-yellow-400 hover:underline font-medium"
+                        >
+                          {section.name}
+                        </button>
+                        : {section.missing.join(', ')}
+                      </span>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -45,7 +45,9 @@ export default function ProjectOverviewStep() {
 
       {/* Facility Name */}
       <div className="space-y-2">
-        <Label htmlFor="facilityName" className="text-base font-medium">Facility Name</Label>
+        <Label htmlFor="facilityName" className="text-base font-medium">
+          Facility Name <span className="text-destructive text-sm">(required)</span>
+        </Label>
         <Input
           id="facilityName"
           placeholder="e.g., Diamond Performance Center"
@@ -63,7 +65,9 @@ export default function ProjectOverviewStep() {
         </Label>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="city">City</Label>
+            <Label htmlFor="city">
+              City <span className="text-destructive text-sm">(required)</span>
+            </Label>
             <Input
               id="city"
               placeholder="City"
@@ -72,7 +76,9 @@ export default function ProjectOverviewStep() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="state">State</Label>
+            <Label htmlFor="state">
+              State <span className="text-destructive text-sm">(required)</span>
+            </Label>
             <Select value={projectOverview.state} onValueChange={(v) => handleChange('state', v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select state" />
