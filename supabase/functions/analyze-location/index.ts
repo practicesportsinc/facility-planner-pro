@@ -167,8 +167,8 @@ serve(async (req) => {
       population10Min: 75000,
       population15Min: 150000,
       population20Min: 250000,
-      medianIncome: 72000,
-      youthPercentage: 21,
+      medianHouseholdIncome: 72000,
+      youthPopulation: 21,
       familiesWithChildren: 30,
       populationGrowthRate: 0.6,
     };
