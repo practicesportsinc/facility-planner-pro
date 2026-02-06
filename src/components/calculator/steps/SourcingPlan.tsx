@@ -99,9 +99,9 @@ const SourcingPlan = ({ data, onUpdate, onNext, onPrevious }: SourcingPlanProps)
     proceedWithKitDownload();
   };
 
-  const proceedWithKitDownload = () => {
+  const proceedWithKitDownload = async () => {
     // Generate and download the PDF
-    generateResearchKitPDF({
+    await generateResearchKitPDF({
       supplierCategories: formData.supplier_categories
     });
     

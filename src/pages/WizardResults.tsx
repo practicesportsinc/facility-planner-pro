@@ -593,7 +593,7 @@ ${monthlyProfit > 0 ? 'Focus on maximizing high-margin revenue streams and build
         // Generate PDF report for attachment
         let pdfAttachment;
         try {
-          const pdfBase64 = generateWizardReportPdf(wizardResult, financialMetrics, leadData);
+          const pdfBase64 = await generateWizardReportPdf(wizardResult, financialMetrics, leadData);
           pdfAttachment = {
             filename: `${(leadData.business || leadData.name).replace(/[^a-zA-Z0-9]/g, '-')}-Facility-Report.pdf`,
             content: pdfBase64,

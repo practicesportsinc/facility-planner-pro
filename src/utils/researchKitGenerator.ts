@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { loadLogoBase64, addBrandedHeader, addBrandedFooter } from './pdfBranding';
 
 interface ProjectData {
   facilityName?: string;
@@ -10,39 +11,33 @@ interface ProjectData {
   supplierCategories?: string[];
 }
 
-export const generateResearchKitPDF = (projectData?: ProjectData) => {
+export const generateResearchKitPDF = async (projectData?: ProjectData) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
-  let yPos = 20;
+  const logoBase64 = await loadLogoBase64();
 
   // Helper to add page if needed
   const checkAndAddPage = (height: number) => {
-    if (yPos + height > doc.internal.pageSize.getHeight() - 20) {
+    if (yPos + height > doc.internal.pageSize.getHeight() - 30) {
       doc.addPage();
       yPos = 20;
     }
   };
 
-  // Header
-  doc.setFontSize(24);
-  doc.setTextColor(33, 150, 243);
-  doc.text('DIY Supplier Research Kit', margin, yPos);
-  yPos += 10;
-
-  doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  doc.text('Your comprehensive guide to finding and evaluating suppliers', margin, yPos);
-  yPos += 15;
+  // Branded Header
+  let yPos = addBrandedHeader(doc, logoBase64, 'DIY Supplier Research Kit', 'Your comprehensive guide to finding and evaluating suppliers');
 
   // Project Summary (if data provided)
   if (projectData?.facilityName) {
-    doc.setFontSize(16);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
     doc.text('Your Project Summary', margin, yPos);
     yPos += 8;
 
     doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
     doc.setTextColor(60, 60, 60);
     if (projectData.facilityName) {
       doc.text(`Facility: ${projectData.facilityName}`, margin, yPos);
@@ -75,10 +70,12 @@ export const generateResearchKitPDF = (projectData?: ProjectData) => {
   checkAndAddPage(30);
   doc.setFontSize(16);
   doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
   doc.text('1. Getting Started Guide', margin, yPos);
   yPos += 8;
 
   doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 60, 60);
   const gettingStartedText = [
     'The supplier research process typically takes 2-4 weeks. Here\'s what to expect:',
@@ -110,10 +107,12 @@ export const generateResearchKitPDF = (projectData?: ProjectData) => {
   checkAndAddPage(40);
   doc.setFontSize(16);
   doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
   doc.text('2. RFP Email Template', margin, yPos);
   yPos += 8;
 
   doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 60, 60);
   doc.text('Subject: Request for Quote - [Your Facility Name] Project', margin, yPos);
   yPos += 8;
@@ -159,6 +158,7 @@ export const generateResearchKitPDF = (projectData?: ProjectData) => {
   yPos = 20;
   doc.setFontSize(16);
   doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
   doc.text('3. Vendor Comparison Matrix', margin, yPos);
   yPos += 10;
 
@@ -187,10 +187,12 @@ export const generateResearchKitPDF = (projectData?: ProjectData) => {
   checkAndAddPage(30);
   doc.setFontSize(16);
   doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
   doc.text('4. Due Diligence Checklist', margin, yPos);
   yPos += 8;
 
   doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
   const checklist = [
     '☐ Verify business license and credentials',
     '☐ Check liability insurance coverage ($1M+ recommended)',
@@ -218,10 +220,12 @@ export const generateResearchKitPDF = (projectData?: ProjectData) => {
   yPos = 20;
   doc.setFontSize(16);
   doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
   doc.text('5. Evaluation Scoring System', margin, yPos);
   yPos += 10;
 
   doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 60, 60);
   doc.text('Rate each supplier on a scale of 1-10 for each criterion, then calculate weighted score:', margin, yPos);
   yPos += 10;
@@ -247,6 +251,7 @@ export const generateResearchKitPDF = (projectData?: ProjectData) => {
 
   doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
   doc.text('Tip: A score of 70+ indicates a strong candidate. Compare final weighted scores to make your decision.', margin, yPos);
   yPos += 10;
 
@@ -254,10 +259,12 @@ export const generateResearchKitPDF = (projectData?: ProjectData) => {
   checkAndAddPage(30);
   doc.setFontSize(16);
   doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
   doc.text('6. Key Questions to Ask Suppliers', margin, yPos);
   yPos += 8;
 
   doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 60, 60);
   const questions = [
     'Product & Quality:',
@@ -287,12 +294,8 @@ export const generateResearchKitPDF = (projectData?: ProjectData) => {
     yPos += 5;
   });
 
-  // Footer on last page
-  doc.setFontSize(8);
-  doc.setTextColor(150, 150, 150);
-  yPos = doc.internal.pageSize.getHeight() - 15;
-  doc.text('Generated by SportsFacility.ai | Practice Sports, Inc.', margin, yPos);
-  doc.text('Building the future of modern sports facilities', margin, yPos + 4);
+  // Branded footer on all pages
+  addBrandedFooter(doc);
 
   // Save the PDF
   const fileName = projectData?.facilityName 
