@@ -261,11 +261,11 @@ export const FlashMarketAnalysis = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Youth (under 18)</span>
-                <span className="font-semibold">{marketData.demographics.youthPercentage.toFixed(1)}%</span>
+                <span className="font-semibold">{(marketData.demographics.youthPercentage ?? 0).toFixed(1)}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Pop. Growth Rate</span>
-                <span className="font-semibold">{marketData.demographics.populationGrowthRate.toFixed(1)}%</span>
+                <span className="font-semibold">{(marketData.demographics.populationGrowthRate ?? 0).toFixed(1)}%</span>
               </div>
             </div>
           </Card>
