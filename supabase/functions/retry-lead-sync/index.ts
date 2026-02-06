@@ -94,10 +94,54 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Authentication check - require admin/ops role
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+    );
+  }
+
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
+
+  // Verify user identity using the auth token
+  const anonClient = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+
+  if (claimsError || !claimsData?.claims) {
+    console.warn('Auth verification failed:', claimsError?.message);
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+    );
+  }
+
+  const userId = claimsData.claims.sub;
+
+  // Check admin/ops role
+  const { data: roles } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .in('role', ['admin', 'ops']);
+
+  if (!roles || roles.length === 0) {
+    console.warn('Insufficient permissions for user:', userId);
+    return new Response(
+      JSON.stringify({ error: 'Insufficient permissions' }),
+      { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+    );
+  }
 
   try {
     // Rate limiting
