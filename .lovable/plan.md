@@ -1,138 +1,101 @@
 
-## Plan: Fix Business Plan Validation Inconsistencies
 
-### Problem Identified
-During testing with the following inputs:
-- **ProjectTest** - Facility Name
-- **Omaha** - City  
-- **JourneyConcept** - Journey/Concept stage
-- **Target18 months** - Target timeline
-- **SizeNo** - Unclear input
-- **Baseball** - Sport
+## Plan: Add Company Branding to All PDF Downloads
 
-The user was unable to email or download their project because validation was blocking them, but the error messages weren't clear about what was missing.
+### What Changes
+Every downloadable PDF quote/report in the application will be updated with:
+- **Header**: Company logo (SportsFacility.ai logo from `public/images/sportsfacility-logo.png`)
+- **Footer**: Full company contact information on every page
 
-### Root Cause Analysis
-
-After reviewing the code, I found **two key issues**:
-
-#### Issue 1: Missing State Selection
-The Project Overview step requires a **state** to be selected from a dropdown (`ProjectOverviewStep.tsx` line 82). The user entered "Omaha" as the city but likely never selected a state from the dropdown. The validation at `ReviewGenerateStep.tsx` line 97 requires all three:
-```typescript
-complete: !!data.projectOverview.facilityName && !!data.projectOverview.city && !!data.projectOverview.state
+### Contact Info Block (Footer)
+```text
+Practice Sports, Inc. | SportsFacility.ai
+14706 Giles Rd, Omaha, NE 68138
+800.877.6787 | 402.592.2000
+info@practicesports.com | practicesports.com
 ```
 
-#### Issue 2: Validation Mismatch Between Components
-There's an inconsistency between validation checks:
+### Affected PDF Files
 
-| Step | ReviewGenerateStep.tsx | BusinessPlanContext.isStepComplete |
-|------|------------------------|-------------------------------------|
-| Timeline (Step 8) | `phases.length > 0` | `targetOpeningDate` exists |
+| PDF File | Used For |
+|----------|----------|
+| `src/utils/equipmentQuotePdf.ts` | Equipment-only quotes (e.g., Volleyball, Baseball) |
+| `src/utils/easyWizardPdf.ts` | Quick Start / Easy Wizard facility plans |
+| `src/utils/wizardReportPdf.ts` | Full Calculator financial analysis reports |
+| `src/utils/buildingEstimatePdf.ts` | Building construction estimates |
+| `src/utils/businessPlanPdfGenerator.ts` | Business plan documents |
+| `src/utils/researchKitGenerator.ts` | DIY Supplier Research Kit |
 
-This means:
-- A user could complete the Timeline step via one validation path
-- But fail the Review page validation via a different check
-- The Timeline phases are **auto-generated** when `targetOpeningDate` is set, but if the user never set a target date, no phases exist
+### Technical Approach
 
-### Solution
+**Shared Logo Loader**
+A shared helper function will be created to load the company logo as a base64-encoded image for embedding in PDFs (jsPDF requires base64 image data). This avoids duplicating the logo-loading logic in every file.
 
-#### 1. Align Timeline Validation
-Update `ReviewGenerateStep.tsx` to match the intended validation - check for `targetOpeningDate` instead of phases count (or both):
+```text
+New file: src/utils/pdfBranding.ts
 
-```typescript
-{ 
-  name: 'Timeline', 
-  complete: !!data.timeline.targetOpeningDate && data.timeline.phases.length > 0, 
-  step: 8,
-  missing: [
-    !data.timeline.targetOpeningDate && 'Target Opening Date',
-    data.timeline.phases.length === 0 && 'At least one phase',
-  ].filter(Boolean) as string[]
-},
+Responsibilities:
+- loadLogo(): Fetches logo PNG, converts to base64 via canvas
+- addPdfHeader(): Adds logo + title to top of first page
+- addPdfFooter(): Adds contact info block to bottom of every page
 ```
 
-#### 2. Add Required Indicator to State Field
-Update `ProjectOverviewStep.tsx` to make the state field more visually required (already has "(required)" label based on earlier changes).
+**Header Layout (Page 1)**
+```text
+┌─────────────────────────────────────────────────┐
+│  [LOGO]   Equipment Quote / Report Title        │
+│            Generated: Feb 6, 2026               │
+├─────────────────────────────────────────────────┤
+│  ... content ...                                │
+```
 
-#### 3. Initialize Default Phases Without Requiring Target Date
-Update `TimelineStep.tsx` to initialize default phases even if no target date is set, using placeholder dates that can be edited later.
+**Footer Layout (Every Page)**
+```text
+│  ... content ...                                │
+├─────────────────────────────────────────────────┤
+│  Disclaimer text...                             │
+│                                                 │
+│  Practice Sports, Inc. | SportsFacility.ai      │
+│  14706 Giles Rd, Omaha, NE 68138               │
+│  800.877.6787 | 402.592.2000                    │
+│  info@practicesports.com | practicesports.com   │
+│                                    Page 1 of 3  │
+└─────────────────────────────────────────────────┘
+```
 
-### Files to Modify
+### Implementation Steps
 
-| File | Change |
+1. **Create `src/utils/pdfBranding.ts`** -- Shared helper with three functions:
+   - `loadLogoBase64()` -- fetches the PNG logo from `/images/sportsfacility-logo.png` and converts it to a data URL using canvas
+   - `addBrandedHeader(doc, title, subtitle?)` -- places logo on the left (~30px tall) and title text to its right
+   - `addBrandedFooter(doc, includeDisclaimer?)` -- loops through all pages and adds the contact info block and page numbers at the bottom
+
+2. **Update `equipmentQuotePdf.ts`** -- Replace the current plain text header with `addBrandedHeader()`, replace the sparse footer with `addBrandedFooter()`. Make the function async since logo loading requires a fetch.
+
+3. **Update `easyWizardPdf.ts`** -- Replace the blue banner header with logo + title via `addBrandedHeader()`. Replace the single-line footer with `addBrandedFooter()`.
+
+4. **Update `wizardReportPdf.ts`** -- Replace the blue banner cover page header with logo + title. Replace footer with `addBrandedFooter()` on all pages.
+
+5. **Update `buildingEstimatePdf.ts`** -- Replace plain text header with `addBrandedHeader()`. Replace footer with `addBrandedFooter()`. Make function async.
+
+6. **Update `businessPlanPdfGenerator.ts`** -- Replace plain text cover page with logo. Update the per-page footer loop to use `addBrandedFooter()`.
+
+7. **Update `researchKitGenerator.ts`** -- Replace the plain text header with logo. Add `addBrandedFooter()`. Make function async.
+
+8. **Update calling components** -- Any callers of functions that become async (e.g., `equipmentQuotePdf`, `buildingEstimatePdf`, `researchKitGenerator`) will need `await` added to their invocation.
+
+### Files to Create/Modify
+
+| File | Action |
 |------|--------|
-| `src/components/business-plan/ReviewGenerateStep.tsx` | Update Timeline validation to check both `targetOpeningDate` AND `phases.length` |
-| `src/components/business-plan/TimelineStep.tsx` | Initialize default phases even without target opening date |
-| `src/contexts/BusinessPlanContext.tsx` | Align `isStepComplete` for Timeline step with ReviewGenerateStep validation |
+| `src/utils/pdfBranding.ts` | **Create** -- shared logo loader, header, and footer helpers |
+| `src/utils/equipmentQuotePdf.ts` | Modify -- use branded header/footer, make async |
+| `src/utils/easyWizardPdf.ts` | Modify -- use branded header/footer |
+| `src/utils/wizardReportPdf.ts` | Modify -- use branded header/footer |
+| `src/utils/buildingEstimatePdf.ts` | Modify -- use branded header/footer, make async |
+| `src/utils/businessPlanPdfGenerator.ts` | Modify -- use branded header/footer |
+| `src/utils/researchKitGenerator.ts` | Modify -- use branded header/footer, make async |
+| `src/components/equipment/EquipmentQuote.tsx` | Modify -- add await to PDF call |
+| `src/components/building/steps/BuildingEstimateStep.tsx` | Modify -- add await to PDF call |
+| Any other callers of research kit PDF | Modify -- add await |
 
-### Implementation Details
-
-#### File: `src/components/business-plan/ReviewGenerateStep.tsx`
-
-Update lines 148-152:
-```typescript
-{ 
-  name: 'Timeline', 
-  complete: !!data.timeline.targetOpeningDate && data.timeline.phases.length > 0, 
-  step: 8,
-  missing: [
-    !data.timeline.targetOpeningDate && 'Target Opening Date',
-    data.timeline.phases.length === 0 && 'At least one phase',
-  ].filter(Boolean) as string[]
-},
-```
-
-#### File: `src/contexts/BusinessPlanContext.tsx`
-
-Update line 84:
-```typescript
-case 8: // Timeline
-  return !!(data.timeline.targetOpeningDate) && data.timeline.phases.length > 0;
-```
-
-#### File: `src/components/business-plan/TimelineStep.tsx`
-
-Modify the useEffect (lines 44-65) to initialize phases with placeholder dates if no target opening date is provided:
-
-```typescript
-React.useEffect(() => {
-  if (timeline.phases.length === 0) {
-    // Use targetOpeningDate if available, otherwise default to 12 months from now
-    const baseDate = projectOverview.targetOpeningDate 
-      ? parseISO(`${projectOverview.targetOpeningDate}-01`)
-      : addMonths(new Date(), 12);
-    
-    const phases: TimelinePhase[] = DEFAULT_PHASES.map((p, i) => ({
-      ...p,
-      startDate: format(addMonths(baseDate, -12 + i), 'yyyy-MM'),
-      endDate: format(addMonths(baseDate, -11 + i), 'yyyy-MM'),
-    }));
-    
-    updateData('timeline', { 
-      phases,
-      targetOpeningDate: timeline.targetOpeningDate || projectOverview.targetOpeningDate || format(baseDate, 'yyyy-MM')
-    });
-  }
-  
-  if (timeline.checklist.length === 0) {
-    const checklist: ChecklistItem[] = DEFAULT_CHECKLIST.map((c) => ({
-      ...c,
-      dueDate: '',
-    }));
-    updateData('timeline', { checklist });
-  }
-}, []);
-```
-
-### Expected Result After Fix
-
-1. **Clearer validation messages**: Users will see exactly which fields are missing (e.g., "State" or "Target Opening Date")
-2. **Consistent validation**: The Review page and step completion checks will use the same criteria
-3. **Auto-initialized phases**: Timeline phases will be created with sensible defaults even if no target date is initially set
-4. **Better UX**: Users won't get stuck wondering why they can't proceed
-
-### Technical Notes
-
-- The "SizeNo" from the user's report is likely an artifact of how the session data was captured - the Facility Design step has a default of 15,000 SF via slider, so this wouldn't block validation
-- The most likely blocker was the **missing state selection** which is a required dropdown field
-- The Timeline validation mismatch could also cause issues if the user skipped setting a target opening date
