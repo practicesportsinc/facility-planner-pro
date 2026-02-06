@@ -49,10 +49,10 @@ export function BuildingConfigWizard() {
   
   const estimate: BuildingEstimate = calculateBuildingEstimate(config);
   
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (capturedLead) {
       // Lead already captured, generate PDF directly
-      generateBuildingEstimatePDF(config, estimate, capturedLead);
+      await generateBuildingEstimatePDF(config, estimate, capturedLead);
       toast.success("Your building estimate PDF has been downloaded!");
     } else {
       // Fallback - shouldn't happen since estimate is gated

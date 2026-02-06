@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { WizardResult } from '@/types/wizard';
+import { loadLogoBase64, addBrandedHeader, addBrandedFooter } from './pdfBranding';
 
 interface LeadData {
   name: string;
@@ -95,66 +96,55 @@ const formatSportName = (sportId: string): string => {
   return sportNames[sportId] || sportId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
-export function generateWizardReportPdf(
+export async function generateWizardReportPdf(
   wizardResult: WizardResult,
   financialMetrics: FinancialMetrics,
   leadData: LeadData
-): string {
+): Promise<string> {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  let y = 20;
+  const logoBase64 = await loadLogoBase64();
 
   // Helper to check and add new page
   const checkNewPage = (requiredSpace: number = 40) => {
-    if (y + requiredSpace > pageHeight - 20) {
+    if (y + requiredSpace > pageHeight - 30) {
       doc.addPage();
       y = 20;
     }
   };
 
   // ============ COVER PAGE ============
-  doc.setFillColor(59, 130, 246);
-  doc.rect(0, 0, pageWidth, 60, 'F');
+  let y = addBrandedHeader(doc, logoBase64, 'Financial Analysis Report');
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(28);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Sports Facility', pageWidth / 2, 28, { align: 'center' });
-  doc.setFontSize(18);
-  doc.text('Financial Analysis Report', pageWidth / 2, 42, { align: 'center' });
-
-  y = 80;
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Prepared for: ${leadData.business || leadData.name}`, pageWidth / 2, y, { align: 'center' });
-  y += 10;
-  doc.setFontSize(11);
-  doc.text(`Contact: ${leadData.email}`, pageWidth / 2, y, { align: 'center' });
-  y += 6;
-  if (leadData.phone) {
-    doc.text(`Phone: ${leadData.phone}`, pageWidth / 2, y, { align: 'center' });
-    y += 6;
-  }
-  y += 10;
-  doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth / 2, y, { align: 'center' });
-
-  // Key metrics summary box
-  y += 30;
-  doc.setDrawColor(200, 200, 200);
-  doc.setFillColor(248, 250, 252);
-  doc.roundedRect(20, y, pageWidth - 40, 70, 3, 3, 'FD');
-
-  y += 15;
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Investment Summary', pageWidth / 2, y, { align: 'center' });
-
-  y += 15;
+  // Prepared for info
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
+  doc.setTextColor(60, 60, 60);
+  doc.text(`Prepared for: ${leadData.business || leadData.name}`, pageWidth / 2, y, { align: 'center' });
+  y += 8;
+  doc.setFontSize(10);
+  doc.text(`Contact: ${leadData.email}`, pageWidth / 2, y, { align: 'center' });
+  y += 5;
+  if (leadData.phone) {
+    doc.text(`Phone: ${leadData.phone}`, pageWidth / 2, y, { align: 'center' });
+    y += 5;
+  }
+  doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth / 2, y, { align: 'center' });
+  y += 15;
 
+  // Key metrics summary box
+  doc.setDrawColor(200, 200, 200);
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(20, y, pageWidth - 40, 55, 3, 3, 'FD');
+
+  y += 12;
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(40, 40, 40);
+  doc.text('Investment Summary', pageWidth / 2, y, { align: 'center' });
+
+  y += 12;
   const summaryData = [
     ['Total Investment', formatCurrency(financialMetrics.capex.total)],
     ['Monthly Revenue', formatCurrency(financialMetrics.revenue.total)],
@@ -167,6 +157,7 @@ export function generateWizardReportPdf(
     const x = 30 + (index * colWidth);
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
     doc.text(item[0], x + colWidth / 2, y, { align: 'center' });
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -185,11 +176,6 @@ export function generateWizardReportPdf(
   doc.text('Facility Overview', 20, y);
   y += 15;
 
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-
-  // Facility details
   autoTable(doc, {
     startY: y,
     head: [['Specification', 'Value']],
@@ -235,7 +221,7 @@ export function generateWizardReportPdf(
     y = (doc as any).lastAutoTable.finalY + 20;
   }
 
-  // ============ PAGE 3: EQUIPMENT BREAKDOWN ============
+  // ============ EQUIPMENT BREAKDOWN ============
   const equipmentCategories = Object.entries(financialMetrics.equipmentBreakdown || {})
     .filter(([_, items]) => Array.isArray(items) && items.length > 0);
 
@@ -283,7 +269,6 @@ export function generateWizardReportPdf(
       y = (doc as any).lastAutoTable.finalY + 15;
     });
 
-    // Equipment grand total
     checkNewPage(30);
     doc.setFillColor(59, 130, 246);
     doc.rect(20, y, pageWidth - 40, 20, 'F');
@@ -295,7 +280,7 @@ export function generateWizardReportPdf(
     y += 30;
   }
 
-  // ============ PAGE 4: CAPITAL EXPENDITURE ============
+  // ============ CAPITAL EXPENDITURE ============
   doc.addPage();
   y = 20;
 
@@ -349,7 +334,7 @@ export function generateWizardReportPdf(
 
   y = (doc as any).lastAutoTable.finalY + 25;
 
-  // ============ PAGE 5: OPERATING EXPENSES ============
+  // ============ OPERATING EXPENSES ============
   checkNewPage(80);
 
   doc.setFontSize(18);
@@ -408,26 +393,8 @@ export function generateWizardReportPdf(
     },
   });
 
-  y = (doc as any).lastAutoTable.finalY + 25;
-
-  // ============ FOOTER ON LAST PAGE ============
-  checkNewPage(60);
-
-  doc.setDrawColor(200, 200, 200);
-  doc.line(20, y, pageWidth - 20, y);
-  y += 15;
-
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'italic');
-  doc.setTextColor(100, 100, 100);
-  const disclaimer = 'This report is for planning purposes only. Actual costs and revenues may vary based on location, market conditions, vendor negotiations, and other factors. Professional consultation is recommended before making investment decisions.';
-  const splitDisclaimer = doc.splitTextToSize(disclaimer, pageWidth - 40);
-  doc.text(splitDisclaimer, 20, y);
-  y += splitDisclaimer.length * 5 + 15;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text('Generated by Practice Sports | www.practicesports.com', pageWidth / 2, y, { align: 'center' });
+  // Branded footer on all pages
+  addBrandedFooter(doc);
 
   // Return as base64
   return doc.output('datauristring').split(',')[1];

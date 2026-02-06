@@ -59,7 +59,7 @@ export const NextStepsBanner = ({ sourcingData, onSourcingUpdate }: NextStepsBan
     });
     
     // Generate and download the PDF
-    generateResearchKitPDF({
+    await generateResearchKitPDF({
       supplierCategories: sourcingData?.supplier_categories
     });
     
@@ -67,7 +67,7 @@ export const NextStepsBanner = ({ sourcingData, onSourcingUpdate }: NextStepsBan
     setShowLeadGate(false);
   };
 
-  const handleDownloadKit = () => {
+  const handleDownloadKit = async () => {
     // Check if lead data exists
     const hasLeadData = sourcingData?.leadData?.email && sourcingData?.leadData?.name;
     
@@ -80,7 +80,7 @@ export const NextStepsBanner = ({ sourcingData, onSourcingUpdate }: NextStepsBan
     trackExportClicked('next_steps_kit', false);
     
     // Generate and download the PDF
-    generateResearchKitPDF({
+    await generateResearchKitPDF({
       supplierCategories: sourcingData?.supplier_categories
     });
     

@@ -86,12 +86,12 @@ export const EquipmentQuoteDisplay = ({
 
   const sizeInfo = getSizeInfo();
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     track('equipment_quote_downloaded', { 
       sport: quote.sport,
       total: quote.totals.grandTotal 
     });
-    generateEquipmentQuotePDF(quote);
+    await generateEquipmentQuotePDF(quote);
     toast.success("Quote downloaded!");
   };
 
