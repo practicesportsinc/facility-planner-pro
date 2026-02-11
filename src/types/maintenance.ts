@@ -57,6 +57,14 @@ export interface MaintenancePlan {
   contractorNeeds: Array<{ category: string; tasks: string[] }>;
 }
 
+export interface ReminderPreferences {
+  enabled: boolean;
+  cadences: Cadence[];
+  preferredDay: string; // 'monday' | 'tuesday' etc.
+  preferredTime: string; // '09:00' etc.
+  additionalRecipients: string[];
+}
+
 export interface MaintenanceWizardState {
   sports: string[];
   selectedAssets: AssetSelection[];
@@ -66,4 +74,5 @@ export interface MaintenanceWizardState {
   locationZip: string;
   email: string;
   name: string;
+  reminderPreferences: ReminderPreferences;
 }
