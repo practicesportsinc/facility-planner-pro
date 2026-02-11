@@ -7,7 +7,8 @@ import { AlertTriangle, Download, ChevronLeft, Wrench, ClipboardCheck, UserCheck
 import { generateMaintenancePlan } from '@/utils/maintenanceEngine';
 import { MAINTENANCE_ASSETS } from '@/data/maintenanceAssets';
 import { ContractorGuidance } from './ContractorGuidance';
-import type { MaintenanceWizardState, Cadence, ScheduledTask } from '@/types/maintenance';
+import { ReminderSettings } from './ReminderSettings';
+import type { MaintenanceWizardState, Cadence, ScheduledTask, ReminderPreferences } from '@/types/maintenance';
 import { generateMaintenancePlanPdf } from '@/utils/maintenancePlanPdf';
 
 const CADENCE_LABELS: Record<Cadence, string> = {
@@ -49,9 +50,10 @@ function TaskList({ tasks }: { tasks: ScheduledTask[] }) {
 interface Props {
   state: MaintenanceWizardState;
   onBack: () => void;
+  onUpdateState: (partial: Partial<MaintenanceWizardState>) => void;
 }
 
-export function MaintenanceDashboard({ state, onBack }: Props) {
+export function MaintenanceDashboard({ state, onBack, onUpdateState }: Props) {
   const plan = useMemo(() => generateMaintenancePlan(state.selectedAssets), [state.selectedAssets]);
 
   const totalTasks = Object.values(plan.tasks).reduce((sum, arr) => sum + arr.length, 0);
@@ -108,6 +110,13 @@ export function MaintenanceDashboard({ state, onBack }: Props) {
 
       {/* Contractor Guidance */}
       <ContractorGuidance contractorNeeds={plan.contractorNeeds} />
+
+      {/* Reminder Settings */}
+      <ReminderSettings
+        state={state}
+        plan={plan}
+        onUpdate={(prefs: ReminderPreferences) => onUpdateState({ reminderPreferences: prefs })}
+      />
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3 justify-between">

@@ -30,6 +30,13 @@ export default function MaintenanceWizard() {
     locationZip: '',
     email: '',
     name: '',
+    reminderPreferences: {
+      enabled: false,
+      cadences: ['monthly', 'quarterly', 'annual'],
+      preferredDay: 'monday',
+      preferredTime: '09:00',
+      additionalRecipients: [],
+    },
   });
 
   const currentStep = STEPS.findIndex((s) => location.pathname.endsWith(s.path));
@@ -73,7 +80,7 @@ export default function MaintenanceWizard() {
           <Route path="equipment" element={<AssetSelectionStep sports={state.sports} selections={state.selectedAssets} onChange={setSelectedAssets} onNext={goNext} onBack={goBack} />} />
           <Route path="details" element={<AssetDetailsStep selections={state.selectedAssets} onChange={setSelectedAssets} onNext={goNext} onBack={goBack} />} />
           <Route path="location" element={<LocationStep state={state} onChange={updateState} onNext={goNext} onBack={goBack} />} />
-          <Route path="dashboard" element={<MaintenanceDashboard state={state} onBack={goBack} />} />
+          <Route path="dashboard" element={<MaintenanceDashboard state={state} onBack={goBack} onUpdateState={updateState} />} />
         </Routes>
       </div>
     </Layout>
