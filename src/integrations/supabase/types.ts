@@ -122,6 +122,95 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_plans: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          location_city: string | null
+          location_state: string | null
+          location_zip: string | null
+          name: string | null
+          plan_data: Json
+          plan_version: string | null
+          reminder_preferences: Json | null
+          reminders_active: boolean
+          resume_token: string | null
+          selected_assets: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          location_city?: string | null
+          location_state?: string | null
+          location_zip?: string | null
+          name?: string | null
+          plan_data?: Json
+          plan_version?: string | null
+          reminder_preferences?: Json | null
+          reminders_active?: boolean
+          resume_token?: string | null
+          selected_assets?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          location_city?: string | null
+          location_state?: string | null
+          location_zip?: string | null
+          name?: string | null
+          plan_data?: Json
+          plan_version?: string | null
+          reminder_preferences?: Json | null
+          reminders_active?: boolean
+          resume_token?: string | null
+          selected_assets?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      maintenance_reminders: {
+        Row: {
+          cadence: string
+          id: string
+          is_active: boolean
+          last_sent_at: string | null
+          next_send_at: string
+          plan_id: string
+          recipients: string[]
+        }
+        Insert: {
+          cadence: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_send_at: string
+          plan_id: string
+          recipients?: string[]
+        }
+        Update: {
+          cadence?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_send_at?: string
+          plan_id?: string
+          recipients?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_reminders_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_pricing: {
         Row: {
           cost_library_id: string

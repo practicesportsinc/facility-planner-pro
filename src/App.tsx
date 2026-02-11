@@ -30,6 +30,7 @@ import BuildingConfig from "./pages/BuildingConfig";
 import BusinessPlanBuilder from "./pages/BusinessPlanBuilder";
 import MarketAnalysis from "./pages/MarketAnalysis";
 import FlashMarketAnalysisPage from "./pages/FlashMarketAnalysisPage";
+import MaintenanceWizard from "./pages/maintenance/MaintenanceWizard";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="/business-plan" element={<BusinessPlanBuilder />} />
               <Route path="/market-analysis" element={<MarketAnalysis />} />
               <Route path="/market-analysis/flash" element={<FlashMarketAnalysisPage />} />
+              <Route path="/maintenance/*" element={<MaintenanceWizard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <GlobalChatWidget />

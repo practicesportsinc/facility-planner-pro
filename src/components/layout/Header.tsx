@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Menu, MessageCircle, Home as HomeIcon, Building2, HardHat, MapPin, TrendingUp } from "lucide-react";
+import { Menu, MessageCircle, Home as HomeIcon, Building2, HardHat, MapPin, TrendingUp, Wrench } from "lucide-react";
 import { FlashMarketInput } from "@/components/market/FlashMarketInput";
 import {
   Dialog,
@@ -164,6 +164,23 @@ const Header = () => {
                     <Link to="/market-analysis" className="flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
                       Market Analysis / Biz Plan
+                    </Link>
+                  </Button>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <Button
+                    size="sm"
+                    asChild
+                    className={`shadow-glow transition-all ${
+                      location.pathname.startsWith('/maintenance')
+                        ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                        : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                    }`}
+                  >
+                    <Link to="/maintenance" className="flex items-center gap-2">
+                      <Wrench className="h-4 w-4" />
+                      Maintenance
                     </Link>
                   </Button>
                 </NavigationMenuItem>
@@ -341,6 +358,22 @@ const Header = () => {
                   <Link to="/market-analysis" className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
                     Market Analysis / Biz Plan
+                  </Link>
+                </Button>
+
+                <Button
+                  size="lg"
+                  asChild
+                  className={`w-full justify-start shadow-glow ${
+                    location.pathname.startsWith('/maintenance')
+                      ? 'bg-gradient-primary text-white hover:bg-gradient-primary/90 hover:text-white'
+                      : 'bg-gradient-primary/60 text-white/80 hover:bg-gradient-primary/80 hover:text-white'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Link to="/maintenance" className="flex items-center gap-2">
+                    <Wrench className="h-5 w-5" />
+                    Maintenance
                   </Link>
                 </Button>
               </nav>
