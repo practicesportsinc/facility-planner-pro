@@ -1,86 +1,57 @@
 
 
-## Add Auto Reminders for Maintenance Schedule
+## Add Email Delivery for Maintenance Plans
 
-### What It Does
-Adds a "Reminder Settings" section to the Maintenance Plan Dashboard where users can opt in to recurring email reminders for their maintenance tasks. Users pick which cadences to receive reminders for, choose a preferred day/time, and add additional email recipients. A new Edge Function handles sending the reminder emails on schedule via pg_cron.
+### Problem
+The maintenance plan dashboard only has a "Download PDF" button. There is no way for users to email the plan to themselves or others. The email delivery integration was planned but never implemented.
 
----
+### What Changes
+
+Add an "Email Plan" button to the Maintenance Dashboard that:
+1. Generates the maintenance plan PDF (same as download)
+2. Converts it to base64
+3. Sends it to the user (and optionally additional recipients) via the existing `send-lead-emails` edge function
+4. Also captures the lead in the `leads` database table
+5. Sends a company notification to the sales team
 
 ### User Experience
 
-On the Dashboard (Step 5), a new card appears below the Contractor Guidance section:
+On the Dashboard (Step 5), the action bar changes from:
 
-- Toggle: "Enable email reminders for this plan"
-- When enabled, shows:
-  - Checkboxes for which cadences to receive (Weekly, Monthly, Quarterly, Annual -- daily is opt-in only)
-  - Preferred day of week (for weekly) and time
-  - Additional recipient emails (comma-separated)
-  - A "Save Reminder Preferences" button
-- Success toast confirms preferences saved
-- A note: "You can manage or cancel reminders anytime via the link in each reminder email"
+```text
+[Back]                          [Download PDF]
+```
 
----
+to:
+
+```text
+[Back]                   [Email Plan]  [Download PDF]
+```
+
+Clicking "Email Plan":
+- Validates that an email address was entered in the Location step
+- Generates the PDF in memory
+- Sends it as an attachment to the user's email
+- Shows a success toast: "Plan emailed to john@facility.com"
+- Also notifies the company team (chad@sportsfacility.ai + info@practicesports.com)
 
 ### Technical Changes
 
-**1. Update types (`src/types/maintenance.ts`)**
-- Add a `ReminderPreferences` interface with `enabled`, `cadences` (array of Cadence), `preferredDay`, `preferredTime`, `additionalRecipients` (string array)
-- Add `reminderPreferences` to `MaintenanceWizardState`
+**1. Update `src/utils/maintenancePlanPdf.ts`**
+- Extract the PDF generation into a reusable function that can return the jsPDF doc object (or base64 string) without triggering a download
+- Add a new export: `generateMaintenancePlanPdfBase64(state, plan)` that returns the base64-encoded PDF content
 
-**2. Create `src/components/maintenance/ReminderSettings.tsx`**
-- A card component with:
-  - Master on/off switch
-  - Cadence checkboxes (monthly/quarterly/annual default ON, weekly optional)
-  - Day-of-week select and time select
-  - Additional recipients input
-  - Save button that writes to `maintenance_plans` table and creates/updates `maintenance_reminders` rows
-
-**3. Update `MaintenanceDashboard.tsx`**
-- Import and render `ReminderSettings` below Contractor Guidance
-- Pass wizard state and plan data so it can save to the database
-
-**4. Create Edge Function `supabase/functions/send-maintenance-reminders/index.ts`**
-- Queries `maintenance_reminders` where `next_send_at <= now()` and `is_active = true`
-- Joins `maintenance_plans` to get plan data and filter tasks for the relevant cadence
-- Sends email via Resend with a task checklist for that period
-- Updates `next_send_at` to the next occurrence and sets `last_sent_at`
-- Includes an unsubscribe/manage link in the email footer
-
-**5. Update `supabase/config.toml`**
-- Add `[functions.send-maintenance-reminders]` with `verify_jwt = false`
-
-**6. Deploy and set up pg_cron**
-- Deploy the new edge function
-- Provide a SQL snippet (run manually) to create a pg_cron job that calls the function hourly
-
----
-
-### Files to Create
-
-| File | Purpose |
-|------|---------|
-| `src/components/maintenance/ReminderSettings.tsx` | UI for toggling reminders, selecting cadences, day/time, recipients |
-| `supabase/functions/send-maintenance-reminders/index.ts` | Edge function that sends due reminders via Resend |
+**2. Update `src/components/maintenance/MaintenanceDashboard.tsx`**
+- Add an "Email Plan" button with a Mail icon next to the Download button
+- On click: generate PDF as base64, call `supabase.functions.invoke('send-lead-emails', ...)` with the maintenance plan data and PDF attachment
+- Also call `submitLeadToDatabase` (or insert directly) with source `maintenance-plan` to capture the lead
+- Show loading state while sending, success/error toast on completion
 
 ### Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/types/maintenance.ts` | Add `ReminderPreferences` interface |
-| `src/components/maintenance/MaintenanceDashboard.tsx` | Add ReminderSettings section |
-| `src/pages/maintenance/MaintenanceWizard.tsx` | Initialize `reminderPreferences` in state |
-| `supabase/config.toml` | Register new edge function |
+| `src/utils/maintenancePlanPdf.ts` | Add `generateMaintenancePlanPdfBase64()` export that returns base64 without triggering download |
+| `src/components/maintenance/MaintenanceDashboard.tsx` | Add "Email Plan" button with send logic using the existing `send-lead-emails` edge function |
 
-### Database
-
-The `maintenance_plans` and `maintenance_reminders` tables already exist with the correct schema (including `reminder_preferences` jsonb, `reminders_active` boolean, and the reminders table with `cadence`, `next_send_at`, `recipients`, `is_active`). No migration needed.
-
-### pg_cron Setup (manual step after deploy)
-
-A SQL snippet will be provided to run in the Supabase Dashboard to schedule the edge function hourly:
-```text
-cron.schedule('maintenance-reminders', '0 * * * *', ...)
-```
-This calls `send-maintenance-reminders` every hour to check for due reminders.
-
+No new files, no edge function changes, no database changes needed -- everything reuses the existing email infrastructure.
