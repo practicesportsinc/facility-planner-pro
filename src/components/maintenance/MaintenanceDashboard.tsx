@@ -1,15 +1,17 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Download, ChevronLeft, Wrench, ClipboardCheck, UserCheck } from 'lucide-react';
+import { AlertTriangle, Download, ChevronLeft, Wrench, ClipboardCheck, UserCheck, Mail, Loader2 } from 'lucide-react';
 import { generateMaintenancePlan } from '@/utils/maintenanceEngine';
 import { MAINTENANCE_ASSETS } from '@/data/maintenanceAssets';
 import { ContractorGuidance } from './ContractorGuidance';
 import { ReminderSettings } from './ReminderSettings';
 import type { MaintenanceWizardState, Cadence, ScheduledTask, ReminderPreferences } from '@/types/maintenance';
-import { generateMaintenancePlanPdf } from '@/utils/maintenancePlanPdf';
+import { generateMaintenancePlanPdf, generateMaintenancePlanPdfBase64 } from '@/utils/maintenancePlanPdf';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const CADENCE_LABELS: Record<Cadence, string> = {
   daily: 'Daily',
@@ -56,10 +58,66 @@ interface Props {
 export function MaintenanceDashboard({ state, onBack, onUpdateState }: Props) {
   const plan = useMemo(() => generateMaintenancePlan(state.selectedAssets), [state.selectedAssets]);
 
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
   const totalTasks = Object.values(plan.tasks).reduce((sum, arr) => sum + arr.length, 0);
 
   const handleDownloadPdf = async () => {
     await generateMaintenancePlanPdf(state, plan);
+  };
+
+  const handleEmailPlan = async () => {
+    if (!state.email) {
+      toast.error('No email address found. Please go back and enter your email.');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const pdfBase64 = await generateMaintenancePlanPdfBase64(state, plan);
+
+      // Send via existing send-lead-emails edge function
+      const { error: emailError } = await supabase.functions.invoke('send-lead-emails', {
+        body: {
+          customerEmail: state.email,
+          customerName: state.name || 'Facility Owner',
+          leadData: {
+            name: state.name || 'Facility Owner',
+            email: state.email,
+          },
+          facilityDetails: {
+            sport: state.sports?.join(', ') || 'Multi-sport',
+            projectType: 'Maintenance Plan',
+            location: [state.locationCity, state.locationState, state.locationZip].filter(Boolean).join(', ') || undefined,
+          },
+          pdfAttachment: {
+            filename: `maintenance-plan-${state.facilityName || 'facility'}.pdf`,
+            content: pdfBase64,
+          },
+          source: 'maintenance-plan',
+        },
+      });
+
+      if (emailError) throw emailError;
+
+      // Capture lead in database
+      await supabase.from('leads').insert({
+        name: state.name || 'Facility Owner',
+        email: state.email,
+        source: 'maintenance-plan',
+        city: state.locationCity || null,
+        state: state.locationState || null,
+        facility_type: 'Maintenance Plan',
+        sports: state.sports?.join(', ') || null,
+      });
+
+      toast.success(`Plan emailed to ${state.email}`);
+    } catch (err: any) {
+      console.error('Email send error:', err);
+      toast.error('Failed to send email. Please try downloading the PDF instead.');
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   return (
@@ -124,6 +182,10 @@ export function MaintenanceDashboard({ state, onBack, onUpdateState }: Props) {
           <ChevronLeft className="h-4 w-4 mr-1" /> Back
         </Button>
         <div className="flex gap-3">
+          <Button variant="secondary" onClick={handleEmailPlan} disabled={isSendingEmail}>
+            {isSendingEmail ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Mail className="h-4 w-4 mr-1" />}
+            {isSendingEmail ? 'Sending…' : 'Email Plan'}
+          </Button>
           <Button onClick={handleDownloadPdf}>
             <Download className="h-4 w-4 mr-1" /> Download PDF
           </Button>
