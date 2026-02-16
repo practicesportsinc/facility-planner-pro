@@ -1,57 +1,27 @@
 
 
-## Add Email Delivery for Maintenance Plans
+## Auto-Send Email When Plan Is Generated
 
 ### Problem
-The maintenance plan dashboard only has a "Download PDF" button. There is no way for users to email the plan to themselves or others. The email delivery integration was planned but never implemented.
+The "Generate My Plan" button on the Location step only navigates to the Dashboard. Users expect it to also send them the maintenance plan via email. The "Email Plan" button exists on the Dashboard but requires a separate click.
 
-### What Changes
+### Solution
+Automatically trigger the email send when the Dashboard first loads (i.e., when the user arrives from clicking "Generate My Plan"). This way the user gets the email without needing to find and click a second button.
 
-Add an "Email Plan" button to the Maintenance Dashboard that:
-1. Generates the maintenance plan PDF (same as download)
-2. Converts it to base64
-3. Sends it to the user (and optionally additional recipients) via the existing `send-lead-emails` edge function
-4. Also captures the lead in the `leads` database table
-5. Sends a company notification to the sales team
-
-### User Experience
-
-On the Dashboard (Step 5), the action bar changes from:
-
-```text
-[Back]                          [Download PDF]
-```
-
-to:
-
-```text
-[Back]                   [Email Plan]  [Download PDF]
-```
-
-Clicking "Email Plan":
-- Validates that an email address was entered in the Location step
-- Generates the PDF in memory
-- Sends it as an attachment to the user's email
-- Shows a success toast: "Plan emailed to john@facility.com"
-- Also notifies the company team (chad@sportsfacility.ai + info@practicesports.com)
+### How It Works
+1. When the Dashboard mounts for the first time, it checks if the user has a valid email address
+2. If yes, it automatically calls the same `handleEmailPlan` logic (generate PDF as base64, invoke `send-lead-emails`, capture lead)
+3. Shows a toast: "Your plan has been emailed to john@facility.com"
+4. A `useRef` flag prevents re-sending on re-renders or navigation back/forth
+5. The manual "Email Plan" button stays available for re-sending
 
 ### Technical Changes
 
-**1. Update `src/utils/maintenancePlanPdf.ts`**
-- Extract the PDF generation into a reusable function that can return the jsPDF doc object (or base64 string) without triggering a download
-- Add a new export: `generateMaintenancePlanPdfBase64(state, plan)` that returns the base64-encoded PDF content
+**File: `src/components/maintenance/MaintenanceDashboard.tsx`**
+- Add a `useEffect` with a `hasSentRef` guard that runs `handleEmailPlan` on first mount
+- Extract the email-sending logic into a standalone function so both the auto-send and the button can use it
+- Show a brief loading indicator or info toast ("Sending your plan...") during the auto-send
 
-**2. Update `src/components/maintenance/MaintenanceDashboard.tsx`**
-- Add an "Email Plan" button with a Mail icon next to the Download button
-- On click: generate PDF as base64, call `supabase.functions.invoke('send-lead-emails', ...)` with the maintenance plan data and PDF attachment
-- Also call `submitLeadToDatabase` (or insert directly) with source `maintenance-plan` to capture the lead
-- Show loading state while sending, success/error toast on completion
+### No other files change
+The Location step, edge function, and PDF generation all remain the same.
 
-### Files to Modify
-
-| File | Change |
-|------|--------|
-| `src/utils/maintenancePlanPdf.ts` | Add `generateMaintenancePlanPdfBase64()` export that returns base64 without triggering download |
-| `src/components/maintenance/MaintenanceDashboard.tsx` | Add "Email Plan" button with send logic using the existing `send-lead-emails` edge function |
-
-No new files, no edge function changes, no database changes needed -- everything reuses the existing email infrastructure.
