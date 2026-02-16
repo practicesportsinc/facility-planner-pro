@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -59,6 +59,7 @@ export function MaintenanceDashboard({ state, onBack, onUpdateState }: Props) {
   const plan = useMemo(() => generateMaintenancePlan(state.selectedAssets), [state.selectedAssets]);
 
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const hasSentRef = useRef(false);
 
   const totalTasks = Object.values(plan.tasks).reduce((sum, arr) => sum + arr.length, 0);
 
@@ -66,7 +67,7 @@ export function MaintenanceDashboard({ state, onBack, onUpdateState }: Props) {
     await generateMaintenancePlanPdf(state, plan);
   };
 
-  const handleEmailPlan = async () => {
+  const sendEmailPlan = useCallback(async () => {
     if (!state.email) {
       toast.error('No email address found. Please go back and enter your email.');
       return;
@@ -118,7 +119,15 @@ export function MaintenanceDashboard({ state, onBack, onUpdateState }: Props) {
     } finally {
       setIsSendingEmail(false);
     }
-  };
+  }, [state, plan]);
+
+  // Auto-send email when dashboard first mounts
+  useEffect(() => {
+    if (!hasSentRef.current && state.email) {
+      hasSentRef.current = true;
+      sendEmailPlan();
+    }
+  }, [sendEmailPlan, state.email]);
 
   return (
     <div className="space-y-6">
@@ -182,7 +191,7 @@ export function MaintenanceDashboard({ state, onBack, onUpdateState }: Props) {
           <ChevronLeft className="h-4 w-4 mr-1" /> Back
         </Button>
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={handleEmailPlan} disabled={isSendingEmail}>
+          <Button variant="secondary" onClick={sendEmailPlan} disabled={isSendingEmail}>
             {isSendingEmail ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Mail className="h-4 w-4 mr-1" />}
             {isSendingEmail ? 'Sending…' : 'Email Plan'}
           </Button>
