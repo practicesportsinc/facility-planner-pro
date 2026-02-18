@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 import FirecrawlApp from "https://esm.sh/@mendable/firecrawl-js@4.7.0";
 
+
 // Allowed origins for CORS - restrict to known domains
 const ALLOWED_ORIGINS = [
   'https://facility-planner-pro.lovable.app',
@@ -26,6 +27,7 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY')!;
 
 serve(async (req) => {
@@ -36,8 +38,47 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Require a valid Bearer token
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Verify the JWT and extract the user id
+  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error: userError } = await userClient.auth.getUser();
+
+  if (userError || !user) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Service-role client for role check and DB writes
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  // Confirm the caller is an admin
+  const { data: roleRow } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', user.id)
+    .eq('role', 'admin')
+    .maybeSingle();
+
+  if (!roleRow) {
+    return new Response(
+      JSON.stringify({ error: 'Forbidden – admin role required' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const firecrawl = new FirecrawlApp({ apiKey: firecrawlApiKey });
 
     const { cost_library_id, sync_all } = await req.json().catch(() => ({}));
