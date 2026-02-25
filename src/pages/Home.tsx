@@ -58,6 +58,10 @@ const Home = () => {
       setFlowStep('sport');
     } else if (mode === 'facility') {
       setFlowStep('facility');
+    } else {
+      setFlowStep('path');
+      setSelectedSport(null);
+      setQuote(null);
     }
   }, [searchParams]);
 
