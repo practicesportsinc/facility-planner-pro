@@ -1,27 +1,32 @@
 
 
-## Auto-Send Email When Plan Is Generated
+## Fix: Home Button / Logo Not Returning to Homepage on Equipment Path
 
 ### Problem
-The "Generate My Plan" button on the Location step only navigates to the Dashboard. Users expect it to also send them the maintenance plan via email. The "Email Plan" button exists on the Dashboard but requires a separate click.
+When the user is on the equipment flow (URL: `/?mode=equipment`), clicking the Home button or logo in the header navigates to `/`. Since both URLs share the same route (`/` → `Home` component), React doesn't unmount/remount the component. The `useState` for `flowStep` retains its current value (`'sport'`), and the `useEffect` that reads `searchParams` only sets `flowStep` forward (to `'sport'` or `'facility'`) — it never resets it back to `'path'` when the mode param is absent.
 
-### Solution
-Automatically trigger the email send when the Dashboard first loads (i.e., when the user arrives from clicking "Generate My Plan"). This way the user gets the email without needing to find and click a second button.
+### Root Cause
+In `src/pages/Home.tsx`, lines 55-62:
+```js
+useEffect(() => {
+  const mode = searchParams.get('mode');
+  if (mode === 'equipment') {
+    setFlowStep('sport');
+  } else if (mode === 'facility') {
+    setFlowStep('facility');
+  }
+}, [searchParams]);
+```
+There is no `else` branch to reset `flowStep` back to `'path'` when `mode` is `null`.
 
-### How It Works
-1. When the Dashboard mounts for the first time, it checks if the user has a valid email address
-2. If yes, it automatically calls the same `handleEmailPlan` logic (generate PDF as base64, invoke `send-lead-emails`, capture lead)
-3. Shows a toast: "Your plan has been emailed to john@facility.com"
-4. A `useRef` flag prevents re-sending on re-renders or navigation back/forth
-5. The manual "Email Plan" button stays available for re-sending
+### Fix
+Add an `else` clause that resets `flowStep` to `'path'` and clears the selected sport/quote state when no `mode` query param is present.
 
-### Technical Changes
+### File to Modify
 
-**File: `src/components/maintenance/MaintenanceDashboard.tsx`**
-- Add a `useEffect` with a `hasSentRef` guard that runs `handleEmailPlan` on first mount
-- Extract the email-sending logic into a standalone function so both the auto-send and the button can use it
-- Show a brief loading indicator or info toast ("Sending your plan...") during the auto-send
+| File | Change |
+|------|--------|
+| `src/pages/Home.tsx` | Add `else` branch in the `searchParams` useEffect to reset `flowStep` to `'path'`, clear `selectedSport` and `quote` |
 
-### No other files change
-The Location step, edge function, and PDF generation all remain the same.
+This is a one-line addition to the existing `useEffect`.
 
