@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { X, Mail, Phone, MapPin, Calendar, AlertCircle, MessageSquare, Handshake } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, AlertCircle, MessageSquare, Handshake } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { leadSchema, checkRateLimit, recordSubmission, sanitizeLeadData, type LeadFormData } from "@/utils/leadValidation";
 import { z } from "zod";
@@ -420,17 +420,7 @@ const LeadGate = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            {title}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <div className="px-6 pb-6">
