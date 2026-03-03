@@ -240,7 +240,7 @@ const Home = () => {
                   
                   <div className="grid md:grid-cols-2 gap-6">
                     <Card 
-                      onClick={() => navigate('/market-analysis')} 
+                      onClick={() => navigate('/market-analysis/flash')} 
                       className="cursor-pointer p-6 hover:shadow-lg transition-all hover:border-primary/50"
                     >
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
