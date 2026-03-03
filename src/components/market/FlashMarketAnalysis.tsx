@@ -81,7 +81,20 @@ export const FlashMarketAnalysis = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [showLeadGate, setShowLeadGate] = useState(false);
+  const [showStickyBar, setShowStickyBar] = useState(false);
   const hasAutoAnalyzed = useRef(false);
+  const ctaBannerRef = useRef<HTMLDivElement>(null);
+
+  // IntersectionObserver: hide sticky bar when inline CTA is visible
+  useEffect(() => {
+    if (!marketData || !ctaBannerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyBar(!entry.isIntersecting),
+      { threshold: 0.3 }
+    );
+    observer.observe(ctaBannerRef.current);
+    return () => observer.disconnect();
+  }, [marketData]);
 
   // Auto-analyze from URL parameter
   useEffect(() => {
@@ -296,6 +309,47 @@ export const FlashMarketAnalysis = () => {
           <SportDemandList sports={sportDemandArray} className="lg:col-span-2" />
         </div>
 
+        {/* ★ PRIMARY CTA BANNER — peak engagement placement */}
+        <div ref={ctaBannerRef}>
+          <Card className="p-6 md:p-8 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/30">
+            <div className="flex flex-col md:flex-row md:items-center gap-6">
+              <div className="flex-1 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Download className="w-6 h-6 text-primary" />
+                  <h3 className="text-xl font-bold">Get the Full Market Report</h3>
+                </div>
+                <ul className="grid sm:grid-cols-2 gap-1.5 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-1.5">
+                    <ArrowRight className="w-3.5 h-3.5 text-primary shrink-0" />
+                    Competitive gap analysis
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <ArrowRight className="w-3.5 h-3.5 text-primary shrink-0" />
+                    Top 3 recommended sports
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <ArrowRight className="w-3.5 h-3.5 text-primary shrink-0" />
+                    Revenue potential estimate
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <ArrowRight className="w-3.5 h-3.5 text-primary shrink-0" />
+                    Demographic deep-dive
+                  </li>
+                </ul>
+                <p className="text-xs text-muted-foreground">Free — no credit card required</p>
+              </div>
+              <Button
+                onClick={() => setShowLeadGate(true)}
+                size="lg"
+                className="bg-gradient-primary text-primary-foreground px-8 shrink-0"
+              >
+                <Download className="w-5 h-5 mr-2" />
+                Download Free Report
+              </Button>
+            </div>
+          </Card>
+        </div>
+
         {/* Competitive Analysis Section */}
         {marketData.competitiveAnalysis && (
           <div className="pt-4">
@@ -362,18 +416,25 @@ export const FlashMarketAnalysis = () => {
               </Card>
             </Link>
           </div>
-
-          {/* Secondary Action */}
-          <div className="flex justify-center pt-6">
-            <Button 
-              onClick={() => setShowLeadGate(true)}
-              variant="outline"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download Full Report
-            </Button>
-          </div>
         </div>
+
+        {/* Sticky Bottom Bar CTA */}
+        {showStickyBar && (
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-t shadow-lg">
+            <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+              <p className="text-sm font-medium hidden sm:block">
+                Get the full market report for {marketData.location.city}, {marketData.location.state}
+              </p>
+              <Button
+                onClick={() => setShowLeadGate(true)}
+                className="bg-gradient-primary text-primary-foreground ml-auto"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Free Report
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Lead Gate Modal */}
         <LeadGate
