@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/layout/Layout";
@@ -26,6 +26,7 @@ type FlowStep = 'path' | 'sport' | 'questionnaire' | 'quote' | 'facility' | 'mar
 
 const Home = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { openChat } = useChat();
   const { track } = useAnalytics();
   const [searchParams] = useSearchParams();
@@ -63,7 +64,7 @@ const Home = () => {
       setSelectedSport(null);
       setQuote(null);
     }
-  }, [searchParams]);
+  }, [searchParams, location.key]);
 
   // Scroll to flow content when step changes (or top for path selection)
   useEffect(() => {
