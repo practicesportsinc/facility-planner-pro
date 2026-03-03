@@ -1,25 +1,32 @@
 
 
-## Fix: Market Path Not Resetting When Clicking Logo/Home
+## Fix: Flash Market Analysis Returns Hardcoded Omaha Data
 
 ### Problem
-The `market-select` flow step is set via internal state (`handlePathSelect('market')`) without changing the URL -- the URL stays as `/` with no `mode` param. When the user clicks the logo or Home button (both link to `/`), React Router sees the URL hasn't changed, so `searchParams` doesn't update, and the `useEffect` that resets state never re-fires. The user stays stuck on the market-select view.
+The `analyze-location` edge function (lines 140-175) returns hardcoded test data for Omaha, NE regardless of the ZIP code entered. The demographics, city/state, sport demand scores, and competitive analysis are all static values.
 
-This same issue would affect any future internal flow step that doesn't use a URL `mode` parameter.
+### Solution
+Update the edge function to use real data sources:
 
-### Root Cause
-The `useEffect` on line 55 depends on `[searchParams]`. When navigating from `/` to `/` (same URL), the `searchParams` reference doesn't change, so the effect doesn't run.
-
-### Fix
-Add `useLocation()` and include `location.key` as a dependency in the reset `useEffect`. Every React Router navigation generates a unique `location.key`, even when navigating to the same path. This ensures the effect fires on every navigation, catching the market-select case.
+1. **ZIP-to-location lookup** — Use the existing `ZIP_PREFIX_TO_STATE` mapping (mentioned in memory) plus a free ZIP code API (e.g., `api.zippopotam.us`) to resolve the ZIP to a real city/state
+2. **US Census Bureau API** — Use the ACS 5-Year API (free, no key required for basic queries) to fetch real demographics (population, median income, age distribution) for the ZIP's county/state
+3. **Regional adjustments** — Vary sport demand scores and facility ratios by region instead of using flat values
 
 ### Technical Changes
 
-**File: `src/pages/Home.tsx`**
+**File: `supabase/functions/analyze-location/index.ts`**
 
-1. Import `useLocation` from `react-router-dom` (line 2)
-2. Add `const location = useLocation();` in the component
-3. Add `location.key` to the `useEffect` dependency array (line 66)
+| Change | Detail |
+|--------|--------|
+| Add ZIP lookup | Call `api.zippopotam.us/us/{zip}` to get city, state, latitude, longitude |
+| Add Census API call | Query `api.census.gov/data/{year}/acs/acs5` for population (`B01003_001E`), median income (`B19013_001E`), age brackets (`B09001_001E` for under-18), household types (`B11003_001E`) at the county level |
+| Remove hardcoded data | Replace the static `demographics`, `sportDemandScores`, and `location` objects with values derived from API responses |
+| Add fallback | If Census API fails, use state-level averages with the existing regional adjustment factors (keep current logic as fallback) |
+| Vary sport demand by region | Apply regional weighting to sport demand scores (e.g., baseball higher in Midwest/Southeast, pickleball higher in Southwest/West) |
 
-This is a 3-line change. No other files need modification.
+The response shape stays identical so no frontend changes are needed.
+
+### Fallback Strategy
+- If ZIP lookup fails → return error asking for valid ZIP
+- If Census API fails → use state-average estimates with a `dataSource.source: 'estimated'` flag (the frontend already handles this distinction)
 
