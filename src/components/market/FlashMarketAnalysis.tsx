@@ -108,7 +108,29 @@ export const FlashMarketAnalysis = () => {
         body: { zipCode: zip, radius: 15 }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Extract the user-friendly message from the edge function response
+        let message = "Failed to analyze location. Please try again.";
+        try {
+          const context = JSON.parse(error.message || "{}");
+          if (context?.error) message = context.error;
+        } catch {
+          // Try reading from error.context if available (FunctionsHttpError)
+          if (error.context) {
+            try {
+              const body = await error.context.json();
+              if (body?.error) message = body.error;
+            } catch { /* ignore */ }
+          }
+        }
+        toast.error(message);
+        return;
+      }
+
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
 
       setMarketData(data);
     } catch (error: any) {
