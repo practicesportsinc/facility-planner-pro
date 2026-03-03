@@ -1,23 +1,24 @@
 
 
-## Add Value Framing to the Flash Market Analysis Input Screen
+## Fix: Eliminate Double-Click to Reach Flash Analysis
 
-### What
-Add persuasive content to the initial ZIP code entry view (the `return` block at the bottom of `FlashMarketAnalysis.tsx`) so users understand what they'll get before typing their ZIP.
+### Problem
+The Home page's "Flash Analysis" card navigates to `/market-analysis`, which shows the same chooser page again — forcing a redundant second click. The nav bar also links to this intermediate page.
 
-### Changes (single file: `src/components/market/FlashMarketAnalysis.tsx`)
+### Changes
 
-Below the ZIP input and "Results in under 30 seconds" text, add a value-proposition card showing what the analysis includes:
+**1. `src/pages/Home.tsx` (line 243)**
+Change the Flash Analysis card's `onClick` from `navigate('/market-analysis')` to `navigate('/market-analysis/flash')` so it goes directly to the Flash Analysis page.
 
-1. **"What You'll Get" section** — a grid of 4 mini feature cards with icons:
-   - Market viability score
-   - Population & income data
-   - Sport demand rankings
-   - Competitive landscape
+**2. `src/components/layout/Header.tsx` (lines 164, 358)**
+The nav bar "Market Analysis / Biz Plan" links currently go to `/market-analysis` (the intermediate chooser). Two options:
+- Keep as-is (the chooser page is still useful when clicking from the nav bar since the user hasn't pre-chosen)
+- Or change to go directly to Flash Analysis
 
-2. **Trust line** — "Free — no signup required" with a subtle lock/shield icon
+I recommend keeping the nav bar link to `/market-analysis` since users clicking it from the nav haven't indicated a preference yet. Only the Home page card needs fixing since it's already labeled "Flash Analysis."
 
-3. **Social proof line** — e.g. "Used by 500+ facility planners nationwide"
+**3. `src/pages/MarketAnalysis.tsx`**
+No changes needed — it remains as the chooser page for nav bar traffic.
 
-All additions go inside the existing `max-w-xl mx-auto text-center` wrapper, after the input row. Styling uses existing Card, muted-foreground, and primary color tokens.
+This is a one-line fix in `Home.tsx`.
 
