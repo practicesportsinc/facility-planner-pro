@@ -1,32 +1,25 @@
 
 
-## Fix: Home Button / Logo Not Returning to Homepage on Equipment Path
+## Fix: Market Path Not Resetting When Clicking Logo/Home
 
 ### Problem
-When the user is on the equipment flow (URL: `/?mode=equipment`), clicking the Home button or logo in the header navigates to `/`. Since both URLs share the same route (`/` → `Home` component), React doesn't unmount/remount the component. The `useState` for `flowStep` retains its current value (`'sport'`), and the `useEffect` that reads `searchParams` only sets `flowStep` forward (to `'sport'` or `'facility'`) — it never resets it back to `'path'` when the mode param is absent.
+The `market-select` flow step is set via internal state (`handlePathSelect('market')`) without changing the URL -- the URL stays as `/` with no `mode` param. When the user clicks the logo or Home button (both link to `/`), React Router sees the URL hasn't changed, so `searchParams` doesn't update, and the `useEffect` that resets state never re-fires. The user stays stuck on the market-select view.
+
+This same issue would affect any future internal flow step that doesn't use a URL `mode` parameter.
 
 ### Root Cause
-In `src/pages/Home.tsx`, lines 55-62:
-```js
-useEffect(() => {
-  const mode = searchParams.get('mode');
-  if (mode === 'equipment') {
-    setFlowStep('sport');
-  } else if (mode === 'facility') {
-    setFlowStep('facility');
-  }
-}, [searchParams]);
-```
-There is no `else` branch to reset `flowStep` back to `'path'` when `mode` is `null`.
+The `useEffect` on line 55 depends on `[searchParams]`. When navigating from `/` to `/` (same URL), the `searchParams` reference doesn't change, so the effect doesn't run.
 
 ### Fix
-Add an `else` clause that resets `flowStep` to `'path'` and clears the selected sport/quote state when no `mode` query param is present.
+Add `useLocation()` and include `location.key` as a dependency in the reset `useEffect`. Every React Router navigation generates a unique `location.key`, even when navigating to the same path. This ensures the effect fires on every navigation, catching the market-select case.
 
-### File to Modify
+### Technical Changes
 
-| File | Change |
-|------|--------|
-| `src/pages/Home.tsx` | Add `else` branch in the `searchParams` useEffect to reset `flowStep` to `'path'`, clear `selectedSport` and `quote` |
+**File: `src/pages/Home.tsx`**
 
-This is a one-line addition to the existing `useEffect`.
+1. Import `useLocation` from `react-router-dom` (line 2)
+2. Add `const location = useLocation();` in the component
+3. Add `location.key` to the `useEffect` dependency array (line 66)
+
+This is a 3-line change. No other files need modification.
 
