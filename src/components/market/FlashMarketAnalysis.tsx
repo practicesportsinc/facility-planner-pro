@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { MapPin, Loader2, TrendingUp, Users, DollarSign, Baby, Download, ArrowRight, RefreshCw, Wrench, HardHat, Calculator, FileText } from "lucide-react";
+import { MapPin, Loader2, TrendingUp, Users, DollarSign, Baby, Download, ArrowRight, RefreshCw, Wrench, HardHat, Calculator, FileText, Shield, BarChart3, Trophy, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketScoreCard } from "./MarketScoreCard";
 import { SportDemandList } from "./SportDemandList";
@@ -482,6 +482,58 @@ export const FlashMarketAnalysis = () => {
       <p className="text-sm text-muted-foreground mt-4">
         Results in under 30 seconds • No signup required
       </p>
+
+      {/* What You'll Get */}
+      <div className="mt-10 text-left">
+        <h3 className="text-lg font-semibold text-center mb-4">What You'll Get</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="p-4 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Target className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium text-sm">Market Score</p>
+              <p className="text-xs text-muted-foreground">Viability rating out of 100</p>
+            </div>
+          </Card>
+          <Card className="p-4 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium text-sm">Demographics</p>
+              <p className="text-xs text-muted-foreground">Population & income data</p>
+            </div>
+          </Card>
+          <Card className="p-4 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Trophy className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium text-sm">Sport Demand</p>
+              <p className="text-xs text-muted-foreground">Ranked by local interest</p>
+            </div>
+          </Card>
+          <Card className="p-4 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <BarChart3 className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium text-sm">Competition</p>
+              <p className="text-xs text-muted-foreground">Gaps & saturation analysis</p>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Trust & Social Proof */}
+      <div className="mt-6 space-y-2">
+        <div className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+          <Shield className="w-4 h-4 text-primary" />
+          Free — no signup required
+        </div>
+        <p className="text-xs text-muted-foreground">Used by 500+ facility planners nationwide</p>
+      </div>
     </div>
   );
 };
