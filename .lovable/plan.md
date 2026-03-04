@@ -1,68 +1,29 @@
 
 
-## Lead-Gate the Flash Market Analysis Results
+## Tease "Top Sports by Demand" with Gradual Blur
 
-### Concept
-Show the top section of results freely (Market Score + Population + Income cards), then blur everything below with a gradient overlay and an inline lead capture form. Once the user submits contact info, the blur lifts and they see the full report. This replaces the current "Download Report" CTA banner approach with a more compelling content-gating pattern.
-
-### What's Free (visible)
-- Header with city/state and "New Analysis" button
-- Market Score card
-- Population Reach card
-- Income & Growth card
-
-### What's Gated (blurred until contact info submitted)
-- Sport Demand rankings
-- CTA banner (removed — replaced by inline gate)
-- Competitive Landscape section
-- "What's Next?" navigation cards
-- Sticky bottom bar (removed — no longer needed)
+### Approach
+Move the SportDemandList out of the fully-blurred gated zone and instead apply a per-row progressive blur when locked. The heading and first sport row are fully visible, subsequent rows get increasingly blurred, creating a teaser effect that entices the user to unlock.
 
 ### Changes
 
-**Single file: `src/components/market/FlashMarketAnalysis.tsx`**
+**1. `src/components/market/SportDemandList.tsx`** — Add an optional `blurRows` prop
 
-1. **Add `isUnlocked` state** (default `false`). Set to `true` after lead form submission.
+- Accept `blurRows?: boolean` prop
+- When `blurRows` is true, apply increasing `blur` and decreasing `opacity` via inline styles on each sport row based on its index:
+  - Row 0: no blur (fully visible)
+  - Row 1: `blur(1px)`, opacity 0.8
+  - Row 2: `blur(3px)`, opacity 0.6
+  - Row 3: `blur(5px)`, opacity 0.4
+  - Row 4: `blur(7px)`, opacity 0.3
+- Also add `pointer-events-none select-none` to blurred rows
 
-2. **Restructure the results JSX** into two zones:
-   - **Free zone** (lines ~260-306): Market Score + Population + Income/Growth cards — rendered normally.
-   - **Gated zone** (lines ~308 onward): Wrapped in a container with `relative overflow-hidden`. When `!isUnlocked`:
-     - Content renders but with `blur-md pointer-events-none select-none` classes
-     - A gradient overlay div (`absolute inset-0`) fades from transparent at top to background color
-     - An inline `LeadGate` component (mode='inline') sits centered on top of the overlay
+**2. `src/components/market/FlashMarketAnalysis.tsx`** — Pull SportDemandList above the gated zone
 
-3. **On lead submit**: Call the existing `handleDownloadReport` logic, then set `isUnlocked = true`. The blur and overlay disappear, revealing full content.
+- Move the `<SportDemandList>` call out of the blurred `div` (line 299-301) and place it between the stats grid (line 292) and the gated zone (line 294)
+- Pass `blurRows={!isUnlocked}` so the progressive blur only applies when locked
+- The remaining gated content (Competitive Landscape, What's Next) stays fully blurred as before
 
-4. **Remove the sticky bottom bar** and the inline CTA banner — the blur gate replaces both as the primary conversion mechanism.
-
-5. **Remove `showStickyBar` state** and the `IntersectionObserver` effect — no longer needed.
-
-### Layout (gated state)
-
-```text
-┌──────────────────────────────────┐
-│ City, State          [New Analysis] │  ← free
-│                                      │
-│ ┌─────────┐ ┌──────────┐ ┌────────┐ │
-│ │ Market  │ │Population│ │Income  │ │  ← free
-│ │ Score   │ │ Reach    │ │& Growth│ │
-│ └─────────┘ └──────────┘ └────────┘ │
-│                                      │
-│ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │  ← blurred
-│ ▓ Sport Demand (blurred)          ▓ │
-│ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
-│                                      │
-│  ┌──────────────────────────────┐    │
-│  │ 🔓 Unlock Full Report       │    │  ← LeadGate inline
-│  │ [Name] [Email] [Phone]      │    │
-│  │ [Submit]                    │    │
-│  └──────────────────────────────┘    │
-│                                      │
-│ ▓▓▓ Competitive Landscape (blur) ▓▓ │
-│ ▓▓▓ What's Next (blur)          ▓▓ │
-└──────────────────────────────────────┘
-```
-
-### After unlock
-All content renders normally with no blur, overlay, or gate. The "What's Next" cards and Competitive Landscape are fully visible.
+### Result
+Users see the "Top Sports by Demand" heading clearly, the #1 sport fully visible, and a tantalizing fade into blur for the rest — a strong incentive to fill in the lead form to see the full rankings.
 
