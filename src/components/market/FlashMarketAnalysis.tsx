@@ -503,7 +503,7 @@ export const FlashMarketAnalysis = () => {
       {/* What You'll Get */}
       <div className="mt-10 text-left">
         <h3 className="text-lg font-semibold text-center mb-4">What You'll Get</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <Card className="p-4 flex items-start gap-3">
             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <Target className="w-4 h-4 text-primary" />
@@ -533,11 +533,29 @@ export const FlashMarketAnalysis = () => {
           </Card>
           <Card className="p-4 flex items-start gap-3">
             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <DollarSign className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium text-sm">Revenue Potential</p>
+              <p className="text-xs text-muted-foreground">Per-sport revenue estimates</p>
+            </div>
+          </Card>
+          <Card className="p-4 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <BarChart3 className="w-4 h-4 text-primary" />
             </div>
             <div>
               <p className="font-medium text-sm">Competition</p>
               <p className="text-xs text-muted-foreground">Gaps & saturation analysis</p>
+            </div>
+          </Card>
+          <Card className="p-4 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium text-sm">Nearby Facilities</p>
+              <p className="text-xs text-muted-foreground">Real facility names & ratings</p>
             </div>
           </Card>
         </div>
