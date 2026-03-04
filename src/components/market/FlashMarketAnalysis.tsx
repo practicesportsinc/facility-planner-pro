@@ -291,15 +291,15 @@ export const FlashMarketAnalysis = () => {
 
         </div>
 
+        {/* Sport Demand — teased with progressive blur when locked */}
+        <div className="mb-6">
+          <SportDemandList sports={sportDemandArray} blurRows={!isUnlocked} />
+        </div>
+
         {/* Gated Zone — blurred until lead submits contact info */}
         <div className="relative">
           {/* Blurred content */}
           <div className={!isUnlocked ? "blur-md pointer-events-none select-none" : ""}>
-            {/* Sport Demand */}
-            <div className="mb-6">
-              <SportDemandList sports={sportDemandArray} />
-            </div>
-
             {/* Competitive Analysis Section */}
             {marketData.competitiveAnalysis && (
               <div className="pt-4 mb-6">

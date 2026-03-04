@@ -8,6 +8,7 @@ interface SportDemand {
 interface SportDemandListProps {
   sports: SportDemand[];
   className?: string;
+  blurRows?: boolean;
 }
 
 const sportIcons: Record<string, string> = {
@@ -23,7 +24,10 @@ const sportIcons: Record<string, string> = {
   golf: "⛳",
 };
 
-export const SportDemandList = ({ sports, className }: SportDemandListProps) => {
+const blurLevels = [0, 1, 3, 5, 7];
+const opacityLevels = [1, 0.8, 0.6, 0.4, 0.3];
+
+export const SportDemandList = ({ sports, className, blurRows }: SportDemandListProps) => {
   const getScoreColor = (score: number) => {
     if (score >= 70) return "bg-green-500";
     if (score >= 50) return "bg-amber-500";
@@ -34,8 +38,14 @@ export const SportDemandList = ({ sports, className }: SportDemandListProps) => 
     <div className={cn("bg-card border rounded-xl p-6", className)}>
       <h3 className="text-sm font-medium text-muted-foreground mb-4">Top Sports by Demand</h3>
       <div className="space-y-4">
-        {sports.slice(0, 5).map((sport, index) => (
-          <div key={sport.sport} className="space-y-1">
+        {sports.slice(0, 5).map((sport, index) => {
+          const isBlurred = blurRows && index > 0;
+          return (
+          <div
+            key={sport.sport}
+            className={cn("space-y-1", isBlurred && "pointer-events-none select-none")}
+            style={isBlurred ? { filter: `blur(${blurLevels[index]}px)`, opacity: opacityLevels[index] } : undefined}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-lg">{sportIcons[sport.sport.toLowerCase()] || "🏟️"}</span>
@@ -50,7 +60,8 @@ export const SportDemandList = ({ sports, className }: SportDemandListProps) => 
               />
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
