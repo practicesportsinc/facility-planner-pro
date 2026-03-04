@@ -115,6 +115,45 @@ const EmailPayloadSchema = z.object({
   }).optional(),
   // PDF attachment for full report
   pdfAttachment: PdfAttachmentSchema.optional(),
+  // Market analysis data
+  marketAnalysis: z.object({
+    location: z.string().max(200),
+    marketScore: z.number(),
+    marketVerdict: z.string().max(100),
+    demographics: z.object({
+      population10Min: z.number(),
+      population15Min: z.number(),
+      population20Min: z.number(),
+      medianIncome: z.number(),
+      youthPercentage: z.number(),
+      populationGrowthRate: z.number(),
+    }),
+    sportDemand: z.array(z.object({
+      sport: z.string(),
+      score: z.number(),
+    })),
+    competitionScore: z.number().optional(),
+    marketGaps: z.array(z.object({
+      sport: z.string(),
+      opportunity: z.number(),
+      reason: z.string(),
+    })).optional(),
+    revenuePotential: z.object({
+      totalLow: z.number(),
+      totalHigh: z.number(),
+      topSports: z.array(z.object({
+        sport: z.string(),
+        revenueLow: z.number(),
+        revenueHigh: z.number(),
+        participants: z.number(),
+      })),
+    }),
+    nearbyFacilities: z.array(z.object({
+      name: z.string(),
+      vicinity: z.string(),
+    })).optional(),
+    insights: z.array(z.string()).optional(),
+  }).optional(),
   source: z.string().min(1).max(100),
   // Resume email data
   resumeData: z.object({
@@ -253,6 +292,29 @@ interface EmailPayload {
     filename: string;
     content: string;
   };
+  marketAnalysis?: {
+    location: string;
+    marketScore: number;
+    marketVerdict: string;
+    demographics: {
+      population10Min: number;
+      population15Min: number;
+      population20Min: number;
+      medianIncome: number;
+      youthPercentage: number;
+      populationGrowthRate: number;
+    };
+    sportDemand: Array<{ sport: string; score: number }>;
+    competitionScore?: number;
+    marketGaps?: Array<{ sport: string; opportunity: number; reason: string }>;
+    revenuePotential: {
+      totalLow: number;
+      totalHigh: number;
+      topSports: Array<{ sport: string; revenueLow: number; revenueHigh: number; participants: number }>;
+    };
+    nearbyFacilities?: Array<{ name: string; vicinity: string }>;
+    insights?: string[];
+  };
   source: string;
   resumeData?: {
     resumeUrl: string;
@@ -375,9 +437,12 @@ const handler = async (req: Request): Promise<Response> => {
             equipmentTotals: payload.equipmentTotals,
             buildingLineItems: payload.buildingLineItems,
             buildingTotals: payload.buildingTotals,
+            marketAnalysis: payload.marketAnalysis,
           })
         );
-        emailSubject = 'Thank you for your facility planning request';
+        emailSubject = payload.marketAnalysis 
+          ? 'Your Market Analysis Results' 
+          : 'Thank you for your facility planning request';
       }
       console.log('✅ Customer email rendered successfully, length:', customerHtml.length);
     } catch (renderError: any) {
@@ -409,6 +474,7 @@ const handler = async (req: Request): Promise<Response> => {
           equipmentTotals: payload.equipmentTotals,
           buildingLineItems: payload.buildingLineItems,
           buildingTotals: payload.buildingTotals,
+          marketAnalysis: payload.marketAnalysis,
           source: payload.source,
           timestamp: new Date().toISOString(),
         })

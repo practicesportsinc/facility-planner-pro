@@ -193,6 +193,56 @@ export const FlashMarketAnalysis = () => {
         },
       });
 
+      // Compute market analysis payload for rich emails
+      const marketScore = marketData ? calculateMarketScore(marketData) : 0;
+      const getVerdict = (s: number) => {
+        if (s >= 80) return "Excellent Opportunity";
+        if (s >= 70) return "Strong Opportunity";
+        if (s >= 60) return "Good Potential";
+        if (s >= 50) return "Moderate Potential";
+        if (s >= 40) return "Limited Opportunity";
+        return "Challenging Market";
+      };
+      const revPotential = marketData ? calculateRevenuePotential(marketData) : null;
+      const sportDemandArr = marketData?.sportDemandScores
+        ? Object.entries(marketData.sportDemandScores)
+            .map(([sport, score]) => ({ sport, score }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 5)
+        : [];
+
+      const marketAnalysisPayload = marketData ? {
+        location: `${marketData.location.city}, ${marketData.location.state} ${zipCode}`,
+        marketScore,
+        marketVerdict: getVerdict(marketScore),
+        demographics: {
+          population10Min: marketData.demographics.population10Min,
+          population15Min: marketData.demographics.population15Min,
+          population20Min: marketData.demographics.population20Min,
+          medianIncome: marketData.demographics.medianIncome,
+          youthPercentage: marketData.demographics.youthPercentage,
+          populationGrowthRate: marketData.demographics.populationGrowthRate,
+        },
+        sportDemand: sportDemandArr,
+        competitionScore: marketData.competitiveAnalysis?.competitionScore,
+        marketGaps: marketData.competitiveAnalysis?.marketGaps?.slice(0, 3),
+        revenuePotential: revPotential ? {
+          totalLow: revPotential.totalLow,
+          totalHigh: revPotential.totalHigh,
+          topSports: revPotential.sportRevenues.slice(0, 3).map(s => ({
+            sport: s.sport,
+            revenueLow: s.revenueLow,
+            revenueHigh: s.revenueHigh,
+            participants: s.participants,
+          })),
+        } : { totalLow: 0, totalHigh: 0, topSports: [] },
+        nearbyFacilities: marketData.nearbyFacilities?.slice(0, 5).map(f => ({
+          name: f.name,
+          vicinity: f.vicinity,
+        })),
+        insights: marketData.competitiveAnalysis?.insights?.slice(0, 3),
+      } : undefined;
+
       await supabase.functions.invoke('send-lead-emails', {
         body: {
           customerEmail: leadData.email,
@@ -207,6 +257,7 @@ export const FlashMarketAnalysis = () => {
           facilityDetails: {
             location: `${marketData?.location.city}, ${marketData?.location.state} ${zipCode}`,
           },
+          marketAnalysis: marketAnalysisPayload,
           source: 'flash-market-analysis',
         },
       });
