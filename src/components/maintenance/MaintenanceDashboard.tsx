@@ -112,6 +112,21 @@ export function MaintenanceDashboard({ state, onBack, onUpdateState }: Props) {
         sports: state.sports?.join(', ') || null,
       });
 
+      // Sync lead to Google Sheets
+      await supabase.functions.invoke('sync-lead-to-sheets', {
+        body: {
+          name: state.name || 'Facility Owner',
+          email: state.email,
+          city: state.locationCity || '',
+          state: state.locationState || '',
+          facilityType: 'Maintenance Plan',
+          sports: state.sports?.join(', ') || '',
+          source: 'maintenance-plan',
+          userAgent: navigator.userAgent,
+          referrer: document.referrer || 'direct',
+        },
+      });
+
       toast.success(`Plan emailed to ${state.email}`);
     } catch (err: any) {
       console.error('Email send error:', err);
