@@ -92,43 +92,24 @@ export function ReminderSettings({ state, plan, onUpdate }: Props) {
       const updatedPrefs: ReminderPreferences = { ...prefs, additionalRecipients };
       const allRecipients = [state.email, ...additionalRecipients];
 
-      // Upsert the maintenance plan
-      const { data: planRow, error: planError } = await supabase
-        .from('maintenance_plans')
-        .upsert({
+      // Save plan and reminders via edge function (service role, bypasses RLS)
+      const { data, error: saveError } = await supabase.functions.invoke('save-maintenance-plan', {
+        body: {
           email: state.email,
           name: state.name || null,
-          location_city: state.locationCity || null,
-          location_state: state.locationState || null,
-          location_zip: state.locationZip || null,
-          selected_assets: state.selectedAssets as any,
-          plan_data: plan as any,
-          plan_version: plan.version,
-          reminder_preferences: updatedPrefs as any,
-          reminders_active: updatedPrefs.enabled,
-        }, { onConflict: 'email' })
-        .select('id')
-        .single();
+          locationCity: state.locationCity || null,
+          locationState: state.locationState || null,
+          locationZip: state.locationZip || null,
+          selectedAssets: state.selectedAssets,
+          planData: plan,
+          planVersion: plan.version,
+          reminderPreferences: updatedPrefs,
+          remindersActive: updatedPrefs.enabled,
+        },
+      });
 
-      if (planError) throw planError;
-      const planId = planRow.id;
-
-      // Delete existing reminders for this plan
-      await supabase.from('maintenance_reminders').update({ is_active: false }).eq('plan_id', planId);
-
-      // Create new reminder rows for each selected cadence
-      if (updatedPrefs.enabled && updatedPrefs.cadences.length > 0) {
-        const reminders = updatedPrefs.cadences.map((cadence) => ({
-          plan_id: planId,
-          cadence,
-          next_send_at: getNextSendAt(cadence, updatedPrefs.preferredDay, updatedPrefs.preferredTime),
-          recipients: allRecipients,
-          is_active: true,
-        }));
-
-        const { error: remError } = await supabase.from('maintenance_reminders').insert(reminders);
-        if (remError) throw remError;
-      }
+      if (saveError) throw saveError;
+      if (data?.error) throw new Error(data.error);
 
       onUpdate(updatedPrefs);
       toast({ title: 'Reminder preferences saved', description: updatedPrefs.enabled ? `You'll receive reminders for ${updatedPrefs.cadences.join(', ')} tasks.` : 'Reminders have been disabled.' });
