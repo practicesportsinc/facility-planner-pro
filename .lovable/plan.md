@@ -1,34 +1,46 @@
 
-Goal
-- Make Flash Market Analysis require contact info again for each new analysis run.
 
-What I found
-- The unlock state is held in `isUnlocked` inside `src/components/market/FlashMarketAnalysis.tsx`.
-- `handleUnlock()` sets `isUnlocked` to `true`.
-- `handleReset()` currently clears `marketData` and `zipCode`, but does not reset `isUnlocked`.
-- Result: after one successful unlock, a “New Analysis” can still show ungated content because unlock state carries over in the same component session.
+## Plan: Rich Market Analysis Emails (Customer + Company)
 
-Implementation plan
-1. Reset unlock state on “New Analysis”
-- Update `handleReset()` to also call `setIsUnlocked(false)`.
+### Problem
+The Flash Market Analysis `handleUnlock` currently sends a bare-bones email with only the location. The customer gets a generic "facility planning request" email with no market data. The company notification also lacks the report highlights, making it hard for the sales team to see what the lead discovered.
 
-2. Add defensive reset on each analysis start
-- In `analyzeZip(zip)`, set `setIsUnlocked(false)` before invoking the edge function so every fresh analysis starts locked (covers any alternate trigger paths too).
+### What the emails should include
+From the `marketData` object available at unlock time:
+- **Market Score** (e.g. 72/100 — "Strong Opportunity")
+- **Demographics** — population (10/15/20 min), median income, youth %, growth rate
+- **Top Sports by Demand** — ranked list with scores
+- **Competitive Analysis** — competition score, facility saturation per sport, market gaps
+- **Revenue Potential** — top 3 sport revenue ranges, total range
+- **Nearby Facilities** — names and locations of competitors
 
-3. Keep existing lead-capture flow unchanged
-- Do not change `LeadGate`, submission handlers, or edge functions.
-- Keep current unlock copy and overlay behavior exactly as-is.
+### Implementation (4 files)
 
-Validation plan
-1. Run analysis for ZIP A (e.g., 68138) → confirm lead gate appears.
-2. Submit contact info → confirm gated sections unlock.
-3. Click “New Analysis,” run ZIP B (e.g., 68046) → confirm lead gate appears again before deep sections.
-4. Repeat with same ZIP again to verify it still re-gates per new run.
-5. Confirm no regressions: top free cards still visible, unlock still triggers existing lead sync/email calls.
+**1. Edge function schema — `supabase/functions/send-lead-emails/index.ts`**
+- Add optional `marketAnalysis` field to `EmailPayloadSchema` with sub-fields: `location`, `marketScore`, `demographics`, `sportDemand[]`, `competitionScore`, `facilityEstimates`, `marketGaps[]`, `revenuePotential`, `nearbyFacilities[]`, `insights[]`
+- Pass it through to both customer and company email template renders
 
-Technical details
-- File to update: `src/components/market/FlashMarketAnalysis.tsx`
-- Functions touched:
-  - `handleReset()`: add `setIsUnlocked(false)`
-  - `analyzeZip(zip: string)`: add `setIsUnlocked(false)` at start of valid analysis flow
-- No schema, RLS, or Supabase function changes required.
+**2. Customer email — `supabase/functions/send-lead-emails/_templates/customer-confirmation.tsx`**
+- Accept optional `marketAnalysis` prop
+- Render a "Your Market Analysis Results" section when present, including:
+  - Market Score gauge (text-based: "72/100 — Strong Opportunity")
+  - Demographics summary (population, income, youth %)
+  - Top 5 sports ranked by demand with scores
+  - Revenue potential range
+  - Competition level
+  - Top market gaps/opportunities
+  - Nearby facility names
+- This replaces the generic "facility planning request" copy for market analysis leads
+
+**3. Company email — `supabase/functions/send-lead-emails/_templates/company-notification.tsx`**
+- Accept optional `marketAnalysis` prop
+- Render a "📊 Market Analysis Report" section with all the same highlights
+- Gives sales team full context on what the lead saw
+
+**4. Client payload — `src/components/market/FlashMarketAnalysis.tsx`**
+- In `handleUnlock`, compute `marketScore`, `revenuePotential`, `sportDemandArray` (already calculated in render) and pass them as `marketAnalysis` in the `send-lead-emails` payload
+- Include demographics, competitive analysis, nearby facilities, and market gaps from `marketData`
+
+### No database or RLS changes needed
+All changes are in the email edge function, its templates, and the client-side payload construction.
+
