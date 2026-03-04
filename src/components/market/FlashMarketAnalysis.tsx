@@ -136,6 +136,7 @@ export const FlashMarketAnalysis = () => {
     }
 
     setIsLoading(true);
+    setIsUnlocked(false);
     try {
       const { data, error } = await supabase.functions.invoke('analyze-location', {
         body: { zipCode: zip, radius: 15 }
@@ -221,6 +222,7 @@ export const FlashMarketAnalysis = () => {
   const handleReset = () => {
     setMarketData(null);
     setZipCode("");
+    setIsUnlocked(false);
   };
 
   const formatNumber = (num: number) => {
