@@ -1,39 +1,33 @@
 
 
-## Add Value Framing to Maintenance Wizard Sport Selection Step
+## Fix: Maintenance Leads Not Syncing to Google Sheets
 
-### What
-Add persuasive content to the first step of the Maintenance Wizard (`SportSelectionStep.tsx`) highlighting the tool's benefits — similar to the CRO improvements we made to Flash Market Analysis.
+### Problem
+The `MaintenanceDashboard.tsx` sends emails and inserts into the `leads` table directly, but never calls the `sync-lead-to-sheets` edge function. Other tools (quick estimate, calculator, etc.) use `dispatchLead()` from `leadDispatch.ts` which handles the Google Sheets sync. The maintenance wizard bypasses this entirely.
 
-### Changes (single file: `src/components/maintenance/SportSelectionStep.tsx`)
+### Solution
+After the `leads` table insert succeeds, add a call to `supabase.functions.invoke('sync-lead-to-sheets', ...)` with the lead data, matching the payload format used by `dispatchLead`.
 
-**1. Value proposition banner above the sport grid**
-Replace the plain subtitle with a more compelling headline and add a benefits section below it:
-- "Build Your Free Maintenance Plan" as a supporting tagline
-- 4 benefit items in a compact grid: "Prevent costly breakdowns", "Custom schedules by equipment age & usage", "Contractor vetting checklist", "Downloadable PDF + email reminders"
-- Each with a relevant lucide icon (Shield, Calendar, Wrench, Download)
+### Changes (single file: `src/components/maintenance/MaintenanceDashboard.tsx`)
 
-**2. Trust line below the sport grid**
-- "Free — no signup required" with shield icon
-- "Takes under 2 minutes" to set expectations
+After line 113 (the `supabase.from('leads').insert(...)` call), add:
 
-### Layout
-```text
-"What sports does your facility offer?"
-"Build a custom maintenance plan — free in under 2 minutes"
-
-┌─────────────────┐  ┌─────────────────┐
-│ 🛡 Prevent      │  │ 📅 Custom       │
-│ costly breakdowns│  │ schedules       │
-└─────────────────┘  └─────────────────┘
-┌─────────────────┐  ┌─────────────────┐
-│ 🔧 Contractor   │  │ 📥 PDF report   │
-│ vetting guide   │  │ + email reminders│
-└─────────────────┘  └─────────────────┘
-
-[Sport selection grid - unchanged]
-
-Free — no signup required
-[Continue button]
+```typescript
+// Sync lead to Google Sheets
+await supabase.functions.invoke('sync-lead-to-sheets', {
+  body: {
+    name: state.name || 'Facility Owner',
+    email: state.email,
+    city: state.locationCity || '',
+    state: state.locationState || '',
+    facilityType: 'Maintenance Plan',
+    sports: state.sports?.join(', ') || '',
+    source: 'maintenance-plan',
+    userAgent: navigator.userAgent,
+    referrer: document.referrer || 'direct',
+  },
+});
 ```
+
+This is a non-blocking addition -- if the sync fails, the email and DB insert have already succeeded. The error is caught by the existing try/catch block.
 
