@@ -352,7 +352,7 @@ export const FlashMarketAnalysis = () => {
         </div>
 
         {/* Gated Zone — blurred until lead submits contact info */}
-        <div className="relative">
+        <div className="relative overflow-hidden z-10">
           {/* Blurred content */}
           <div className={!isUnlocked ? "blur-md pointer-events-none select-none" : ""}>
             {/* Per-Sport Revenue Breakdown */}
@@ -439,12 +439,12 @@ export const FlashMarketAnalysis = () => {
 
           {/* Overlay + inline lead gate (only when locked) */}
           {!isUnlocked && (
-            <div className="absolute inset-0 flex flex-col items-center justify-start pt-8">
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-start pt-8">
               {/* Gradient fade from transparent to background */}
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/70 to-background pointer-events-none" />
               
               {/* Inline lead capture form */}
-              <div className="relative z-10 w-full max-w-lg mx-auto">
+              <div className="relative z-10 w-full max-w-lg mx-auto pointer-events-auto">
                 <LeadGate
                   isOpen={true}
                   onClose={() => {}}
