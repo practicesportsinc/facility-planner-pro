@@ -18,6 +18,13 @@ interface CompetitiveAnalysis {
   insights: string[];
 }
 
+interface NearbyFacility {
+  name: string;
+  vicinity: string;
+  rating?: number;
+  types: string[];
+}
+
 interface MarketData {
   location: {
     zipCode: string;
@@ -43,6 +50,7 @@ interface MarketData {
   };
   sportDemandScores: Record<string, number>;
   competitiveAnalysis?: CompetitiveAnalysis;
+  nearbyFacilities?: NearbyFacility[];
 }
 
 function calculateMarketScore(data: MarketData): number {
@@ -73,6 +81,31 @@ function calculateMarketScore(data: MarketData): number {
   else score += 10;
 
   return Math.min(100, score);
+}
+
+// Calculate revenue potential from demographics + demand scores
+function calculateRevenuePotential(data: MarketData) {
+  const { demographics, sportDemandScores } = data;
+  const pop = demographics.population15Min;
+  
+  const sportRevenues = Object.entries(sportDemandScores)
+    .map(([sport, demand]) => {
+      const participants = Math.round(pop * (demand / 100) * 0.08);
+      return {
+        sport: sport.charAt(0).toUpperCase() + sport.slice(1),
+        participants,
+        revenueLow: participants * 500,
+        revenueHigh: participants * 1200,
+      };
+    })
+    .sort((a, b) => b.revenueHigh - a.revenueHigh);
+
+  // Total from top 3 sports
+  const top3 = sportRevenues.slice(0, 3);
+  const totalLow = top3.reduce((sum, s) => sum + s.revenueLow, 0);
+  const totalHigh = top3.reduce((sum, s) => sum + s.revenueHigh, 0);
+
+  return { sportRevenues, totalLow, totalHigh };
 }
 
 export const FlashMarketAnalysis = () => {
@@ -219,6 +252,13 @@ export const FlashMarketAnalysis = () => {
   if (marketData) {
     const marketScore = calculateMarketScore(marketData);
     const sportDemandArray = getSportDemandArray();
+    const revenuePotential = calculateRevenuePotential(marketData);
+
+    const formatRevenue = (num: number) => {
+      if (num >= 1_000_000) return `$${(num / 1_000_000).toFixed(1)}M`;
+      if (num >= 1_000) return `$${(num / 1_000).toFixed(0)}K`;
+      return `$${num}`;
+    };
 
     return (
       <div className="space-y-6">
@@ -289,6 +329,21 @@ export const FlashMarketAnalysis = () => {
             </div>
           </Card>
 
+          {/* Revenue Potential Card (free zone teaser) */}
+          <Card className="p-6 border-primary/30 bg-primary/5 lg:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              <h3 className="text-sm font-medium text-muted-foreground">Revenue Potential</h3>
+            </div>
+            <div className="mb-2">
+              <span className="text-3xl font-bold text-primary">{formatRevenue(revenuePotential.totalLow)}</span>
+              <span className="text-xl text-muted-foreground"> – {formatRevenue(revenuePotential.totalHigh)}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Estimated annual market revenue (top 3 sports)
+            </p>
+          </Card>
+
         </div>
 
         {/* Sport Demand — teased with progressive blur when locked */}
@@ -300,12 +355,33 @@ export const FlashMarketAnalysis = () => {
         <div className="relative">
           {/* Blurred content */}
           <div className={!isUnlocked ? "blur-md pointer-events-none select-none" : ""}>
+            {/* Per-Sport Revenue Breakdown */}
+            <div className="mb-6">
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <DollarSign className="w-5 h-5 text-primary" />
+                  <h3 className="text-sm font-medium text-muted-foreground">Revenue Potential by Sport</h3>
+                </div>
+                <div className="space-y-3">
+                  {revenuePotential.sportRevenues.slice(0, 6).map((sr) => (
+                    <div key={sr.sport} className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{sr.sport}</span>
+                      <div className="text-right">
+                        <span className="text-sm font-semibold">{formatRevenue(sr.revenueLow)} – {formatRevenue(sr.revenueHigh)}</span>
+                        <span className="text-xs text-muted-foreground ml-2">({formatNumber(sr.participants)} participants)</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+
             {/* Competitive Analysis Section */}
             {marketData.competitiveAnalysis && (
               <div className="pt-4 mb-6">
                 <h3 className="text-xl font-semibold mb-4">Competitive Landscape</h3>
                 <div className="grid md:grid-cols-2 gap-6">
-                  <CompetitiveLandscape data={marketData.competitiveAnalysis} />
+                  <CompetitiveLandscape data={marketData.competitiveAnalysis} nearbyFacilities={marketData.nearbyFacilities} />
                 </div>
               </div>
             )}

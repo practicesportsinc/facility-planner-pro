@@ -283,6 +283,58 @@ function estimateDriveTimePopulations(basePop: number) {
   };
 }
 
+// --- Google Places Nearby Search ---
+interface NearbyFacility {
+  name: string;
+  vicinity: string;
+  rating?: number;
+  types: string[];
+}
+
+async function fetchNearbyFacilities(lat: number, lng: number, radiusMiles: number): Promise<NearbyFacility[]> {
+  const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+  if (!apiKey) {
+    console.log('[analyze-location] No GOOGLE_PLACES_API_KEY set, skipping nearby facilities');
+    return [];
+  }
+
+  const radiusMeters = Math.round(radiusMiles * 1609.34);
+  const keywords = ['sports facility', 'indoor sports', 'batting cage', 'basketball gym', 'volleyball court', 'pickleball court', 'sports complex'];
+  const allFacilities: NearbyFacility[] = [];
+  const seenNames = new Set<string>();
+
+  // Search with a few keywords to get variety
+  for (const keyword of keywords.slice(0, 3)) {
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radiusMeters}&keyword=${encodeURIComponent(keyword)}&key=${apiKey}`;
+      const resp = await fetch(url);
+      if (!resp.ok) continue;
+      const json = await resp.json();
+      if (json.status !== 'OK' && json.status !== 'ZERO_RESULTS') {
+        console.error('[analyze-location] Places API status:', json.status);
+        continue;
+      }
+      for (const place of (json.results || [])) {
+        if (!seenNames.has(place.name)) {
+          seenNames.add(place.name);
+          allFacilities.push({
+            name: place.name,
+            vicinity: place.vicinity || '',
+            rating: place.rating,
+            types: place.types || [],
+          });
+        }
+      }
+    } catch (e) {
+      console.error('[analyze-location] Places API error for keyword:', keyword, e);
+    }
+  }
+
+  // Sort by rating descending, return top 12
+  allFacilities.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  return allFacilities.slice(0, 12);
+}
+
 // --- Main handler ---
 serve(async (req) => {
   const origin = req.headers.get('origin');
@@ -345,7 +397,11 @@ serve(async (req) => {
       region
     );
 
-    // Step 5: Sport participation estimates based on population + demand
+    // Step 5: Nearby facilities via Google Places
+    const nearbyFacilities = await fetchNearbyFacilities(zipData.latitude, zipData.longitude, radius);
+    console.log('[analyze-location] Found', nearbyFacilities.length, 'nearby facilities');
+
+    // Step 6: Sport participation estimates based on population + demand
     const sportsParticipation: Record<string, number> = {};
     for (const [sport, demand] of Object.entries(sportDemandScores)) {
       sportsParticipation[sport] = Math.round((demographics.population15Min * (demand / 100)) * 0.08);
@@ -367,6 +423,7 @@ serve(async (req) => {
       sportsParticipation,
       sportDemandScores,
       competitiveAnalysis,
+      nearbyFacilities,
       dataSource: {
         source: isEstimated ? 'estimated' : 'census',
         year: isEstimated ? 'N/A' : '2022',
