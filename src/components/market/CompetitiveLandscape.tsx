@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Target, TrendingUp, AlertCircle, CheckCircle } from "lucide-react";
+import { Target, TrendingUp, AlertCircle, CheckCircle, MapPin, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FacilityEstimate {
@@ -13,6 +13,13 @@ interface MarketGap {
   reason: string;
 }
 
+interface NearbyFacility {
+  name: string;
+  vicinity: string;
+  rating?: number;
+  types: string[];
+}
+
 interface CompetitiveAnalysisData {
   competitionScore: number;
   facilityEstimates: Record<string, FacilityEstimate>;
@@ -22,10 +29,11 @@ interface CompetitiveAnalysisData {
 
 interface CompetitiveLandscapeProps {
   data: CompetitiveAnalysisData;
+  nearbyFacilities?: NearbyFacility[];
   className?: string;
 }
 
-export const CompetitiveLandscape = ({ data, className }: CompetitiveLandscapeProps) => {
+export const CompetitiveLandscape = ({ data, nearbyFacilities, className }: CompetitiveLandscapeProps) => {
   const { competitionScore, facilityEstimates, marketGaps, insights } = data;
 
   const getScoreColor = (score: number) => {
@@ -172,6 +180,33 @@ export const CompetitiveLandscape = ({ data, className }: CompetitiveLandscapePr
               </li>
             ))}
           </ul>
+        </Card>
+      )}
+
+      {/* Nearby Facilities (from Google Places) */}
+      {nearbyFacilities && nearbyFacilities.length > 0 && (
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="w-5 h-5 text-primary" />
+            <h3 className="text-sm font-medium text-muted-foreground">Nearby Sports Facilities</h3>
+          </div>
+          
+          <div className="space-y-3">
+            {nearbyFacilities.map((facility, index) => (
+              <div key={index} className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{facility.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{facility.vicinity}</p>
+                </div>
+                {facility.rating && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                    <span className="text-xs font-medium">{facility.rating.toFixed(1)}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </Card>
       )}
     </div>
