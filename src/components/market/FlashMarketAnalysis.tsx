@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { MapPin, Loader2, TrendingUp, Users, DollarSign, Baby, Download, ArrowRight, RefreshCw, Wrench, HardHat, Calculator, FileText, Shield, BarChart3, Trophy, Target } from "lucide-react";
+import { MapPin, Loader2, TrendingUp, Users, DollarSign, Download, ArrowRight, RefreshCw, Wrench, HardHat, Calculator, FileText, Shield, BarChart3, Trophy, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketScoreCard } from "./MarketScoreCard";
 import { SportDemandList } from "./SportDemandList";
@@ -80,21 +80,8 @@ export const FlashMarketAnalysis = () => {
   const [zipCode, setZipCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [marketData, setMarketData] = useState<MarketData | null>(null);
-  const [showLeadGate, setShowLeadGate] = useState(false);
-  const [showStickyBar, setShowStickyBar] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const hasAutoAnalyzed = useRef(false);
-  const ctaBannerRef = useRef<HTMLDivElement>(null);
-
-  // IntersectionObserver: hide sticky bar when inline CTA is visible
-  useEffect(() => {
-    if (!marketData || !ctaBannerRef.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setShowStickyBar(!entry.isIntersecting),
-      { threshold: 0.3 }
-    );
-    observer.observe(ctaBannerRef.current);
-    return () => observer.disconnect();
-  }, [marketData]);
 
   // Auto-analyze from URL parameter
   useEffect(() => {
@@ -162,18 +149,16 @@ export const FlashMarketAnalysis = () => {
     await analyzeZip(zipCode);
   };
 
-  const handleDownloadReport = async (leadData: any) => {
+  const handleUnlock = async (leadData: any) => {
     try {
-      // Sync to Google Sheets
       await supabase.functions.invoke('sync-lead-to-sheets', {
         body: {
           ...leadData,
           source: 'flash-market-analysis',
-          source_detail: `report-download-${zipCode}`,
+          source_detail: `report-unlock-${zipCode}`,
         },
       });
 
-      // Send confirmation emails to customer and company
       await supabase.functions.invoke('send-lead-emails', {
         body: {
           customerEmail: leadData.email,
@@ -191,14 +176,13 @@ export const FlashMarketAnalysis = () => {
           source: 'flash-market-analysis',
         },
       });
-      
-      toast.success("Report sent to your email!");
-      setShowLeadGate(false);
+
+      toast.success("Full report unlocked!");
     } catch (error) {
       console.error('Error processing lead:', error);
-      toast.success("Report downloaded successfully!");
-      setShowLeadGate(false);
+      toast.success("Report unlocked!");
     }
+    setIsUnlocked(true);
   };
 
   const handleReset = () => {
@@ -305,146 +289,103 @@ export const FlashMarketAnalysis = () => {
             </div>
           </Card>
 
-          {/* Sport Demand */}
-          <SportDemandList sports={sportDemandArray} className="lg:col-span-2" />
         </div>
 
-        {/* ★ PRIMARY CTA BANNER — peak engagement placement */}
-        <div ref={ctaBannerRef}>
-          <Card className="p-6 md:p-8 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/30">
-            <div className="flex flex-col md:flex-row md:items-center gap-6">
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Download className="w-6 h-6 text-primary" />
-                  <h3 className="text-xl font-bold">Get the Full Market Report</h3>
+        {/* Gated Zone — blurred until lead submits contact info */}
+        <div className="relative">
+          {/* Blurred content */}
+          <div className={!isUnlocked ? "blur-md pointer-events-none select-none" : ""}>
+            {/* Sport Demand */}
+            <div className="mb-6">
+              <SportDemandList sports={sportDemandArray} />
+            </div>
+
+            {/* Competitive Analysis Section */}
+            {marketData.competitiveAnalysis && (
+              <div className="pt-4 mb-6">
+                <h3 className="text-xl font-semibold mb-4">Competitive Landscape</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <CompetitiveLandscape data={marketData.competitiveAnalysis} />
                 </div>
-                <ul className="grid sm:grid-cols-2 gap-1.5 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-1.5">
-                    <ArrowRight className="w-3.5 h-3.5 text-primary shrink-0" />
-                    Competitive gap analysis
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <ArrowRight className="w-3.5 h-3.5 text-primary shrink-0" />
-                    Top 3 recommended sports
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <ArrowRight className="w-3.5 h-3.5 text-primary shrink-0" />
-                    Revenue potential estimate
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <ArrowRight className="w-3.5 h-3.5 text-primary shrink-0" />
-                    Demographic deep-dive
-                  </li>
-                </ul>
-                <p className="text-xs text-muted-foreground">Free — no credit card required</p>
               </div>
-              <Button
-                onClick={() => setShowLeadGate(true)}
-                size="lg"
-                className="bg-gradient-primary text-primary-foreground px-8 shrink-0"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Download Free Report
-              </Button>
-            </div>
-          </Card>
-        </div>
+            )}
 
-        {/* Competitive Analysis Section */}
-        {marketData.competitiveAnalysis && (
-          <div className="pt-4">
-            <h3 className="text-xl font-semibold mb-4">Competitive Landscape</h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <CompetitiveLandscape data={marketData.competitiveAnalysis} />
-            </div>
-          </div>
-        )}
-
-        {/* Next Steps Section */}
-        <div className="pt-8 border-t">
-          <h3 className="text-xl font-semibold mb-2">What's Next?</h3>
-          <p className="text-muted-foreground mb-6">
-            Use your market insights to start planning your facility
-          </p>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Equipment Pricing */}
-            <Link to="/?mode=equipment" className="group">
-              <Card className="p-4 h-full hover:shadow-lg transition-all hover:border-primary/50">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                  <Wrench className="w-6 h-6 text-primary" />
-                </div>
-                <h4 className="font-semibold mb-1">Equipment Pricing</h4>
-                <p className="text-sm text-success mb-2">~2 minutes</p>
-                <p className="text-sm text-muted-foreground">Get detailed equipment quotes for your sport</p>
-              </Card>
-            </Link>
-
-            {/* Building Configuration */}
-            <Link to="/building-config" className="group">
-              <Card className="p-4 h-full hover:shadow-lg transition-all hover:border-orange-500/50">
-                <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                  <HardHat className="w-6 h-6 text-orange-500" />
-                </div>
-                <h4 className="font-semibold mb-1">Building Config</h4>
-                <p className="text-sm text-success mb-2">~3 minutes</p>
-                <p className="text-sm text-muted-foreground">Estimate construction costs for your facility</p>
-              </Card>
-            </Link>
-
-            {/* Full Facility Planning */}
-            <Link to="/calculator" className="group">
-              <Card className="p-4 h-full hover:shadow-lg transition-all border-primary/30 hover:border-primary">
-                <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                  <Calculator className="w-6 h-6 text-secondary" />
-                </div>
-                <h4 className="font-semibold mb-1">Full Facility</h4>
-                <p className="text-sm text-success mb-2">5-10 minutes</p>
-                <p className="text-sm text-muted-foreground">Complete financial model with revenue projections</p>
-              </Card>
-            </Link>
-
-            {/* Business Plan Builder */}
-            <Link to="/business-plan" className="group">
-              <Card className="p-4 h-full hover:shadow-lg transition-all hover:border-blue-500/50">
-                <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                  <FileText className="w-6 h-6 text-blue-500" />
-                </div>
-                <h4 className="font-semibold mb-1">Business Plan</h4>
-                <p className="text-sm text-info mb-2">~15 minutes</p>
-                <p className="text-sm text-muted-foreground">Create investor-ready plan for this market</p>
-              </Card>
-            </Link>
-          </div>
-        </div>
-
-        {/* Sticky Bottom Bar CTA */}
-        {showStickyBar && (
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-t shadow-lg">
-            <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
-              <p className="text-sm font-medium hidden sm:block">
-                Get the full market report for {marketData.location.city}, {marketData.location.state}
+            {/* Next Steps Section */}
+            <div className="pt-8 border-t">
+              <h3 className="text-xl font-semibold mb-2">What's Next?</h3>
+              <p className="text-muted-foreground mb-6">
+                Use your market insights to start planning your facility
               </p>
-              <Button
-                onClick={() => setShowLeadGate(true)}
-                className="bg-gradient-primary text-primary-foreground ml-auto"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download Free Report
-              </Button>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Link to="/?mode=equipment" className="group">
+                  <Card className="p-4 h-full hover:shadow-lg transition-all hover:border-primary/50">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Wrench className="w-6 h-6 text-primary" />
+                    </div>
+                    <h4 className="font-semibold mb-1">Equipment Pricing</h4>
+                    <p className="text-sm text-muted-foreground">Get detailed equipment quotes for your sport</p>
+                  </Card>
+                </Link>
+
+                <Link to="/building-config" className="group">
+                  <Card className="p-4 h-full hover:shadow-lg transition-all hover:border-primary/50">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <HardHat className="w-6 h-6 text-primary" />
+                    </div>
+                    <h4 className="font-semibold mb-1">Building Config</h4>
+                    <p className="text-sm text-muted-foreground">Estimate construction costs for your facility</p>
+                  </Card>
+                </Link>
+
+                <Link to="/calculator" className="group">
+                  <Card className="p-4 h-full hover:shadow-lg transition-all border-primary/30 hover:border-primary">
+                    <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Calculator className="w-6 h-6 text-secondary" />
+                    </div>
+                    <h4 className="font-semibold mb-1">Full Facility</h4>
+                    <p className="text-sm text-muted-foreground">Complete financial model with revenue projections</p>
+                  </Card>
+                </Link>
+
+                <Link to="/business-plan" className="group">
+                  <Card className="p-4 h-full hover:shadow-lg transition-all hover:border-primary/50">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <FileText className="w-6 h-6 text-primary" />
+                    </div>
+                    <h4 className="font-semibold mb-1">Business Plan</h4>
+                    <p className="text-sm text-muted-foreground">Create investor-ready plan for this market</p>
+                  </Card>
+                </Link>
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Lead Gate Modal */}
-        <LeadGate
-          isOpen={showLeadGate}
-          onClose={() => setShowLeadGate(false)}
-          onSubmit={handleDownloadReport}
-          title="Download Market Analysis Report"
-          description="Enter your information to receive the full market analysis report for this location"
-          showOutreachField={false}
-        />
+          {/* Overlay + inline lead gate (only when locked) */}
+          {!isUnlocked && (
+            <div className="absolute inset-0 flex flex-col items-center justify-start pt-8">
+              {/* Gradient fade from transparent to background */}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/70 to-background pointer-events-none" />
+              
+              {/* Inline lead capture form */}
+              <div className="relative z-10 w-full max-w-lg mx-auto">
+                <LeadGate
+                  isOpen={true}
+                  onClose={() => {}}
+                  onSubmit={handleUnlock}
+                  mode="inline"
+                  title="🔓 Unlock the Full Market Report"
+                  description="Enter your contact info to see sport demand rankings, competitive landscape, and next steps"
+                  defaultCity={marketData.location.city}
+                  defaultState={marketData.location.state}
+                  showOutreachField={false}
+                  showCancelButton={false}
+                  submitButtonText="Unlock Full Report"
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
