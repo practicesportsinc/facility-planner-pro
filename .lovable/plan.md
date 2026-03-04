@@ -1,33 +1,34 @@
 
+Goal
+- Make Flash Market Analysis require contact info again for each new analysis run.
 
-## Diagnosis: LeadGate Unlock Not Working
+What I found
+- The unlock state is held in `isUnlocked` inside `src/components/market/FlashMarketAnalysis.tsx`.
+- `handleUnlock()` sets `isUnlocked` to `true`.
+- `handleReset()` currently clears `marketData` and `zipCode`, but does not reset `isUnlocked`.
+- Result: after one successful unlock, a “New Analysis” can still show ungated content because unlock state carries over in the same component session.
 
-After reviewing the code structure, the issue is a **layering/interaction problem** in the gated zone (lines 354-463 of `FlashMarketAnalysis.tsx`).
+Implementation plan
+1. Reset unlock state on “New Analysis”
+- Update `handleReset()` to also call `setIsUnlocked(false)`.
 
-The overlay structure is:
-```text
-<div class="relative">                              ← gated zone container
-  <div class="blur-md pointer-events-none ...">      ← tall blurred content
-    Revenue Breakdown, Competitive Landscape, Next Steps...
-  </div>
-  <div class="absolute inset-0 ...">                 ← overlay (no z-index!)
-    <div class="absolute inset-0 gradient pointer-events-none" />
-    <div class="relative z-10">                      ← form
-      <LeadGate />
-    </div>
-  </div>
-</div>
-```
+2. Add defensive reset on each analysis start
+- In `analyzeZip(zip)`, set `setIsUnlocked(false)` before invoking the edge function so every fresh analysis starts locked (covers any alternate trigger paths too).
 
-**Problem**: The overlay div (`absolute inset-0`) has no explicit z-index. In some rendering contexts, it can end up behind other stacking contexts on the page. The gradient also covers the form area. Additionally, the relative container has no `overflow-hidden`, so the tall blurred content pushes the overall page height, making it look like interactive content below.
+3. Keep existing lead-capture flow unchanged
+- Do not change `LeadGate`, submission handlers, or edge functions.
+- Keep current unlock copy and overlay behavior exactly as-is.
 
-### Fix (single file: `src/components/market/FlashMarketAnalysis.tsx`)
+Validation plan
+1. Run analysis for ZIP A (e.g., 68138) → confirm lead gate appears.
+2. Submit contact info → confirm gated sections unlock.
+3. Click “New Analysis,” run ZIP B (e.g., 68046) → confirm lead gate appears again before deep sections.
+4. Repeat with same ZIP again to verify it still re-gates per new run.
+5. Confirm no regressions: top free cards still visible, unlock still triggers existing lead sync/email calls.
 
-1. **Add `overflow-hidden` and `z-10` to the relative gated zone container** (line 355) — clips the blurred content and establishes a proper stacking context.
-
-2. **Add `z-20` to the overlay container** (line 442) — ensures the overlay and its form sit definitively above the blurred content.
-
-3. **Add `pointer-events-auto` to the form container** (line 447) — explicitly ensures the form receives interaction events even if a parent absorbs them.
-
-These are small class additions to 3 existing elements. No structural changes.
-
+Technical details
+- File to update: `src/components/market/FlashMarketAnalysis.tsx`
+- Functions touched:
+  - `handleReset()`: add `setIsUnlocked(false)`
+  - `analyzeZip(zip: string)`: add `setIsUnlocked(false)` at start of valid analysis flow
+- No schema, RLS, or Supabase function changes required.
