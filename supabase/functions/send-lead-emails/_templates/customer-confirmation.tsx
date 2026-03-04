@@ -33,6 +33,30 @@ interface BuildingTotals {
   grandTotal: number;
 }
 
+interface MarketAnalysisData {
+  location: string;
+  marketScore: number;
+  marketVerdict: string;
+  demographics: {
+    population10Min: number;
+    population15Min: number;
+    population20Min: number;
+    medianIncome: number;
+    youthPercentage: number;
+    populationGrowthRate: number;
+  };
+  sportDemand: Array<{ sport: string; score: number }>;
+  competitionScore?: number;
+  marketGaps?: Array<{ sport: string; opportunity: number; reason: string }>;
+  revenuePotential: {
+    totalLow: number;
+    totalHigh: number;
+    topSports: Array<{ sport: string; revenueLow: number; revenueHigh: number; participants: number }>;
+  };
+  nearbyFacilities?: Array<{ name: string; vicinity: string }>;
+  insights?: string[];
+}
+
 interface CustomerConfirmationEmailProps {
   customerName: string;
   facilityDetails?: {
@@ -55,8 +79,8 @@ interface CustomerConfirmationEmailProps {
   };
   buildingLineItems?: EquipmentCategory[];
   buildingTotals?: BuildingTotals;
+  marketAnalysis?: MarketAnalysisData;
 }
-
 export const CustomerConfirmationEmail = ({
   customerName,
   facilityDetails,
@@ -65,17 +89,145 @@ export const CustomerConfirmationEmail = ({
   equipmentTotals,
   buildingLineItems,
   buildingTotals,
-}: CustomerConfirmationEmailProps) => (
+  marketAnalysis,
+}: CustomerConfirmationEmailProps) => {
+  const formatNum = (n: number) => n.toLocaleString();
+  const formatCurrency = (n: number) => '$' + n.toLocaleString();
+  const formatRevenue = (n: number) => {
+    if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+    return `$${n}`;
+  };
+  const getScoreColor = (score: number) => {
+    if (score >= 70) return '#22c55e';
+    if (score >= 50) return '#f59e0b';
+    return '#ef4444';
+  };
+
+  return (
   <Html>
     <Head />
-    <Preview>Thank you for your interest in building a sports facility</Preview>
+    <Preview>{marketAnalysis ? `Market Analysis: ${marketAnalysis.marketScore}/100 — ${marketAnalysis.marketVerdict}` : 'Thank you for your interest in building a sports facility'}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Thank You, {customerName}!</Heading>
+        <Heading style={h1}>{marketAnalysis ? `📊 Your Market Analysis Results` : `Thank You, ${customerName}!`}</Heading>
         
         <Text style={text}>
-          We've received your facility planning request and are excited to help you bring your vision to life.
+          {marketAnalysis 
+            ? `Hi ${customerName}, here are the highlights from your market analysis for ${marketAnalysis.location}.`
+            : `We've received your facility planning request and are excited to help you bring your vision to life.`
+          }
         </Text>
+
+        {/* ── Market Analysis Section ── */}
+        {marketAnalysis && (
+          <>
+            {/* Score */}
+            <Section style={marketScoreBox}>
+              <table style={{ width: '100%' }}>
+                <tbody>
+                  <tr>
+                    <td>
+                      <span style={{ fontSize: '48px', fontWeight: 'bold', color: getScoreColor(marketAnalysis.marketScore) }}>
+                        {marketAnalysis.marketScore}
+                      </span>
+                      <span style={{ fontSize: '24px', color: '#9ca3af' }}>/100</span>
+                    </td>
+                    <td style={{ textAlign: 'right' as const, verticalAlign: 'bottom' as const }}>
+                      <span style={{ fontSize: '18px', fontWeight: 'bold', color: getScoreColor(marketAnalysis.marketScore) }}>
+                        {marketAnalysis.marketVerdict}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </Section>
+
+            {/* Demographics */}
+            <Section style={summaryBox}>
+              <Heading style={h2}>👥 Demographics</Heading>
+              <table style={{ width: '100%', fontSize: '14px' }}>
+                <tbody>
+                  <tr><td style={demoLabel}>Population (15 min)</td><td style={demoValue}>{formatNum(marketAnalysis.demographics.population15Min)}</td></tr>
+                  <tr><td style={demoLabel}>Median Income</td><td style={demoValue}>{formatCurrency(marketAnalysis.demographics.medianIncome)}</td></tr>
+                  <tr><td style={demoLabel}>Youth (under 18)</td><td style={demoValue}>{marketAnalysis.demographics.youthPercentage.toFixed(1)}%</td></tr>
+                  <tr><td style={demoLabel}>Growth Rate</td><td style={demoValue}>{marketAnalysis.demographics.populationGrowthRate.toFixed(1)}%</td></tr>
+                </tbody>
+              </table>
+            </Section>
+
+            {/* Top Sports */}
+            <Section style={summaryBox}>
+              <Heading style={h2}>🏆 Top Sports by Demand</Heading>
+              <table style={{ width: '100%', fontSize: '14px' }}>
+                <tbody>
+                  {marketAnalysis.sportDemand.slice(0, 5).map((s, i) => (
+                    <tr key={i}>
+                      <td style={demoLabel}>{s.sport.charAt(0).toUpperCase() + s.sport.slice(1)}</td>
+                      <td style={{ ...demoValue, color: getScoreColor(s.score) }}>{s.score}/100</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Section>
+
+            {/* Revenue Potential */}
+            <Section style={estimatesBox}>
+              <Heading style={h2}>💰 Revenue Potential</Heading>
+              <Text style={{ fontSize: '20px', fontWeight: 'bold', color: '#333', margin: '0 0 12px 0' }}>
+                {formatRevenue(marketAnalysis.revenuePotential.totalLow)} – {formatRevenue(marketAnalysis.revenuePotential.totalHigh)}
+                <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'normal' }}> /year (top 3 sports)</span>
+              </Text>
+              <table style={{ width: '100%', fontSize: '13px' }}>
+                <tbody>
+                  {marketAnalysis.revenuePotential.topSports.map((s, i) => (
+                    <tr key={i}>
+                      <td style={demoLabel}>{s.sport}</td>
+                      <td style={demoValue}>{formatRevenue(s.revenueLow)} – {formatRevenue(s.revenueHigh)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Section>
+
+            {/* Competition */}
+            {marketAnalysis.competitionScore != null && (
+              <Section style={summaryBox}>
+                <Heading style={h2}>🏢 Competition Level</Heading>
+                <Text style={{ fontSize: '14px', color: '#333', margin: '0' }}>
+                  Competition Score: <strong style={{ color: getScoreColor(100 - marketAnalysis.competitionScore) }}>{marketAnalysis.competitionScore}/100</strong>
+                  {marketAnalysis.competitionScore < 40 ? ' — Low competition' : marketAnalysis.competitionScore < 70 ? ' — Moderate competition' : ' — High competition'}
+                </Text>
+              </Section>
+            )}
+
+            {/* Market Gaps */}
+            {marketAnalysis.marketGaps && marketAnalysis.marketGaps.length > 0 && (
+              <Section style={summaryBox}>
+                <Heading style={h2}>🎯 Market Gaps & Opportunities</Heading>
+                {marketAnalysis.marketGaps.map((g, i) => (
+                  <Text key={i} style={{ fontSize: '14px', color: '#333', margin: '4px 0' }}>
+                    <strong>{g.sport}:</strong> {g.reason}
+                  </Text>
+                ))}
+              </Section>
+            )}
+
+            {/* Nearby Facilities */}
+            {marketAnalysis.nearbyFacilities && marketAnalysis.nearbyFacilities.length > 0 && (
+              <Section style={summaryBox}>
+                <Heading style={h2}>📍 Nearby Facilities</Heading>
+                {marketAnalysis.nearbyFacilities.map((f, i) => (
+                  <Text key={i} style={{ fontSize: '13px', color: '#333', margin: '4px 0' }}>
+                    <strong>{f.name}</strong> — {f.vicinity}
+                  </Text>
+                ))}
+              </Section>
+            )}
+
+            <Hr style={hr} />
+          </>
+        )}
 
         {facilityDetails && (
           <Section style={summaryBox}>
@@ -284,7 +436,8 @@ export const CustomerConfirmationEmail = ({
       </Container>
     </Body>
   </Html>
-);
+  );
+};
 
 export default CustomerConfirmationEmail;
 
@@ -498,4 +651,26 @@ const footer = {
   padding: '0 20px',
   marginTop: '40px',
   textAlign: 'center' as const,
+};
+
+const marketScoreBox = {
+  backgroundColor: '#f0f7ff',
+  border: '2px solid #3b82f6',
+  borderRadius: '8px',
+  padding: '20px',
+  margin: '20px 20px',
+};
+
+const demoLabel = {
+  padding: '4px 0',
+  color: '#6b7280',
+  fontSize: '14px',
+};
+
+const demoValue = {
+  padding: '4px 0',
+  textAlign: 'right' as const,
+  fontWeight: 'bold' as const,
+  color: '#333',
+  fontSize: '14px',
 };

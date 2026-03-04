@@ -26,6 +26,30 @@ interface EquipmentCategory {
   subtotal: number;
 }
 
+interface MarketAnalysisData {
+  location: string;
+  marketScore: number;
+  marketVerdict: string;
+  demographics: {
+    population10Min: number;
+    population15Min: number;
+    population20Min: number;
+    medianIncome: number;
+    youthPercentage: number;
+    populationGrowthRate: number;
+  };
+  sportDemand: Array<{ sport: string; score: number }>;
+  competitionScore?: number;
+  marketGaps?: Array<{ sport: string; opportunity: number; reason: string }>;
+  revenuePotential: {
+    totalLow: number;
+    totalHigh: number;
+    topSports: Array<{ sport: string; revenueLow: number; revenueHigh: number; participants: number }>;
+  };
+  nearbyFacilities?: Array<{ name: string; vicinity: string }>;
+  insights?: string[];
+}
+
 interface CompanyNotificationEmailProps {
   leadData: {
     name: string;
@@ -65,10 +89,10 @@ interface CompanyNotificationEmailProps {
     contingency: number;
     grandTotal: number;
   };
+  marketAnalysis?: MarketAnalysisData;
   source: string;
   timestamp: string;
 }
-
 export const CompanyNotificationEmail = ({
   leadData,
   facilityDetails,
@@ -77,11 +101,24 @@ export const CompanyNotificationEmail = ({
   equipmentTotals,
   buildingLineItems,
   buildingTotals,
+  marketAnalysis,
   source,
   timestamp,
 }: CompanyNotificationEmailProps) => {
   const location = leadData.location || 
     (leadData.city && leadData.state ? `${leadData.city}, ${leadData.state}` : null);
+  const formatNum = (n: number) => n.toLocaleString();
+  const formatCurrency = (n: number) => '$' + n.toLocaleString();
+  const formatRevenue = (n: number) => {
+    if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+    return `$${n}`;
+  };
+  const getScoreColor = (score: number) => {
+    if (score >= 70) return '#22c55e';
+    if (score >= 50) return '#f59e0b';
+    return '#ef4444';
+  };
 
   return (
     <Html>
@@ -139,6 +176,109 @@ export const CompanyNotificationEmail = ({
           </Section>
 
           <Hr style={hr} />
+
+          {/* Market Analysis Section */}
+          {marketAnalysis && (
+            <>
+              <Section style={section}>
+                <Heading style={h2}>📊 Market Analysis Report</Heading>
+                <Text style={{ fontSize: '14px', color: '#666', margin: '0 0 12px 0' }}>
+                  Location: <strong>{marketAnalysis.location}</strong>
+                </Text>
+                <table style={infoTable}>
+                  <tbody>
+                    <tr>
+                      <td style={labelCell}><strong>Market Score:</strong></td>
+                      <td style={valueCell}>
+                        <span style={{ color: getScoreColor(marketAnalysis.marketScore), fontWeight: 'bold' as const }}>
+                          {marketAnalysis.marketScore}/100 — {marketAnalysis.marketVerdict}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={labelCell}><strong>Population (15 min):</strong></td>
+                      <td style={valueCell}>{formatNum(marketAnalysis.demographics.population15Min)}</td>
+                    </tr>
+                    <tr>
+                      <td style={labelCell}><strong>Median Income:</strong></td>
+                      <td style={valueCell}>{formatCurrency(marketAnalysis.demographics.medianIncome)}</td>
+                    </tr>
+                    <tr>
+                      <td style={labelCell}><strong>Youth %:</strong></td>
+                      <td style={valueCell}>{marketAnalysis.demographics.youthPercentage.toFixed(1)}%</td>
+                    </tr>
+                    <tr>
+                      <td style={labelCell}><strong>Growth Rate:</strong></td>
+                      <td style={valueCell}>{marketAnalysis.demographics.populationGrowthRate.toFixed(1)}%</td>
+                    </tr>
+                    <tr>
+                      <td style={labelCell}><strong>Revenue Potential:</strong></td>
+                      <td style={valueCell}>
+                        <strong>{formatRevenue(marketAnalysis.revenuePotential.totalLow)} – {formatRevenue(marketAnalysis.revenuePotential.totalHigh)}</strong> /year
+                      </td>
+                    </tr>
+                    {marketAnalysis.competitionScore != null && (
+                      <tr>
+                        <td style={labelCell}><strong>Competition Score:</strong></td>
+                        <td style={valueCell}>{marketAnalysis.competitionScore}/100</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+
+                {/* Top Sports */}
+                <Text style={{ ...categoryHeader, marginTop: '16px' }}>Top Sports by Demand</Text>
+                <table style={infoTable}>
+                  <tbody>
+                    {marketAnalysis.sportDemand.slice(0, 5).map((s, i) => (
+                      <tr key={i}>
+                        <td style={labelCell}>{s.sport.charAt(0).toUpperCase() + s.sport.slice(1)}</td>
+                        <td style={valueCell}><strong style={{ color: getScoreColor(s.score) }}>{s.score}</strong>/100</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Revenue by Sport */}
+                <Text style={{ ...categoryHeader, marginTop: '16px' }}>Revenue by Sport</Text>
+                <table style={infoTable}>
+                  <tbody>
+                    {marketAnalysis.revenuePotential.topSports.map((s, i) => (
+                      <tr key={i}>
+                        <td style={labelCell}>{s.sport}</td>
+                        <td style={valueCell}>{formatRevenue(s.revenueLow)} – {formatRevenue(s.revenueHigh)} ({formatNum(s.participants)} participants)</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Market Gaps */}
+                {marketAnalysis.marketGaps && marketAnalysis.marketGaps.length > 0 && (
+                  <>
+                    <Text style={{ ...categoryHeader, marginTop: '16px' }}>Market Gaps</Text>
+                    {marketAnalysis.marketGaps.map((g, i) => (
+                      <Text key={i} style={{ fontSize: '13px', color: '#333', margin: '4px 0' }}>
+                        <strong>{g.sport}:</strong> {g.reason} (opportunity: {g.opportunity})
+                      </Text>
+                    ))}
+                  </>
+                )}
+
+                {/* Nearby Facilities */}
+                {marketAnalysis.nearbyFacilities && marketAnalysis.nearbyFacilities.length > 0 && (
+                  <>
+                    <Text style={{ ...categoryHeader, marginTop: '16px' }}>Nearby Facilities</Text>
+                    {marketAnalysis.nearbyFacilities.map((f, i) => (
+                      <Text key={i} style={{ fontSize: '13px', color: '#333', margin: '4px 0' }}>
+                        <strong>{f.name}</strong> — {f.vicinity}
+                      </Text>
+                    ))}
+                  </>
+                )}
+              </Section>
+              <Hr style={hr} />
+            </>
+          )}
 
           {facilityDetails && (
             <>
