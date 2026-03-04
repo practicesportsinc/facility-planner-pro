@@ -451,7 +451,7 @@ export const FlashMarketAnalysis = () => {
                   onSubmit={handleUnlock}
                   mode="inline"
                   title="🔓 Unlock the Full Market Report"
-                  description="Enter your contact info to see sport demand rankings, competitive landscape, and next steps"
+                  description="See which facilities are already nearby, where the market gaps are, and how much revenue each sport can generate in your area"
                   defaultCity={marketData.location.city}
                   defaultState={marketData.location.state}
                   showOutreachField={false}
