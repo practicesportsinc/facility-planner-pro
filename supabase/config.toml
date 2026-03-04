@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.send-maintenance-reminders]
 verify_jwt = false
+
+[functions.save-maintenance-plan]
+verify_jwt = false
